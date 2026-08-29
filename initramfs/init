@@ -1,0 +1,37 @@
+#!/bin/sh
+
+echo
+echo "========================================"
+echo "          AIRAOS LINUX"
+echo "========================================"
+echo
+
+mount -t devtmpfs devtmpfs /dev
+mount -t proc proc /proc
+mount -t sysfs sysfs /sys
+
+echo "AiraOS Linux kernel is alive."
+echo
+
+echo "Kernel:"
+uname -a
+echo
+
+echo "CPU:"
+grep -m1 "model name" /proc/cpuinfo
+echo
+
+echo "Memory:"
+grep MemTotal /proc/meminfo
+echo
+
+echo "========================================"
+echo "        AiraOS userspace ready"
+echo "========================================"
+echo
+
+echo "Available commands:"
+echo "  ls  cat  ps  free  mount  dmesg  uname"
+echo
+
+exec /bin/sh
