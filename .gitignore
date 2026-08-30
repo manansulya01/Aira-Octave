@@ -13,3 +13,8 @@ build/
 initramfs.cpio
 *.log
 *.tmp
+
+# Autonomous build/test output
+logs/*.log
+logs/autonomous-*.txt
+logs/autonomous-errors.txt
