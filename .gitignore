@@ -1,0 +1,15 @@
+linux-7.2.2.tar.xz
+linux-7.2.2/arch/x86/boot/bzImage
+linux-7.2.2/vmlinux
+linux-7.2.2/System.map
+linux-7.2.2/modules.order
+linux-7.2.2/modules.builtin
+linux-7.2.2/modules.builtin.modinfo
+build/
+*.o
+*.ko
+*.a
+*.so
+initramfs.cpio
+*.log
+*.tmp
