@@ -1,0 +1,30 @@
+Kernel Makefile identity:
+VERSION = 7
+PATCHLEVEL = 2
+SUBLEVEL = 2
+EXTRAVERSION =
+
+Kernel version:
+7.2.2
+
+Kernel directory:
+2.7G	/home/manan/Aira-Octave/linux-7.2.2
+
+Kernel source file count:
+106312
+
+Kernel git status, if this is a git tree:
+ M ../initramfs.cpio
+?? ../logs/initramfs-20260830-082619.sha256
+?? ../logs/initramfs-result.txt
+?? ../logs/initramfs.sha256
+?? ../logs/octave-audit-20260908-103825/
+?? ../reports/kernel-foundation-20260830-082619.txt
+?? ../scripts/
+
+Kernel git revision, if available:
+83a73251c38ad5e721f64912e0750cae510077ed
+
+Kernel git remote, if available:
+origin	https://github.com/manansulya01/Aira-Octave.git (fetch)
+origin	https://github.com/manansulya01/Aira-Octave.git (push)

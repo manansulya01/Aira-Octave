@@ -1,0 +1,56 @@
+Git root:
+/home/manan/Aira-Octave
+
+Current branch:
+main
+
+HEAD:
+83a73251c38ad5e721f64912e0750cae510077ed
+
+Last commits:
+83a73251c (HEAD -> main, origin/main) test: autonomous kernel and userspace validation
+1eec0061e test: rebuild and boot-test Aira Octave
+44935635f chore: remove large Linux source archive
+f677e7377 feat: boot AiraOS Linux userspace
+
+Repository status:
+ M initramfs.cpio
+?? logs/initramfs-20260830-082619.sha256
+?? logs/initramfs-result.txt
+?? logs/initramfs.sha256
+?? logs/octave-audit-20260908-103825/
+?? reports/kernel-foundation-20260830-082619.txt
+?? scripts/
+
+Top-level files:
+./.gitignore
+./configs/airaos-x86_64-working.config
+./configs/airaos-x86_64.config
+./initramfs.cpio
+./initramfs/init
+./linux-7.2.2.tar.xz
+./logs/AIRA-OCTAVE-BUILD-REPORT.txt
+./logs/autonomous-20260830-063845.log
+./logs/autonomous-build-start.txt
+./logs/autonomous-errors.txt
+./logs/autonomous-full-20260830-070926.log
+./logs/autonomous-kernel-build.log
+./logs/autonomous-olddefconfig.log
+./logs/autonomous-qemu.log
+./logs/build-start.log
+./logs/initramfs-20260830-082619.sha256
+./logs/initramfs-build.log
+./logs/initramfs-result.txt
+./logs/initramfs.sha256
+./logs/kernel-build.log
+./logs/kernel-foundation-20260830-082619.log
+./logs/kernel-foundation-boot-20260830-082619.log
+./logs/kernel-k34-boot-20260830-082619.log
+./logs/qemu-autonomous-20260830-070926.log
+./logs/qemu-boot.log
+./logs/qemu-clean-boot.log
+./logs/qemu-direct-debug.log
+./reports/AIRA-OCTAVE-AUTONOMOUS-REPORT.txt
+./reports/kernel-foundation-20260830-082619.txt
+./scripts/boot-qemu-autonomous.sh
+./test/airaos-bzImage

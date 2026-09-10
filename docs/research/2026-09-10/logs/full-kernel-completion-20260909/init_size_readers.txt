@@ -1,0 +1,15 @@
+linux-7.2.2/arch/x86/boot/compressed/head_32.S:	addl    BP_init_size(%esi), %ebx
+linux-7.2.2/arch/x86/boot/compressed/head_64.S:	addl	BP_init_size(%esi), %ebx
+linux-7.2.2/arch/x86/boot/compressed/head_64.S:	movl	BP_init_size(%rsi), %ebx
+linux-7.2.2/arch/x86/boot/compressed/kaslr.c: *  - kernel_total_size <= init_size
+linux-7.2.2/arch/x86/boot/compressed/kaslr.c: *  - output + init_size >= output + output_size
+linux-7.2.2/arch/x86/boot/compressed/kaslr.c: * 0   output            input            input+input_size    output+init_size
+linux-7.2.2/arch/x86/boot/compressed/kaslr.c: * output+init_size-ZO_INIT_SIZE  output+output_size  output+kernel_total_size
+linux-7.2.2/arch/x86/boot/compressed/kaslr.c: * [output, output+init_size) is the entire memory range used for
+linux-7.2.2/arch/x86/boot/compressed/kaslr.c: * [output+init_size-ZO_INIT_SIZE, output+init_size) is the worst-case
+linux-7.2.2/arch/x86/boot/compressed/kaslr.c: * covered backwards of size ZO_INIT_SIZE, starting from output+init_size.)
+linux-7.2.2/arch/x86/boot/compressed/kaslr.c: * [input+input_size, output+init_size) is [_text, _end) for ZO. This
+linux-7.2.2/arch/x86/boot/compressed/kaslr.c: * they can be merged, resulting in: [input, output+init_size) which
+linux-7.2.2/arch/x86/boot/compressed/kaslr.c:	unsigned long init_size = boot_params_ptr->hdr.init_size;
+linux-7.2.2/arch/x86/boot/compressed/kaslr.c:	mem_avoid[MEM_AVOID_ZO_RANGE].size = (output + init_size) - input;
+linux-7.2.2/arch/x86/boot/header.S:init_size:		.long INIT_SIZE		# kernel initialization size

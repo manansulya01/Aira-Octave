@@ -1,0 +1,1 @@
+32fe5899ea07d9048e7a70ae5a89abd874cc0145468cc971d62a0711725a4ea6  /home/manan/Aira-Octave/initramfs.cpio

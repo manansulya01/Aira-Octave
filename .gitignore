@@ -18,3 +18,15 @@ initramfs.cpio
 logs/*.log
 logs/autonomous-*.txt
 logs/autonomous-errors.txt
+
+# AiraOS-Octave generated/local migration artifacts
+aira-octave-test.iso
+octave-boot-test/
+test
+octave-pure.err
+octave-pure.log
+migration-preserve/
+linux-7.2.2/current_build.log
+
+# Local research archive is explicitly versioned below
+docs/research/2026-09-10/

@@ -1,0 +1,3073 @@
+/* SPDX-License-Identifier: GPL-2.0 */
+/*
+ *	header.S
+ *
+ *	Copyright (C) 1991, 1992 Linus Torvalds
+ *
+ *	Based on bootsect.S and setup.S
+ *	modified by more people than can be counted
+ *
+ *	Rewritten as a common file by H. Peter Anvin (Apr 2007)
+ *
+ * BIG FAT NOTE: We're in real mode using 64k segments.  Therefore segment
+ * addresses must be multiplied by 16 to obtain their respective linear
+ * addresses. To avoid confusion, linear addresses are written using leading
+ * hex while segment addresses are written as segment:offset.
+ *
+ */
+#include <linux/pe.h>
+#include <asm/segment.h>
+#include <asm/boot.h>
+#include <asm/page_types.h>
+#include <asm/setup.h>
+#include <asm/bootparam.h>
+#include "boot.h"
+#include "voffset.h"
+#include "zoffset.h"
+
+BOOTSEG		= 0x07C0		/* original address of boot-sector */
+SYSSEG		= 0x1000		/* historical load address >> 4 */
+
+#ifndef SVGA_MODE
+#define SVGA_MODE ASK_VGA
+#endif
+
+#ifndef ROOT_RDONLY
+#define ROOT_RDONLY 1
+#endif
+
+	.set	salign, 0x1000
+	.set	falign, 0x200
+
+	.code16
+	.section ".bstext", "ax"
+#ifdef CONFIG_EFI_STUB
+	# "MZ", MS-DOS header
+	.word	IMAGE_DOS_SIGNATURE
+	.org	0x38
+	#
+	# Offset to the PE header.
+	#
+	.long	LINUX_PE_MAGIC
+	.long	pe_header
+pe_header:
+	.long	IMAGE_NT_SIGNATURE
+
+coff_header:
+#ifdef CONFIG_X86_32
+	.set	image_file_add_flags, IMAGE_FILE_32BIT_MACHINE
+	.set	pe_opt_magic, IMAGE_NT_OPTIONAL_HDR32_MAGIC
+	.word	IMAGE_FILE_MACHINE_I386
+#else
+	.set	image_file_add_flags, 0
+	.set	pe_opt_magic, IMAGE_NT_OPTIONAL_HDR64_MAGIC
+	.word	IMAGE_FILE_MACHINE_AMD64
+#endif
+	.word	section_count			# nr_sections
+	.long	0 				# TimeDateStamp
+	.long	0				# PointerToSymbolTable
+	.long	1				# NumberOfSymbols
+	.word	section_table - optional_header	# SizeOfOptionalHeader
+	.word	IMAGE_FILE_EXECUTABLE_IMAGE	| \
+		image_file_add_flags		| \
+		IMAGE_FILE_DEBUG_STRIPPED	| \
+		IMAGE_FILE_LINE_NUMS_STRIPPED	# Characteristics
+
+optional_header:
+	.word	pe_opt_magic
+	.byte	0x02				# MajorLinkerVersion
+	.byte	0x14				# MinorLinkerVersion
+
+	.long	ZO__data			# SizeOfCode
+
+	.long	ZO__end - ZO__data		# SizeOfInitializedData
+	.long	0				# SizeOfUninitializedData
+
+	.long	setup_size + ZO_efi_pe_entry	# AddressOfEntryPoint
+
+	.long	setup_size			# BaseOfCode
+#ifdef CONFIG_X86_32
+	.long	0				# data
+#endif
+
+extra_header_fields:
+#ifdef CONFIG_X86_32
+	.long	0				# ImageBase
+#else
+	.quad	0				# ImageBase
+#endif
+	.long	salign				# SectionAlignment
+	.long	falign				# FileAlignment
+	.word	0				# MajorOperatingSystemVersion
+	.word	0				# MinorOperatingSystemVersion
+	.word	LINUX_EFISTUB_MAJOR_VERSION	# MajorImageVersion
+	.word	LINUX_EFISTUB_MINOR_VERSION	# MinorImageVersion
+	.word	0				# MajorSubsystemVersion
+	.word	0				# MinorSubsystemVersion
+	.long	0				# Win32VersionValue
+
+	.long	setup_size + ZO__end		# SizeOfImage
+
+	.long	salign				# SizeOfHeaders
+	.long	0				# CheckSum
+	.word	IMAGE_SUBSYSTEM_EFI_APPLICATION	# Subsystem (EFI application)
+	.word	IMAGE_DLLCHARACTERISTICS_NX_COMPAT	# DllCharacteristics
+#ifdef CONFIG_X86_32
+	.long	0				# SizeOfStackReserve
+	.long	0				# SizeOfStackCommit
+	.long	0				# SizeOfHeapReserve
+	.long	0				# SizeOfHeapCommit
+#else
+	.quad	0				# SizeOfStackReserve
+	.quad	0				# SizeOfStackCommit
+	.quad	0				# SizeOfHeapReserve
+	.quad	0				# SizeOfHeapCommit
+#endif
+	.long	0				# LoaderFlags
+	.long	(section_table - .) / 8		# NumberOfRvaAndSizes
+
+	.quad	0				# ExportTable
+	.quad	0				# ImportTable
+	.quad	0				# ResourceTable
+	.quad	0				# ExceptionTable
+	.quad	0				# CertificationTable
+	.quad	0				# BaseRelocationTable
+
+	# Section table
+section_table:
+	.ascii	".setup"
+	.byte	0
+	.byte	0
+	.long	pecompat_fstart - salign 	# VirtualSize
+	.long	salign				# VirtualAddress
+	.long	pecompat_fstart - salign	# SizeOfRawData
+	.long	salign				# PointerToRawData
+
+	.long	0, 0, 0
+	.long	IMAGE_SCN_CNT_INITIALIZED_DATA	| \
+		IMAGE_SCN_MEM_READ		| \
+		IMAGE_SCN_MEM_DISCARDABLE	# Characteristics
+
+#ifdef CONFIG_EFI_MIXED
+	.asciz	".compat"
+
+	.long	pecompat_fsize			# VirtualSize
+	.long	pecompat_fstart			# VirtualAddress
+	.long	pecompat_fsize			# SizeOfRawData
+	.long	pecompat_fstart			# PointerToRawData
+
+	.long	0, 0, 0
+	.long	IMAGE_SCN_CNT_INITIALIZED_DATA	| \
+		IMAGE_SCN_MEM_READ		| \
+		IMAGE_SCN_MEM_DISCARDABLE	# Characteristics
+
+	/*
+	 * Put the IA-32 machine type and the associated entry point address in
+	 * the .compat section, so loaders can figure out which other execution
+	 * modes this image supports.
+	 */
+	.pushsection ".pecompat", "a", @progbits
+	.balign	salign
+	.globl	pecompat_fstart
+pecompat_fstart:
+	.byte	0x1				# Version
+	.byte	8				# Size
+	.word	IMAGE_FILE_MACHINE_I386		# PE machine type
+	.long	setup_size + ZO_efi32_pe_entry	# Entrypoint
+	.byte	0x0				# Sentinel
+	.popsection
+#else
+	.set	pecompat_fstart, setup_size
+#endif
+	.ascii	".text\0\0\0"
+	.long	textsize            		# VirtualSize
+	.long	setup_size			# VirtualAddress
+	.long	textsize			# SizeOfRawData
+	.long	setup_size			# PointerToRawData
+	.long	0				# PointerToRelocations
+	.long	0				# PointerToLineNumbers
+	.word	0				# NumberOfRelocations
+	.word	0				# NumberOfLineNumbers
+	.long	IMAGE_SCN_CNT_CODE		| \
+		IMAGE_SCN_MEM_READ		| \
+		IMAGE_SCN_MEM_EXECUTE		# Characteristics
+
+#ifdef CONFIG_EFI_SBAT
+	.ascii	".sbat\0\0\0"
+	.long	ZO__esbat - ZO__sbat            # VirtualSize
+	.long	setup_size + ZO__sbat           # VirtualAddress
+	.long	ZO__esbat - ZO__sbat            # SizeOfRawData
+	.long	setup_size + ZO__sbat           # PointerToRawData
+
+	.long	0, 0, 0
+	.long	IMAGE_SCN_CNT_INITIALIZED_DATA	| \
+		IMAGE_SCN_MEM_READ		| \
+		IMAGE_SCN_MEM_DISCARDABLE	# Characteristics
+
+	.set	textsize, ZO__sbat
+#else
+	.set	textsize, ZO__data
+#endif
+
+	.ascii	".data\0\0\0"
+	.long	ZO__end - ZO__data		# VirtualSize
+	.long	setup_size + ZO__data		# VirtualAddress
+	.long	ZO__edata - ZO__data		# SizeOfRawData
+	.long	setup_size + ZO__data		# PointerToRawData
+
+	.long	0, 0, 0
+	.long	IMAGE_SCN_CNT_INITIALIZED_DATA	| \
+		IMAGE_SCN_MEM_READ		| \
+		IMAGE_SCN_MEM_WRITE		# Characteristics
+
+	.set	section_count, (. - section_table) / 40
+#endif /* CONFIG_EFI_STUB */
+
+	# Kernel attributes; used by setup.  This is part 1 of the
+	# header, from the old boot sector.
+
+	.section ".header", "a"
+	.globl	sentinel
+sentinel:	.byte 0xff, 0xff        /* Used to detect broken loaders */
+
+	.globl	hdr
+hdr:
+		.byte setup_sects - 1
+root_flags:	.word ROOT_RDONLY
+syssize:	.long ZO__edata / 16
+ram_size:	.word 0			/* Obsolete */
+vid_mode:	.word SVGA_MODE
+root_dev:	.word 0			/* Default to major/minor 0/0 */
+boot_flag:	.word 0xAA55
+
+	# offset 512, entry point
+
+	.globl	_start
+_start:
+		# Explicitly enter this as bytes, or the assembler
+		# tries to generate a 3-byte jump here, which causes
+		# everything else to push off to the wrong offset.
+		.byte	0xeb		# short (2-byte) jump
+		.byte	start_of_setup-1f
+1:
+
+	# Part 2 of the header, from the old setup.S
+
+		.ascii	"HdrS"		# header signature
+		.word	0x020f		# header version number (>= 0x0105)
+					# or else old loadlin-1.5 will fail)
+		.globl realmode_swtch
+realmode_swtch:	.word	0, 0		# default_switch, SETUPSEG
+start_sys_seg:	.word	SYSSEG		# obsolete and meaningless, but just
+					# in case something decided to "use" it
+		.word	kernel_version-512 # pointing to kernel version string
+					# above section of header is compatible
+					# with loadlin-1.5 (header v1.5). Don't
+					# change it.
+
+type_of_loader:	.byte	0		# 0 means ancient bootloader, newer
+					# bootloaders know to change this.
+					# See Documentation/arch/x86/boot.rst for
+					# assigned ids
+
+# flags, unused bits must be zero (RFU) bit within loadflags
+loadflags:
+		.byte	LOADED_HIGH	# The kernel is to be loaded high
+
+setup_move_size: .word  0x8000		# size to move, when setup is not
+					# loaded at 0x90000. We will move setup
+					# to 0x90000 then just before jumping
+					# into the kernel. However, only the
+					# loader knows how much data behind
+					# us also needs to be loaded.
+
+code32_start:				# here loaders can put a different
+					# start address for 32-bit code.
+		.long	0x100000	# 0x100000 = default for big kernel
+
+ramdisk_image:	.long	0		# address of loaded ramdisk image
+					# Here the loader puts the 32-bit
+					# address where it loaded the image.
+					# This only will be read by the kernel.
+
+ramdisk_size:	.long	0		# its size in bytes
+
+bootsect_kludge:
+		.long	0		# obsolete
+
+heap_end_ptr:	.word	_end+STACK_SIZE-512
+					# (Header version 0x0201 or later)
+					# space from here (exclusive) down to
+					# end of setup code can be used by setup
+					# for local heap purposes.
+
+ext_loader_ver:
+		.byte	0		# Extended boot loader version
+ext_loader_type:
+		.byte	0		# Extended boot loader type
+
+cmd_line_ptr:	.long	0		# (Header version 0x0202 or later)
+					# If nonzero, a 32-bit pointer
+					# to the kernel command line.
+					# The command line should be
+					# located between the start of
+					# setup and the end of low
+					# memory (0xa0000), or it may
+					# get overwritten before it
+					# gets read.  If this field is
+					# used, there is no longer
+					# anything magical about the
+					# 0x90000 segment; the setup
+					# can be located anywhere in
+					# low memory 0x10000 or higher.
+
+initrd_addr_max: .long 0x7fffffff
+					# (Header version 0x0203 or later)
+					# The highest safe address for
+					# the contents of an initrd
+					# The current kernel allows up to 4 GB,
+					# but leave it at 2 GB to avoid
+					# possible bootloader bugs.
+
+kernel_alignment:  .long CONFIG_PHYSICAL_ALIGN	#physical addr alignment
+						#required for protected mode
+						#kernel
+#ifdef CONFIG_RELOCATABLE
+relocatable_kernel:    .byte 1
+#else
+relocatable_kernel:    .byte 0
+#endif
+min_alignment:		.byte MIN_KERNEL_ALIGN_LG2	# minimum alignment
+
+xloadflags:
+#ifdef CONFIG_X86_64
+# define XLF0 XLF_KERNEL_64			/* 64-bit kernel */
+#else
+# define XLF0 0
+#endif
+
+#if defined(CONFIG_RELOCATABLE) && defined(CONFIG_X86_64)
+   /* kernel/boot_param/ramdisk could be loaded above 4g */
+# define XLF1 XLF_CAN_BE_LOADED_ABOVE_4G
+#else
+# define XLF1 0
+#endif
+
+#ifdef CONFIG_EFI_HANDOVER_PROTOCOL
+# ifdef CONFIG_EFI_MIXED
+#  define XLF23 (XLF_EFI_HANDOVER_32|XLF_EFI_HANDOVER_64)
+# else
+#  ifdef CONFIG_X86_64
+#   define XLF23 XLF_EFI_HANDOVER_64		/* 64-bit EFI handover ok */
+#  else
+#   define XLF23 XLF_EFI_HANDOVER_32		/* 32-bit EFI handover ok */
+#  endif
+# endif
+#else
+# define XLF23 0
+#endif
+
+#if defined(CONFIG_X86_64) && defined(CONFIG_EFI) && defined(CONFIG_KEXEC_CORE)
+# define XLF4 XLF_EFI_KEXEC
+#else
+# define XLF4 0
+#endif
+
+#ifdef CONFIG_X86_64
+#define XLF56 (XLF_5LEVEL|XLF_5LEVEL_ENABLED)
+#else
+#define XLF56 0
+#endif
+
+			.word XLF0 | XLF1 | XLF23 | XLF4 | XLF56
+
+cmdline_size:   .long   COMMAND_LINE_SIZE-1     #length of the command line,
+                                                #added with boot protocol
+                                                #version 2.06
+
+hardware_subarch:	.long 0			# subarchitecture, added with 2.07
+						# default to 0 for normal x86 PC
+
+hardware_subarch_data:	.quad 0
+
+payload_offset:		.long ZO_input_data
+payload_length:		.long ZO_z_input_len
+
+setup_data:		.quad 0			# 64-bit physical pointer to
+						# single linked list of
+						# struct setup_data
+
+pref_address:		.quad LOAD_PHYSICAL_ADDR	# preferred load addr
+
+#
+# Getting to provably safe in-place decompression is hard. Worst case
+# behaviours need to be analyzed. Here let's take the decompression of
+# a gzip-compressed kernel as example, to illustrate it:
+#
+# The file layout of gzip compressed kernel is:
+#
+#    magic[2]
+#    method[1]
+#    flags[1]
+#    timestamp[4]
+#    extraflags[1]
+#    os[1]
+#    compressed data blocks[N]
+#    crc[4] orig_len[4]
+#
+# ... resulting in +18 bytes overhead of uncompressed data.
+#
+# (For more information, please refer to RFC 1951 and RFC 1952.)
+#
+# Files divided into blocks
+# 1 bit (last block flag)
+# 2 bits (block type)
+#
+# 1 block occurs every 32K -1 bytes or when there 50% compression
+# has been achieved. The smallest block type encoding is always used.
+#
+# stored:
+#    32 bits length in bytes.
+#
+# fixed:
+#    magic fixed tree.
+#    symbols.
+#
+# dynamic:
+#    dynamic tree encoding.
+#    symbols.
+#
+#
+# The buffer for decompression in place is the length of the uncompressed
+# data, plus a small amount extra to keep the algorithm safe. The
+# compressed data is placed at the end of the buffer.  The output pointer
+# is placed at the start of the buffer and the input pointer is placed
+# where the compressed data starts. Problems will occur when the output
+# pointer overruns the input pointer.
+#
+# The output pointer can only overrun the input pointer if the input
+# pointer is moving faster than the output pointer.  A condition only
+# triggered by data whose compressed form is larger than the uncompressed
+# form.
+#
+# The worst case at the block level is a growth of the compressed data
+# of 5 bytes per 32767 bytes.
+#
+# The worst case internal to a compressed block is very hard to figure.
+# The worst case can at least be bounded by having one bit that represents
+# 32764 bytes and then all of the rest of the bytes representing the very
+# very last byte.
+#
+# All of which is enough to compute an amount of extra data that is required
+# to be safe.  To avoid problems at the block level allocating 5 extra bytes
+# per 32767 bytes of data is sufficient.  To avoid problems internal to a
+# block adding an extra 32767 bytes (the worst case uncompressed block size)
+# is sufficient, to ensure that in the worst case the decompressed data for
+# block will stop the byte before the compressed data for a block begins.
+# To avoid problems with the compressed data's meta information an extra 18
+# bytes are needed.  Leading to the formula:
+#
+# extra_bytes = (uncompressed_size >> 12) + 32768 + 18
+#
+# Adding 8 bytes per 32K is a bit excessive but much easier to calculate.
+# Adding 32768 instead of 32767 just makes for round numbers.
+#
+# Above analysis is for decompressing gzip compressed kernel only. Up to
+# now 6 different decompressor are supported all together. And among them
+# xz stores data in chunks and has maximum chunk of 64K. Hence safety
+# margin should be updated to cover all decompressors so that we don't
+# need to deal with each of them separately. Please check
+# the description in lib/decompressor_xxx.c for specific information.
+#
+# extra_bytes = (uncompressed_size >> 12) + 65536 + 128
+#
+# LZ4 is even worse: data that cannot be further compressed grows by 0.4%,
+# or one byte per 256 bytes. OTOH, we can safely get rid of the +128 as
+# the size-dependent part now grows so fast.
+#
+# extra_bytes = (uncompressed_size >> 8) + 65536
+#
+# ZSTD compressed data grows by at most 3 bytes per 128K, and only has a 22
+# byte fixed overhead but has a maximum block size of 128K, so it needs a
+# larger margin.
+#
+# extra_bytes = (uncompressed_size >> 8) + 131072
+
+#define ZO_z_extra_bytes	((ZO_z_output_len >> 8) + 131072)
+#if ZO_z_output_len > ZO_z_input_len
+# define ZO_z_extract_offset	(ZO_z_output_len + ZO_z_extra_bytes - \
+				 ZO_z_input_len)
+#else
+# define ZO_z_extract_offset	ZO_z_extra_bytes
+#endif
+
+/*
+ * The extract_offset has to be bigger than ZO head section. Otherwise when
+ * the head code is running to move ZO to the end of the buffer, it will
+ * overwrite the head code itself.
+ */
+#if (ZO__ehead - ZO_startup_32) > ZO_z_extract_offset
+# define ZO_z_min_extract_offset ((ZO__ehead - ZO_startup_32 + 4095) & ~4095)
+#else
+# define ZO_z_min_extract_offset ((ZO_z_extract_offset + 4095) & ~4095)
+#endif
+
+#define ZO_INIT_SIZE	(ZO__end - ZO_startup_32 + ZO_z_min_extract_offset)
+
+#define VO_INIT_SIZE	(VO__end - VO__text)
+#if ZO_INIT_SIZE > VO_INIT_SIZE
+# define INIT_SIZE ZO_INIT_SIZE
+#else
+# define INIT_SIZE VO_INIT_SIZE
+#endif
+
+	.macro		__handover_offset
+#ifndef CONFIG_EFI_HANDOVER_PROTOCOL
+	.long		0
+#elif !defined(CONFIG_X86_64)
+	.long		ZO_efi32_stub_entry
+#else
+	/* Yes, this is really how we defined it :( */
+	.long		ZO_efi64_stub_entry - 0x200
+#ifdef CONFIG_EFI_MIXED
+	.if		ZO_efi32_stub_entry != ZO_efi64_stub_entry - 0x200
+	.error		"32-bit and 64-bit EFI entry points do not match"
+	.endif
+#endif
+#endif
+	.endm
+
+init_size:		.long INIT_SIZE		# kernel initialization size
+handover_offset:	__handover_offset
+kernel_info_offset:	.long ZO_kernel_info
+
+# End of setup header #####################################################
+
+	.section ".entrytext", "ax"
+start_of_setup:
+# Force %es = %ds
+	movw	%ds, %ax
+	movw	%ax, %es
+	cld
+
+# Apparently some ancient versions of LILO invoked the kernel with %ss != %ds,
+# which happened to work by accident for the old code.  Recalculate the stack
+# pointer if %ss is invalid.  Otherwise leave it alone, LOADLIN sets up the
+# stack behind its own code, so we can't blindly put it directly past the heap.
+
+	movw	%ss, %dx
+	cmpw	%ax, %dx	# %ds == %ss?
+	movw	%sp, %dx
+	je	2f		# -> assume %sp is reasonably set
+
+	# Invalid %ss, make up a new stack
+	movw	$_end, %dx
+	testb	$CAN_USE_HEAP, loadflags
+	jz	1f
+	movw	heap_end_ptr, %dx
+1:	addw	$STACK_SIZE, %dx
+	jnc	2f
+	xorw	%dx, %dx	# Prevent wraparound
+
+2:	# Now %dx should point to the end of our stack space
+	andw	$~3, %dx	# dword align (might as well...)
+	jnz	3f
+	movw	$0xfffc, %dx	# Make sure we're not zero
+3:	movw	%ax, %ss
+	movzwl	%dx, %esp	# Clear upper half of %esp
+	sti			# Now we should have a working stack
+
+# We will have entered with %cs = %ds+0x20, normalize %cs so
+# it is on par with the other segments.
+	pushw	%ds
+	pushw	$6f
+	lretw
+6:
+
+# Check signature at end of setup
+	cmpl	$0x5a5aaa55, setup_sig
+	jne	setup_bad
+
+# Zero the bss
+	movw	$__bss_start, %di
+	movw	$_end+3, %cx
+	xorl	%eax, %eax
+	subw	%di, %cx
+	shrw	$2, %cx
+	rep stosl
+
+# Jump to C code (should not return)
+	calll	main
+
+# Setup corrupt somehow...
+setup_bad:
+	movl	$setup_corrupt, %eax
+	calll	puts
+	# Fall through...
+
+	.globl	die
+	.type	die, @function
+die:
+	hlt
+	jmp	die
+
+	.size	die, .-die
+
+	.section ".initdata", "a"
+setup_corrupt:
+	.byte	7
+	.string	"No setup signature found...\n"
+// SPDX-License-Identifier: GPL-2.0-only
+/* -*- linux-c -*- ------------------------------------------------------- *
+ *
+ *   Copyright (C) 1991, 1992 Linus Torvalds
+ *   Copyright 2007 rPath, Inc. - All Rights Reserved
+ *   Copyright 2009 Intel Corporation; author H. Peter Anvin
+ *
+ * ----------------------------------------------------------------------- */
+
+/*
+ * Main module for the real-mode kernel code
+ */
+#include <linux/build_bug.h>
+
+#include "boot.h"
+#include "string.h"
+
+struct boot_params boot_params __attribute__((aligned(16)));
+
+struct port_io_ops pio_ops;
+
+char *HEAP = _end;
+char *heap_end = _end;		/* Default end of heap = no heap */
+
+/*
+ * Copy the header into the boot parameter block.  Since this
+ * screws up the old-style command line protocol, adjust by
+ * filling in the new-style command line pointer instead.
+ */
+static void copy_boot_params(void)
+{
+	struct old_cmdline {
+		u16 cl_magic;
+		u16 cl_offset;
+	};
+	const struct old_cmdline * const oldcmd = absolute_pointer(OLD_CL_ADDRESS);
+
+	BUILD_BUG_ON(sizeof(boot_params) != 4096);
+	memcpy(&boot_params.hdr, &hdr, sizeof(hdr));
+
+	if (!boot_params.hdr.cmd_line_ptr && oldcmd->cl_magic == OLD_CL_MAGIC) {
+		/* Old-style command line protocol */
+		u16 cmdline_seg;
+
+		/*
+		 * Figure out if the command line falls in the region
+		 * of memory that an old kernel would have copied up
+		 * to 0x90000...
+		 */
+		if (oldcmd->cl_offset < boot_params.hdr.setup_move_size)
+			cmdline_seg = ds();
+		else
+			cmdline_seg = 0x9000;
+
+		boot_params.hdr.cmd_line_ptr = (cmdline_seg << 4) + oldcmd->cl_offset;
+	}
+}
+
+/*
+ * Query the keyboard lock status as given by the BIOS, and
+ * set the keyboard repeat rate to maximum.  Unclear why the latter
+ * is done here; this might be possible to kill off as stale code.
+ */
+static void keyboard_init(void)
+{
+	struct biosregs ireg, oreg;
+
+	initregs(&ireg);
+
+	ireg.ah = 0x02;		/* Get keyboard status */
+	intcall(0x16, &ireg, &oreg);
+	boot_params.kbd_status = oreg.al;
+
+	ireg.ax = 0x0305;	/* Set keyboard repeat rate */
+	intcall(0x16, &ireg, NULL);
+}
+
+/*
+ * Get Intel SpeedStep (IST) information.
+ */
+static void query_ist(void)
+{
+	struct biosregs ireg, oreg;
+
+	/*
+	 * Some older BIOSes apparently crash on this call, so filter
+	 * it from machines too old to have SpeedStep at all.
+	 */
+	if (cpu.level < 6)
+		return;
+
+	initregs(&ireg);
+	ireg.ax  = 0xe980;	 /* IST Support */
+	ireg.edx = 0x47534943;	 /* Request value */
+	intcall(0x15, &ireg, &oreg);
+
+	boot_params.ist_info.signature  = oreg.eax;
+	boot_params.ist_info.command    = oreg.ebx;
+	boot_params.ist_info.event      = oreg.ecx;
+	boot_params.ist_info.perf_level = oreg.edx;
+}
+
+/*
+ * Tell the BIOS what CPU mode we intend to run in.
+ */
+static void set_bios_mode(void)
+{
+#ifdef CONFIG_X86_64
+	struct biosregs ireg;
+
+	initregs(&ireg);
+	ireg.ax = 0xec00;
+	ireg.bx = 2;
+	intcall(0x15, &ireg, NULL);
+#endif
+}
+
+static void init_heap(void)
+{
+	char *stack_end;
+
+	if (boot_params.hdr.loadflags & CAN_USE_HEAP) {
+		stack_end = (char *) (current_stack_pointer - STACK_SIZE);
+		heap_end = (char *) ((size_t)boot_params.hdr.heap_end_ptr + 0x200);
+		if (heap_end > stack_end)
+			heap_end = stack_end;
+	} else {
+		/* Boot protocol 2.00 only, no heap available */
+		puts("WARNING: Ancient bootloader, some functionality may be limited!\n");
+	}
+}
+
+void main(void)
+{
+	init_default_io_ops();
+
+	/* First, copy the boot header into the "zeropage" */
+	copy_boot_params();
+
+	/* Initialize the early-boot console */
+	console_init();
+	if (cmdline_find_option_bool("debug"))
+		puts("early console in setup code\n");
+
+	/* End of heap check */
+	init_heap();
+
+	/* Make sure we have all the proper CPU support */
+	if (validate_cpu()) {
+		puts("Unable to boot - please use a kernel appropriate for your CPU.\n");
+		die();
+	}
+
+	/* Tell the BIOS what CPU mode we intend to run in */
+	set_bios_mode();
+
+	/* Detect memory layout */
+	detect_memory();
+
+	/* Set keyboard repeat rate (why?) and query the lock flags */
+	keyboard_init();
+
+	/* Query Intel SpeedStep (IST) information */
+	query_ist();
+
+	/* Query APM information */
+#if defined(CONFIG_APM) || defined(CONFIG_APM_MODULE)
+	query_apm_bios();
+#endif
+
+	/* Query EDD information */
+#if defined(CONFIG_EDD) || defined(CONFIG_EDD_MODULE)
+	query_edd();
+#endif
+
+	/* Set the video mode */
+	set_video();
+
+	/* Do the last things and invoke protected mode */
+	go_to_protected_mode();
+}
+/* SPDX-License-Identifier: GPL-2.0 */
+/*
+ *  linux/boot/head.S
+ *
+ *  Copyright (C) 1991, 1992, 1993  Linus Torvalds
+ */
+
+/*
+ *  head.S contains the 32-bit startup code.
+ *
+ * NOTE!!! Startup happens at absolute address 0x00001000, which is also where
+ * the page directory will exist. The startup code will be overwritten by
+ * the page directory. [According to comments etc elsewhere on a compressed
+ * kernel it will end up at 0x1000 + 1Mb I hope so as I assume this. - AC]
+ *
+ * Page 0 is deliberately kept safe, since System Management Mode code in 
+ * laptops may need to access the BIOS data stored there.  This is also
+ * useful for future device drivers that either access the BIOS via VM86 
+ * mode.
+ */
+
+/*
+ * High loaded stuff by Hans Lermen & Werner Almesberger, Feb. 1996
+ */
+	.code32
+	.text
+
+#include <linux/init.h>
+#include <linux/linkage.h>
+#include <asm/segment.h>
+#include <asm/boot.h>
+#include <asm/msr.h>
+#include <asm/processor-flags.h>
+#include <asm/asm-offsets.h>
+#include <asm/bootparam.h>
+#include <asm/desc_defs.h>
+#include <asm/trapnr.h>
+
+/*
+ * Fix alignment at 16 bytes. Following CONFIG_FUNCTION_ALIGNMENT will result
+ * in assembly errors due to trying to move .org backward due to the excessive
+ * alignment.
+ */
+#undef __ALIGN
+#define __ALIGN		.balign	16, 0x90
+
+/*
+ * Locally defined symbols should be marked hidden:
+ */
+	.hidden _bss
+	.hidden _ebss
+	.hidden _end
+
+	__HEAD
+
+/*
+ * This macro gives the relative virtual address of X, i.e. the offset of X
+ * from startup_32. This is the same as the link-time virtual address of X,
+ * since startup_32 is at 0, but defining it this way tells the
+ * assembler/linker that we do not want the actual run-time address of X. This
+ * prevents the linker from trying to create unwanted run-time relocation
+ * entries for the reference when the compressed kernel is linked as PIE.
+ *
+ * A reference X(%reg) will result in the link-time VA of X being stored with
+ * the instruction, and a run-time R_X86_64_RELATIVE relocation entry that
+ * adds the 64-bit base address where the kernel is loaded.
+ *
+ * Replacing it with (X-startup_32)(%reg) results in the offset being stored,
+ * and no run-time relocation.
+ *
+ * The macro should be used as a displacement with a base register containing
+ * the run-time address of startup_32 [i.e. rva(X)(%reg)], or as an immediate
+ * [$ rva(X)].
+ *
+ * This macro can only be used from within the .head.text section, since the
+ * expression requires startup_32 to be in the same section as the code being
+ * assembled.
+ */
+#define rva(X) ((X) - startup_32)
+
+	.code32
+SYM_FUNC_START(startup_32)
+	/*
+	 * 32bit entry is 0 and it is ABI so immutable!
+	 * If we come here directly from a bootloader,
+	 * kernel(text+data+bss+brk) ramdisk, zero_page, command line
+	 * all need to be under the 4G limit.
+	 */
+	cld
+	cli
+
+/*
+ * Calculate the delta between where we were compiled to run
+ * at and where we were actually loaded at.  This can only be done
+ * with a short local call on x86.  Nothing  else will tell us what
+ * address we are running at.  The reserved chunk of the real-mode
+ * data at 0x1e4 (defined as a scratch field) are used as the stack
+ * for this calculation. Only 4 bytes are needed.
+ */
+	leal	(BP_scratch+4)(%esi), %esp
+	call	1f
+1:	popl	%ebp
+	subl	$ rva(1b), %ebp
+
+	/* Load new GDT with the 64bit segments using 32bit descriptor */
+	leal	rva(gdt)(%ebp), %eax
+	movl	%eax, 2(%eax)
+	lgdt	(%eax)
+
+	/* Load segment registers with our descriptors */
+	movl	$__BOOT_DS, %eax
+	movl	%eax, %ds
+	movl	%eax, %es
+	movl	%eax, %fs
+	movl	%eax, %gs
+	movl	%eax, %ss
+
+	/* Setup a stack and load CS from current GDT */
+	leal	rva(boot_stack_end)(%ebp), %esp
+
+	pushl	$__KERNEL32_CS
+	leal	rva(1f)(%ebp), %eax
+	pushl	%eax
+	lretl
+1:
+
+	/* Setup Exception handling for SEV-ES */
+#ifdef CONFIG_AMD_MEM_ENCRYPT
+	call	startup32_load_idt
+#endif
+
+	/* Make sure cpu supports long mode. */
+	call	verify_cpu
+	testl	%eax, %eax
+	jnz	.Lno_longmode
+
+/*
+ * Compute the delta between where we were compiled to run at
+ * and where the code will actually run at.
+ *
+ * %ebp contains the address we are loaded at by the boot loader and %ebx
+ * contains the address where we should move the kernel image temporarily
+ * for safe in-place decompression.
+ */
+
+#ifdef CONFIG_RELOCATABLE
+	movl	%ebp, %ebx
+	movl	BP_kernel_alignment(%esi), %eax
+	decl	%eax
+	addl	%eax, %ebx
+	notl	%eax
+	andl	%eax, %ebx
+	cmpl	$LOAD_PHYSICAL_ADDR, %ebx
+	jae	1f
+#endif
+	movl	$LOAD_PHYSICAL_ADDR, %ebx
+1:
+
+	/* Target address to relocate to for decompression */
+	addl	BP_init_size(%esi), %ebx
+	subl	$ rva(_end), %ebx
+
+/*
+ * Prepare for entering 64 bit mode
+ */
+
+	/* Enable PAE mode */
+	movl	%cr4, %eax
+	orl	$X86_CR4_PAE, %eax
+	movl	%eax, %cr4
+
+ /*
+  * Build early 4G boot pagetable
+  */
+	/*
+	 * If SEV is active then set the encryption mask in the page tables.
+	 * This will ensure that when the kernel is copied and decompressed
+	 * it will be done so encrypted.
+	 */
+	xorl	%edx, %edx
+#ifdef	CONFIG_AMD_MEM_ENCRYPT
+	call	get_sev_encryption_bit
+	xorl	%edx, %edx
+	testl	%eax, %eax
+	jz	1f
+	subl	$32, %eax	/* Encryption bit is always above bit 31 */
+	bts	%eax, %edx	/* Set encryption mask for page tables */
+	/*
+	 * Set MSR_AMD64_SEV_ENABLED_BIT in sev_status so that
+	 * startup32_check_sev_cbit() will do a check. sev_enable() will
+	 * initialize sev_status with all the bits reported by
+	 * MSR_AMD_SEV_STATUS later, but only MSR_AMD64_SEV_ENABLED_BIT
+	 * needs to be set for now.
+	 */
+	movl	$1, rva(sev_status)(%ebp)
+1:
+#endif
+
+	/* Initialize Page tables to 0 */
+	leal	rva(pgtable)(%ebx), %edi
+	xorl	%eax, %eax
+	movl	$(BOOT_INIT_PGT_SIZE/4), %ecx
+	rep	stosl
+
+	/* Build Level 4 */
+	leal	rva(pgtable + 0)(%ebx), %edi
+	leal	0x1007 (%edi), %eax
+	movl	%eax, 0(%edi)
+	addl	%edx, 4(%edi)
+
+	/* Build Level 3 */
+	leal	rva(pgtable + 0x1000)(%ebx), %edi
+	leal	0x1007(%edi), %eax
+	movl	$4, %ecx
+1:	movl	%eax, 0x00(%edi)
+	addl	%edx, 0x04(%edi)
+	addl	$0x00001000, %eax
+	addl	$8, %edi
+	decl	%ecx
+	jnz	1b
+
+	/* Build Level 2 */
+	leal	rva(pgtable + 0x2000)(%ebx), %edi
+	movl	$0x00000183, %eax
+	movl	$2048, %ecx
+1:	movl	%eax, 0(%edi)
+	addl	%edx, 4(%edi)
+	addl	$0x00200000, %eax
+	addl	$8, %edi
+	decl	%ecx
+	jnz	1b
+
+	/* Enable the boot page tables */
+	leal	rva(pgtable)(%ebx), %eax
+	movl	%eax, %cr3
+
+	/* Enable Long mode in EFER (Extended Feature Enable Register) */
+	movl	$MSR_EFER, %ecx
+	rdmsr
+	btsl	$_EFER_LME, %eax
+	wrmsr
+
+	/* After gdt is loaded */
+	xorl	%eax, %eax
+	lldt	%ax
+	movl    $__BOOT_TSS, %eax
+	ltr	%ax
+
+#ifdef CONFIG_AMD_MEM_ENCRYPT
+	/* Check if the C-bit position is correct when SEV is active */
+	call	startup32_check_sev_cbit
+#endif
+
+	/*
+	 * Setup for the jump to 64bit mode
+	 *
+	 * When the jump is performed we will be in long mode but
+	 * in 32bit compatibility mode with EFER.LME = 1, CS.L = 0, CS.D = 1
+	 * (and in turn EFER.LMA = 1).	To jump into 64bit mode we use
+	 * the new gdt/idt that has __KERNEL_CS with CS.L = 1.
+	 * We place all of the values on our mini stack so lret can
+	 * used to perform that far jump.
+	 */
+	leal	rva(startup_64)(%ebp), %eax
+	pushl	$__KERNEL_CS
+	pushl	%eax
+
+	/* Enter paged protected Mode, activating Long Mode */
+	movl	$CR0_STATE, %eax
+	movl	%eax, %cr0
+
+	/* Jump from 32bit compatibility mode into 64bit mode. */
+	lret
+SYM_FUNC_END(startup_32)
+
+	.code64
+	.org 0x200
+SYM_CODE_START(startup_64)
+	/*
+	 * 64bit entry is 0x200 and it is ABI so immutable!
+	 * We come here either from startup_32 or directly from a
+	 * 64bit bootloader.
+	 * If we come here from a bootloader, kernel(text+data+bss+brk),
+	 * ramdisk, zero_page, command line could be above 4G.
+	 * We depend on an identity mapped page table being provided
+	 * that maps our entire kernel(text+data+bss+brk), zero page
+	 * and command line.
+	 */
+
+	cld
+	cli
+
+	/* Setup data segments. */
+	xorl	%eax, %eax
+	movl	%eax, %ds
+	movl	%eax, %es
+	movl	%eax, %ss
+	movl	%eax, %fs
+	movl	%eax, %gs
+
+	/*
+	 * Compute the decompressed kernel start address.  It is where
+	 * we were loaded at aligned to a 2M boundary. %rbp contains the
+	 * decompressed kernel start address.
+	 *
+	 * If it is a relocatable kernel then decompress and run the kernel
+	 * from load address aligned to 2MB addr, otherwise decompress and
+	 * run the kernel from LOAD_PHYSICAL_ADDR
+	 *
+	 * We cannot rely on the calculation done in 32-bit mode, since we
+	 * may have been invoked via the 64-bit entry point.
+	 */
+
+	/* Start with the delta to where the kernel will run at. */
+#ifdef CONFIG_RELOCATABLE
+	leaq	startup_32(%rip) /* - $startup_32 */, %rbp
+	movl	BP_kernel_alignment(%rsi), %eax
+	decl	%eax
+	addq	%rax, %rbp
+	notq	%rax
+	andq	%rax, %rbp
+	cmpq	$LOAD_PHYSICAL_ADDR, %rbp
+	jae	1f
+#endif
+	movq	$LOAD_PHYSICAL_ADDR, %rbp
+1:
+
+	/* Target address to relocate to for decompression */
+	movl	BP_init_size(%rsi), %ebx
+	subl	$ rva(_end), %ebx
+	addq	%rbp, %rbx
+
+	/* Set up the stack */
+	leaq	rva(boot_stack_end)(%rbx), %rsp
+
+	/*
+	 * At this point we are in long mode with 4-level paging enabled,
+	 * but we might want to enable 5-level paging or vice versa.
+	 *
+	 * The problem is that we cannot do it directly. Setting or clearing
+	 * CR4.LA57 in long mode would trigger #GP. So we need to switch off
+	 * long mode and paging first.
+	 *
+	 * We also need a trampoline in lower memory to switch over from
+	 * 4- to 5-level paging for cases when the bootloader puts the kernel
+	 * above 4G, but didn't enable 5-level paging for us.
+	 *
+	 * The same trampoline can be used to switch from 5- to 4-level paging
+	 * mode, like when starting 4-level paging kernel via kexec() when
+	 * original kernel worked in 5-level paging mode.
+	 *
+	 * For the trampoline, we need the top page table to reside in lower
+	 * memory as we don't have a way to load 64-bit values into CR3 in
+	 * 32-bit mode.
+	 */
+
+	/* Make sure we have GDT with 32-bit code segment */
+	leaq	gdt64(%rip), %rax
+	addq	%rax, 2(%rax)
+	lgdt	(%rax)
+
+	/* Reload CS so IRET returns to a CS actually in the GDT */
+	pushq	$__KERNEL_CS
+	leaq	.Lon_kernel_cs(%rip), %rax
+	pushq	%rax
+	lretq
+
+.Lon_kernel_cs:
+	/*
+	 * RSI holds a pointer to a boot_params structure provided by the
+	 * loader, and this needs to be preserved across C function calls. So
+	 * move it into a callee saved register.
+	 */
+	movq	%rsi, %r15
+
+	call	load_stage1_idt
+
+#ifdef CONFIG_AMD_MEM_ENCRYPT
+	/*
+	 * Now that the stage1 interrupt handlers are set up, #VC exceptions from
+	 * CPUID instructions can be properly handled for SEV-ES guests.
+	 *
+	 * For SEV-SNP, the CPUID table also needs to be set up in advance of any
+	 * CPUID instructions being issued, so go ahead and do that now via
+	 * sev_enable(), which will also handle the rest of the SEV-related
+	 * detection/setup to ensure that has been done in advance of any dependent
+	 * code. Pass the boot_params pointer as the first argument.
+	 */
+	movq	%r15, %rdi
+	call	sev_enable
+#endif
+
+	/* Preserve only the CR4 bits that must be preserved, and clear the rest */
+	movq	%cr4, %rax
+	andl	$(X86_CR4_PAE | X86_CR4_MCE | X86_CR4_LA57), %eax
+	movq	%rax, %cr4
+
+	/*
+	 * configure_5level_paging() updates the number of paging levels using
+	 * a trampoline in 32-bit addressable memory if the current number does
+	 * not match the desired number.
+	 *
+	 * Pass the boot_params pointer as the first argument. The second
+	 * argument is the relocated address of the page table to use instead
+	 * of the page table in trampoline memory (if required).
+	 */
+	movq	%r15, %rdi
+	leaq	rva(top_pgtable)(%rbx), %rsi
+	call	configure_5level_paging
+
+	/* Zero EFLAGS */
+	pushq	$0
+	popfq
+
+/*
+ * Copy the compressed kernel to the end of our buffer
+ * where decompression in place becomes safe.
+ */
+	leaq	(_bss-8)(%rip), %rsi
+	leaq	rva(_bss-8)(%rbx), %rdi
+	movl	$(_bss - startup_32), %ecx
+	shrl	$3, %ecx
+	std
+	rep	movsq
+	cld
+
+	/*
+	 * The GDT may get overwritten either during the copy we just did or
+	 * during extract_kernel below. To avoid any issues, repoint the GDTR
+	 * to the new copy of the GDT.
+	 */
+	leaq	rva(gdt64)(%rbx), %rax
+	leaq	rva(gdt)(%rbx), %rdx
+	movq	%rdx, 2(%rax)
+	lgdt	(%rax)
+
+/*
+ * Jump to the relocated address.
+ */
+	leaq	rva(.Lrelocated)(%rbx), %rax
+	jmp	*%rax
+SYM_CODE_END(startup_64)
+
+	.text
+SYM_FUNC_START_LOCAL_NOALIGN(.Lrelocated)
+
+/*
+ * Clear BSS (stack is currently empty)
+ */
+	xorl	%eax, %eax
+	leaq    _bss(%rip), %rdi
+	leaq    _ebss(%rip), %rcx
+	subq	%rdi, %rcx
+	shrq	$3, %rcx
+	rep	stosq
+
+	call	load_stage2_idt
+
+	/* Pass boot_params to initialize_identity_maps() */
+	movq	%r15, %rdi
+	call	initialize_identity_maps
+
+/*
+ * Do the extraction, and jump to the new kernel..
+ */
+	/* pass struct boot_params pointer and output target address */
+	movq	%r15, %rdi
+	movq	%rbp, %rsi
+	call	extract_kernel		/* returns kernel entry point in %rax */
+
+/*
+ * Jump to the decompressed kernel.
+ */
+	movq	%r15, %rsi
+	jmp	*%rax
+SYM_FUNC_END(.Lrelocated)
+
+	.code32
+SYM_FUNC_START_LOCAL_NOALIGN(.Lno_longmode)
+	/* This isn't an x86-64 CPU, so hang intentionally, we cannot continue */
+1:
+	hlt
+	jmp     1b
+SYM_FUNC_END(.Lno_longmode)
+
+	.globl	verify_cpu
+#include "../../kernel/verify_cpu.S"
+
+	.data
+SYM_DATA_START_LOCAL(gdt64)
+	.word	gdt_end - gdt - 1
+	.quad   gdt - gdt64
+SYM_DATA_END(gdt64)
+	.balign	8
+SYM_DATA_START_LOCAL(gdt)
+	.word	gdt_end - gdt - 1
+	.long	0
+	.word	0
+	.quad	0x00cf9a000000ffff	/* __KERNEL32_CS */
+	.quad	0x00af9a000000ffff	/* __KERNEL_CS */
+	.quad	0x00cf92000000ffff	/* __KERNEL_DS */
+	.quad	0x0080890000000000	/* TS descriptor */
+	.quad   0x0000000000000000	/* TS continued */
+SYM_DATA_END_LABEL(gdt, SYM_L_LOCAL, gdt_end)
+
+SYM_DATA_START(boot_idt_desc)
+	.word	boot_idt_end - boot_idt - 1
+	.quad	0
+SYM_DATA_END(boot_idt_desc)
+	.balign 8
+SYM_DATA_START(boot_idt)
+	.rept	BOOT_IDT_ENTRIES
+	.quad	0
+	.quad	0
+	.endr
+SYM_DATA_END_LABEL(boot_idt, SYM_L_GLOBAL, boot_idt_end)
+
+/*
+ * Stack and heap for uncompression
+ */
+	.bss
+	.balign 4
+SYM_DATA_START_LOCAL(boot_stack)
+	.fill BOOT_STACK_SIZE, 1, 0
+	.balign 16
+SYM_DATA_END_LABEL(boot_stack, SYM_L_LOCAL, boot_stack_end)
+
+/*
+ * Space for page tables (not in .bss so not zeroed)
+ */
+	.section ".pgtable","aw",@nobits
+	.balign 4096
+SYM_DATA_LOCAL(pgtable,		.fill BOOT_PGT_SIZE, 1, 0)
+
+/*
+ * The page table is going to be used instead of page table in the trampoline
+ * memory.
+ */
+SYM_DATA_LOCAL(top_pgtable,	.fill PAGE_SIZE, 1, 0)
+/* SPDX-License-Identifier: GPL-2.0 */
+/*
+ *  linux/boot/head.S
+ *
+ *  Copyright (C) 1991, 1992, 1993  Linus Torvalds
+ */
+
+/*
+ *  head.S contains the 32-bit startup code.
+ *
+ * NOTE!!! Startup happens at absolute address 0x00001000, which is also where
+ * the page directory will exist. The startup code will be overwritten by
+ * the page directory. [According to comments etc elsewhere on a compressed
+ * kernel it will end up at 0x1000 + 1Mb I hope so as I assume this. - AC]
+ *
+ * Page 0 is deliberately kept safe, since System Management Mode code in
+ * laptops may need to access the BIOS data stored there.  This is also
+ * useful for future device drivers that either access the BIOS via VM86
+ * mode.
+ */
+
+/*
+ * High loaded stuff by Hans Lermen & Werner Almesberger, Feb. 1996
+ */
+	.text
+
+#include <linux/init.h>
+#include <linux/linkage.h>
+#include <asm/segment.h>
+#include <asm/page_types.h>
+#include <asm/boot.h>
+#include <asm/asm-offsets.h>
+#include <asm/bootparam.h>
+
+/*
+ * These symbols needed to be marked as .hidden to prevent the BFD linker from
+ * generating R_386_32 (rather than R_386_RELATIVE) relocations for them when
+ * the 32-bit compressed kernel is linked as PIE. This is no longer necessary,
+ * but it doesn't hurt to keep them .hidden.
+ */
+	.hidden _bss
+	.hidden _ebss
+	.hidden _end
+
+	__HEAD
+SYM_FUNC_START(startup_32)
+	cld
+	cli
+
+/*
+ * Calculate the delta between where we were compiled to run
+ * at and where we were actually loaded at.  This can only be done
+ * with a short local call on x86.  Nothing  else will tell us what
+ * address we are running at.  The reserved chunk of the real-mode
+ * data at 0x1e4 (defined as a scratch field) are used as the stack
+ * for this calculation. Only 4 bytes are needed.
+ */
+	leal	(BP_scratch+4)(%esi), %esp
+	call	1f
+1:	popl	%edx
+	addl	$_GLOBAL_OFFSET_TABLE_+(.-1b), %edx
+
+	/* Load new GDT */
+	leal	gdt@GOTOFF(%edx), %eax
+	movl	%eax, 2(%eax)
+	lgdt	(%eax)
+
+	/* Load segment registers with our descriptors */
+	movl	$__BOOT_DS, %eax
+	movl	%eax, %ds
+	movl	%eax, %es
+	movl	%eax, %fs
+	movl	%eax, %gs
+	movl	%eax, %ss
+
+/*
+ * %edx contains the address we are loaded at by the boot loader (plus the
+ * offset to the GOT).  The below code calculates %ebx to be the address where
+ * we should move the kernel image temporarily for safe in-place decompression
+ * (again, plus the offset to the GOT).
+ *
+ * %ebp is calculated to be the address that the kernel will be decompressed to.
+ */
+
+#ifdef CONFIG_RELOCATABLE
+	leal	startup_32@GOTOFF(%edx), %ebx
+	movl	BP_kernel_alignment(%esi), %eax
+	decl	%eax
+	addl    %eax, %ebx
+	notl	%eax
+	andl    %eax, %ebx
+	cmpl	$LOAD_PHYSICAL_ADDR, %ebx
+	jae	1f
+#endif
+	movl	$LOAD_PHYSICAL_ADDR, %ebx
+1:
+
+	movl	%ebx, %ebp	// Save the output address for later
+	/* Target address to relocate to for decompression */
+	addl    BP_init_size(%esi), %ebx
+	subl    $_end@GOTOFF, %ebx
+
+	/* Set up the stack */
+	leal	boot_stack_end@GOTOFF(%ebx), %esp
+
+	/* Zero EFLAGS */
+	pushl	$0
+	popfl
+
+/*
+ * Copy the compressed kernel to the end of our buffer
+ * where decompression in place becomes safe.
+ */
+	pushl	%esi
+	leal	(_bss@GOTOFF-4)(%edx), %esi
+	leal	(_bss@GOTOFF-4)(%ebx), %edi
+	movl	$(_bss - startup_32), %ecx
+	shrl	$2, %ecx
+	std
+	rep	movsl
+	cld
+	popl	%esi
+
+	/*
+	 * The GDT may get overwritten either during the copy we just did or
+	 * during extract_kernel below. To avoid any issues, repoint the GDTR
+	 * to the new copy of the GDT.
+	 */
+	leal	gdt@GOTOFF(%ebx), %eax
+	movl	%eax, 2(%eax)
+	lgdt	(%eax)
+
+/*
+ * Jump to the relocated address.
+ */
+	leal	.Lrelocated@GOTOFF(%ebx), %eax
+	jmp	*%eax
+SYM_FUNC_END(startup_32)
+
+	.text
+SYM_FUNC_START_LOCAL_NOALIGN(.Lrelocated)
+
+/*
+ * Clear BSS (stack is currently empty)
+ */
+	xorl	%eax, %eax
+	leal	_bss@GOTOFF(%ebx), %edi
+	leal	_ebss@GOTOFF(%ebx), %ecx
+	subl	%edi, %ecx
+	shrl	$2, %ecx
+	rep	stosl
+
+/*
+ * Do the extraction, and jump to the new kernel..
+ */
+	/* push arguments for extract_kernel: */
+
+	pushl	%ebp			/* output address */
+	pushl	%esi			/* real mode pointer */
+	call	extract_kernel		/* returns kernel entry point in %eax */
+	addl	$24, %esp
+
+/*
+ * Jump to the extracted kernel.
+ */
+	xorl	%ebx, %ebx
+	jmp	*%eax
+SYM_FUNC_END(.Lrelocated)
+
+	.data
+	.balign	8
+SYM_DATA_START_LOCAL(gdt)
+	.word	gdt_end - gdt - 1
+	.long	0
+	.word	0
+	.quad	0x0000000000000000	/* Reserved */
+	.quad	0x00cf9a000000ffff	/* __KERNEL_CS */
+	.quad	0x00cf92000000ffff	/* __KERNEL_DS */
+SYM_DATA_END_LABEL(gdt, SYM_L_LOCAL, gdt_end)
+
+/*
+ * Stack and heap for uncompression
+ */
+	.bss
+	.balign 4
+boot_stack:
+	.fill BOOT_STACK_SIZE, 1, 0
+boot_stack_end:
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * misc.c
+ *
+ * This is a collection of several routines used to extract the kernel
+ * which includes KASLR relocation, decompression, ELF parsing, and
+ * relocation processing. Additionally included are the screen and serial
+ * output functions and related debugging support functions.
+ *
+ * malloc by Hannu Savolainen 1993 and Matthias Urlichs 1994
+ * puts by Nick Holloway 1993, better puts by Martin Mares 1995
+ * High loaded stuff by Hans Lermen & Werner Almesberger, Feb. 1996
+ */
+
+#include "misc.h"
+#include "error.h"
+#include "../string.h"
+#include "../voffset.h"
+#include <asm/bootparam_utils.h>
+
+/*
+ * WARNING!!
+ * This code is compiled with -fPIC and it is relocated dynamically at
+ * run time, but no relocation processing is performed. This means that
+ * it is not safe to place pointers in static structures.
+ */
+
+/* Macros used by the included decompressor code below. */
+#define STATIC		static
+/* Define an externally visible malloc()/free(). */
+#define MALLOC_VISIBLE
+#include <linux/decompress/mm.h>
+
+/*
+ * Provide definitions of memzero and memmove as some of the decompressors will
+ * try to define their own functions if these are not defined as macros.
+ */
+#define memzero(s, n)	memset((s), 0, (n))
+#ifndef memmove
+#define memmove		memmove
+/* Functions used by the included decompressor code below. */
+void *memmove(void *dest, const void *src, size_t n);
+#endif
+
+/*
+ * This is set up by the setup-routine at boot-time
+ */
+struct boot_params *boot_params_ptr;
+
+struct port_io_ops pio_ops;
+
+memptr free_mem_ptr;
+memptr free_mem_end_ptr;
+int spurious_nmi_count;
+
+static char *vidmem;
+static int vidport;
+
+/* These might be accessed before .bss is cleared, so use .data instead. */
+static int lines __section(".data");
+static int cols __section(".data");
+
+#ifdef CONFIG_KERNEL_GZIP
+#include "../../../../lib/decompress_inflate.c"
+#endif
+
+#ifdef CONFIG_KERNEL_BZIP2
+#include "../../../../lib/decompress_bunzip2.c"
+#endif
+
+#ifdef CONFIG_KERNEL_LZMA
+#include "../../../../lib/decompress_unlzma.c"
+#endif
+
+#ifdef CONFIG_KERNEL_XZ
+#include "../../../../lib/decompress_unxz.c"
+#endif
+
+#ifdef CONFIG_KERNEL_LZO
+#include "../../../../lib/decompress_unlzo.c"
+#endif
+
+#ifdef CONFIG_KERNEL_LZ4
+#include "../../../../lib/decompress_unlz4.c"
+#endif
+
+#ifdef CONFIG_KERNEL_ZSTD
+#include "../../../../lib/decompress_unzstd.c"
+#endif
+/*
+ * NOTE: When adding a new decompressor, please update the analysis in
+ * ../header.S.
+ */
+
+static void scroll(void)
+{
+	int i;
+
+	memmove(vidmem, vidmem + cols * 2, (lines - 1) * cols * 2);
+	for (i = (lines - 1) * cols * 2; i < lines * cols * 2; i += 2)
+		vidmem[i] = ' ';
+}
+
+#define XMTRDY          0x20
+
+#define TXR             0       /*  Transmit register (WRITE) */
+#define LSR             5       /*  Line Status               */
+static void serial_putchar(int ch)
+{
+	unsigned timeout = 0xffff;
+
+	while ((inb(early_serial_base + LSR) & XMTRDY) == 0 && --timeout)
+		cpu_relax();
+
+	outb(ch, early_serial_base + TXR);
+}
+
+void __putstr(const char *s)
+{
+	int x, y, pos;
+	char c;
+
+	if (early_serial_base) {
+		const char *str = s;
+		while (*str) {
+			if (*str == '\n')
+				serial_putchar('\r');
+			serial_putchar(*str++);
+		}
+	}
+
+	if (lines == 0 || cols == 0)
+		return;
+
+	x = boot_params_ptr->screen_info.orig_x;
+	y = boot_params_ptr->screen_info.orig_y;
+
+	while ((c = *s++) != '\0') {
+		if (c == '\n') {
+			x = 0;
+			if (++y >= lines) {
+				scroll();
+				y--;
+			}
+		} else {
+			vidmem[(x + cols * y) * 2] = c;
+			if (++x >= cols) {
+				x = 0;
+				if (++y >= lines) {
+					scroll();
+					y--;
+				}
+			}
+		}
+	}
+
+	boot_params_ptr->screen_info.orig_x = x;
+	boot_params_ptr->screen_info.orig_y = y;
+
+	pos = (x + cols * y) * 2;	/* Update cursor position */
+	outb(14, vidport);
+	outb(0xff & (pos >> 9), vidport+1);
+	outb(15, vidport);
+	outb(0xff & (pos >> 1), vidport+1);
+}
+
+static noinline void __putnum(unsigned long value, unsigned int base,
+			      int mindig)
+{
+	char buf[8*sizeof(value)+1];
+	char *p;
+
+	p = buf + sizeof(buf);
+	*--p = '\0';
+
+	while (mindig-- > 0 || value) {
+		unsigned char digit = value % base;
+		digit += (digit >= 10) ? ('a'-10) : '0';
+		*--p = digit;
+
+		value /= base;
+	}
+
+	__putstr(p);
+}
+
+void __puthex(unsigned long value)
+{
+	__putnum(value, 16, sizeof(value)*2);
+}
+
+void __putdec(unsigned long value)
+{
+	__putnum(value, 10, 1);
+}
+
+#ifdef CONFIG_X86_NEED_RELOCS
+static void handle_relocations(void *output, unsigned long output_len,
+			       unsigned long virt_addr)
+{
+	int *reloc;
+	unsigned long delta, map, ptr;
+	unsigned long min_addr = (unsigned long)output;
+	unsigned long max_addr = min_addr + (VO___bss_start - VO__text);
+
+	/*
+	 * Calculate the delta between where vmlinux was linked to load
+	 * and where it was actually loaded.
+	 */
+	delta = min_addr - LOAD_PHYSICAL_ADDR;
+
+	/*
+	 * The kernel contains a table of relocation addresses. Those
+	 * addresses have the final load address of the kernel in virtual
+	 * memory. We are currently working in the self map. So we need to
+	 * create an adjustment for kernel memory addresses to the self map.
+	 * This will involve subtracting out the base address of the kernel.
+	 */
+	map = delta - __START_KERNEL_map;
+
+	/*
+	 * 32-bit always performs relocations. 64-bit relocations are only
+	 * needed if KASLR has chosen a different starting address offset
+	 * from __START_KERNEL_map.
+	 */
+	if (IS_ENABLED(CONFIG_X86_64))
+		delta = virt_addr - LOAD_PHYSICAL_ADDR;
+
+	if (!delta) {
+		debug_putstr("No relocation needed... ");
+		return;
+	}
+	debug_putstr("Performing relocations... ");
+
+	/*
+	 * Process relocations: 32 bit relocations first then 64 bit after.
+	 * Two sets of binary relocations are added to the end of the kernel
+	 * before compression. Each relocation table entry is the kernel
+	 * address of the location which needs to be updated stored as a
+	 * 32-bit value which is sign extended to 64 bits.
+	 *
+	 * Format is:
+	 *
+	 * kernel bits...
+	 * 0 - zero terminator for 64 bit relocations
+	 * 64 bit relocation repeated
+	 * 0 - zero terminator for 32 bit relocations
+	 * 32 bit relocation repeated
+	 *
+	 * So we work backwards from the end of the decompressed image.
+	 */
+	for (reloc = output + output_len - sizeof(*reloc); *reloc; reloc--) {
+		long extended = *reloc;
+		extended += map;
+
+		ptr = (unsigned long)extended;
+		if (ptr < min_addr || ptr > max_addr)
+			error("32-bit relocation outside of kernel!\n");
+
+		*(uint32_t *)ptr += delta;
+	}
+#ifdef CONFIG_X86_64
+	for (reloc--; *reloc; reloc--) {
+		long extended = *reloc;
+		extended += map;
+
+		ptr = (unsigned long)extended;
+		if (ptr < min_addr || ptr > max_addr)
+			error("64-bit relocation outside of kernel!\n");
+
+		*(uint64_t *)ptr += delta;
+	}
+#endif
+}
+#else
+static inline void handle_relocations(void *output, unsigned long output_len,
+				      unsigned long virt_addr)
+{ }
+#endif
+
+static size_t parse_elf(void *output)
+{
+#ifdef CONFIG_X86_64
+	Elf64_Ehdr ehdr;
+	Elf64_Phdr *phdrs, *phdr;
+#else
+	Elf32_Ehdr ehdr;
+	Elf32_Phdr *phdrs, *phdr;
+#endif
+	void *dest;
+	int i;
+
+	memcpy(&ehdr, output, sizeof(ehdr));
+	if (ehdr.e_ident[EI_MAG0] != ELFMAG0 ||
+	   ehdr.e_ident[EI_MAG1] != ELFMAG1 ||
+	   ehdr.e_ident[EI_MAG2] != ELFMAG2 ||
+	   ehdr.e_ident[EI_MAG3] != ELFMAG3)
+		error("Kernel is not a valid ELF file");
+
+	debug_putstr("Parsing ELF... ");
+
+	phdrs = malloc(sizeof(*phdrs) * ehdr.e_phnum);
+	if (!phdrs)
+		error("Failed to allocate space for phdrs");
+
+	memcpy(phdrs, output + ehdr.e_phoff, sizeof(*phdrs) * ehdr.e_phnum);
+
+	for (i = 0; i < ehdr.e_phnum; i++) {
+		phdr = &phdrs[i];
+
+		switch (phdr->p_type) {
+		case PT_LOAD:
+#ifdef CONFIG_X86_64
+			if ((phdr->p_align % 0x200000) != 0)
+				error("Alignment of LOAD segment isn't multiple of 2MB");
+#endif
+#ifdef CONFIG_RELOCATABLE
+			dest = output;
+			dest += (phdr->p_paddr - LOAD_PHYSICAL_ADDR);
+#else
+			dest = (void *)(phdr->p_paddr);
+#endif
+			memmove(dest, output + phdr->p_offset, phdr->p_filesz);
+			break;
+		default: /* Ignore other PT_* */ break;
+		}
+	}
+
+	free(phdrs);
+
+	return ehdr.e_entry - LOAD_PHYSICAL_ADDR;
+}
+
+const unsigned long kernel_text_size = VO___start_rodata - VO__text;
+const unsigned long kernel_inittext_offset = VO__sinittext - VO__text;
+const unsigned long kernel_inittext_size = VO___inittext_end - VO__sinittext;
+const unsigned long kernel_total_size = VO__end - VO__text;
+
+static u8 boot_heap[BOOT_HEAP_SIZE] __aligned(4);
+
+extern unsigned char input_data[];
+extern unsigned int input_len, output_len;
+
+unsigned long decompress_kernel(unsigned char *outbuf, unsigned long virt_addr,
+				void (*error)(char *x))
+{
+	unsigned long entry;
+
+	if (!free_mem_ptr) {
+		free_mem_ptr     = (unsigned long)boot_heap;
+		free_mem_end_ptr = (unsigned long)boot_heap + sizeof(boot_heap);
+	}
+
+	if (__decompress(input_data, input_len, NULL, NULL, outbuf, output_len,
+			 NULL, error) < 0)
+		return ULONG_MAX;
+
+	entry = parse_elf(outbuf);
+	handle_relocations(outbuf, output_len, virt_addr);
+
+	return entry;
+}
+
+/*
+ * Set the memory encryption xloadflag based on the mem_encrypt= command line
+ * parameter, if provided.
+ */
+static void parse_mem_encrypt(struct setup_header *hdr)
+{
+	int on = cmdline_find_option_bool("mem_encrypt=on");
+	int off = cmdline_find_option_bool("mem_encrypt=off");
+
+	if (on > off)
+		hdr->xloadflags |= XLF_MEM_ENCRYPTION;
+}
+
+static void early_sev_detect(void)
+{
+	/*
+	 * Accessing video memory causes guest termination because
+	 * the boot stage2 #VC handler of SEV-ES/SNP guests does not
+	 * support MMIO handling and kexec -c adds screen_info to the
+	 * boot parameters passed to the kexec kernel, which causes
+	 * console output to be dumped to both video and serial.
+	 */
+	if (sev_status & MSR_AMD64_SEV_ES_ENABLED)
+		lines = cols = 0;
+}
+
+/*
+ * The compressed kernel image (ZO), has been moved so that its position
+ * is against the end of the buffer used to hold the uncompressed kernel
+ * image (VO) and the execution environment (.bss, .brk), which makes sure
+ * there is room to do the in-place decompression. (See header.S for the
+ * calculations.)
+ *
+ *                             |-----compressed kernel image------|
+ *                             V                                  V
+ * 0                       extract_offset                      +INIT_SIZE
+ * |-----------|---------------|-------------------------|--------|
+ *             |               |                         |        |
+ *           VO__text      startup_32 of ZO          VO__end    ZO__end
+ *             ^                                         ^
+ *             |-------uncompressed kernel image---------|
+ *
+ */
+asmlinkage __visible void *extract_kernel(void *rmode, unsigned char *output)
+{
+	unsigned long virt_addr = LOAD_PHYSICAL_ADDR;
+	memptr heap = (memptr)boot_heap;
+	unsigned long needed_size;
+	size_t entry_offset;
+
+	/* Retain x86 boot parameters pointer passed from startup_32/64. */
+	boot_params_ptr = rmode;
+
+	/* Clear flags intended for solely in-kernel use. */
+	boot_params_ptr->hdr.loadflags &= ~KASLR_FLAG;
+
+	parse_mem_encrypt(&boot_params_ptr->hdr);
+
+	sanitize_boot_params(boot_params_ptr);
+
+	if (boot_params_ptr->screen_info.orig_video_mode == 7) {
+		vidmem = (char *) 0xb0000;
+		vidport = 0x3b4;
+	} else {
+		vidmem = (char *) 0xb8000;
+		vidport = 0x3d4;
+	}
+
+	lines = boot_params_ptr->screen_info.orig_video_lines;
+	cols = boot_params_ptr->screen_info.orig_video_cols;
+
+	init_default_io_ops();
+
+	/*
+	 * Detect TDX guest environment.
+	 *
+	 * It has to be done before console_init() in order to use
+	 * paravirtualized port I/O operations if needed.
+	 */
+	early_tdx_detect();
+
+	early_sev_detect();
+
+	console_init();
+
+	/*
+	 * Save RSDP address for later use. Have this after console_init()
+	 * so that early debugging output from the RSDP parsing code can be
+	 * collected.
+	 */
+	boot_params_ptr->acpi_rsdp_addr = get_rsdp_addr();
+
+	debug_putstr("early console in extract_kernel\n");
+
+	free_mem_ptr     = heap;	/* Heap */
+	free_mem_end_ptr = heap + BOOT_HEAP_SIZE;
+
+	/*
+	 * The memory hole needed for the kernel is the larger of either
+	 * the entire decompressed kernel plus relocation table, or the
+	 * entire decompressed kernel plus .bss and .brk sections.
+	 *
+	 * On X86_64, the memory is mapped with PMD pages. Round the
+	 * size up so that the full extent of PMD pages mapped is
+	 * included in the check against the valid memory table
+	 * entries. This ensures the full mapped area is usable RAM
+	 * and doesn't include any reserved areas.
+	 */
+	needed_size = max_t(unsigned long, output_len, kernel_total_size);
+#ifdef CONFIG_X86_64
+	needed_size = ALIGN(needed_size, MIN_KERNEL_ALIGN);
+#endif
+
+	/* Report initial kernel position details. */
+	debug_putaddr(input_data);
+	debug_putaddr(input_len);
+	debug_putaddr(output);
+	debug_putaddr(output_len);
+	debug_putaddr(kernel_total_size);
+	debug_putaddr(needed_size);
+
+#ifdef CONFIG_X86_64
+	/* Report address of 32-bit trampoline */
+	debug_putaddr(trampoline_32bit);
+#endif
+
+	choose_random_location((unsigned long)input_data, input_len,
+				(unsigned long *)&output,
+				needed_size,
+				&virt_addr);
+
+	/* Validate memory location choices. */
+	if ((unsigned long)output & (MIN_KERNEL_ALIGN - 1))
+		error("Destination physical address inappropriately aligned");
+	if (virt_addr & (MIN_KERNEL_ALIGN - 1))
+		error("Destination virtual address inappropriately aligned");
+#ifdef CONFIG_X86_64
+	if (heap > 0x3fffffffffffUL)
+		error("Destination address too large");
+	if (virt_addr + needed_size > KERNEL_IMAGE_SIZE)
+		error("Destination virtual address is beyond the kernel mapping area");
+#else
+	if (heap > ((-__PAGE_OFFSET-(128<<20)-1) & 0x7fffffff))
+		error("Destination address too large");
+#endif
+#ifndef CONFIG_RELOCATABLE
+	if (virt_addr != LOAD_PHYSICAL_ADDR)
+		error("Destination virtual address changed when not relocatable");
+#endif
+
+	debug_putstr("\nDecompressing Linux... ");
+
+	if (init_unaccepted_memory()) {
+		debug_putstr("Accepting memory... ");
+		accept_memory(__pa(output), needed_size);
+	}
+
+	entry_offset = decompress_kernel(output, virt_addr, error);
+
+	debug_putstr("done.\nBooting the kernel (entry_offset: 0x");
+	debug_puthex(entry_offset);
+	debug_putstr(").\n");
+
+	/* Disable exception handling before booting the kernel */
+	cleanup_exception_handling();
+
+	if (spurious_nmi_count) {
+		error_putstr("Spurious early NMIs ignored: ");
+		error_putdec(spurious_nmi_count);
+		error_putstr("\n");
+	}
+
+	return output + entry_offset;
+}
+/* SPDX-License-Identifier: GPL-2.0 */
+/*
+ *  linux/arch/x86/kernel/head_64.S -- start in 32bit and switch to 64bit
+ *
+ *  Copyright (C) 2000 Andrea Arcangeli <andrea@suse.de> SuSE
+ *  Copyright (C) 2000 Pavel Machek <pavel@suse.cz>
+ *  Copyright (C) 2000 Karsten Keil <kkeil@suse.de>
+ *  Copyright (C) 2001,2002 Andi Kleen <ak@suse.de>
+ *  Copyright (C) 2005 Eric Biederman <ebiederm@xmission.com>
+ */
+
+#include <linux/export.h>
+#include <linux/linkage.h>
+#include <linux/threads.h>
+#include <linux/init.h>
+#include <linux/pgtable.h>
+#include <asm/segment.h>
+#include <asm/page.h>
+#include <asm/msr.h>
+#include <asm/cache.h>
+#include <asm/processor-flags.h>
+#include <asm/percpu.h>
+#include <asm/nops.h>
+#include "../entry/calling.h"
+#include <asm/nospec-branch.h>
+#include <asm/apicdef.h>
+#include <asm/fixmap.h>
+#include <asm/smp.h>
+#include <asm/thread_info.h>
+
+/*
+ * We are not able to switch in one step to the final KERNEL ADDRESS SPACE
+ * because we need identity-mapped pages.
+ */
+
+	__INIT
+	.code64
+SYM_CODE_START_NOALIGN(startup_64)
+	UNWIND_HINT_END_OF_STACK
+	/*
+	 * At this point the CPU runs in 64bit mode CS.L = 1 CS.D = 0,
+	 * and someone has loaded an identity mapped page table
+	 * for us.  These identity mapped page tables map all of the
+	 * kernel pages and possibly all of memory.
+	 *
+	 * %RSI holds the physical address of the boot_params structure
+	 * provided by the bootloader. Preserve it in %R15 so C function calls
+	 * will not clobber it.
+	 *
+	 * We come here either directly from a 64bit bootloader, or from
+	 * arch/x86/boot/compressed/head_64.S.
+	 *
+	 * We only come here initially at boot nothing else comes here.
+	 *
+	 * Since we may be loaded at an address different from what we were
+	 * compiled to run at we first fixup the physical addresses in our page
+	 * tables and then reload them.
+	 */
+	mov	%rsi, %r15
+
+	/* Set up the stack for verify_cpu() */
+	leaq	__top_init_kernel_stack(%rip), %rsp
+
+	/*
+	 * Set up GSBASE.
+	 * Note that on SMP the boot CPU uses the init data section until
+	 * the per-CPU areas are set up.
+	 */
+	movl	$MSR_GS_BASE, %ecx
+	xorl	%eax, %eax
+	xorl	%edx, %edx
+	wrmsr
+
+	call	__pi_startup_64_setup_gdt_idt
+
+	/* Now switch to __KERNEL_CS so IRET works reliably */
+	pushq	$__KERNEL_CS
+	leaq	.Lon_kernel_cs(%rip), %rax
+	pushq	%rax
+	lretq
+
+.Lon_kernel_cs:
+	ANNOTATE_NOENDBR
+	UNWIND_HINT_END_OF_STACK
+
+#ifdef CONFIG_AMD_MEM_ENCRYPT
+	/*
+	 * Activate SEV/SME memory encryption if supported/enabled. This needs to
+	 * be done now, since this also includes setup of the SEV-SNP CPUID table,
+	 * which needs to be done before any CPUID instructions are executed in
+	 * subsequent code. Pass the boot_params pointer as the first argument.
+	 */
+	movq	%r15, %rdi
+	call	__pi_sme_enable
+#endif
+
+	/* Sanitize CPU configuration */
+	call verify_cpu
+
+	/*
+	 * Derive the kernel's physical-to-virtual offset from the physical and
+	 * virtual addresses of common_startup_64().
+	 */
+	leaq	common_startup_64(%rip), %rdi
+	subq	.Lcommon_startup_64(%rip), %rdi
+
+	/*
+	 * Perform pagetable fixups. Additionally, if SME is active, encrypt
+	 * the kernel and retrieve the modifier (SME encryption mask if SME
+	 * is active) to be added to the initial pgdir entry that will be
+	 * programmed into CR3.
+	 */
+	movq	%r15, %rsi
+	call	__pi___startup_64
+
+	/* Form the CR3 value being sure to include the CR3 modifier */
+	leaq	early_top_pgt(%rip), %rcx
+	addq	%rcx, %rax
+
+#ifdef CONFIG_AMD_MEM_ENCRYPT
+	mov	%rax, %rdi
+
+	/*
+	 * For SEV guests: Verify that the C-bit is correct. A malicious
+	 * hypervisor could lie about the C-bit position to perform a ROP
+	 * attack on the guest by writing to the unencrypted stack and wait for
+	 * the next RET instruction.
+	 */
+	call	sev_verify_cbit
+#endif
+
+	/*
+	 * Switch to early_top_pgt which still has the identity mappings
+	 * present.
+	 */
+	movq	%rax, %cr3
+
+	/* Branch to the common startup code at its kernel virtual address */
+	ANNOTATE_RETPOLINE_SAFE
+	jmp	*.Lcommon_startup_64(%rip)
+SYM_CODE_END(startup_64)
+
+	__INITRODATA
+SYM_DATA_LOCAL(.Lcommon_startup_64, .quad common_startup_64)
+
+	.text
+SYM_CODE_START(secondary_startup_64)
+	UNWIND_HINT_END_OF_STACK
+	ANNOTATE_NOENDBR
+	/*
+	 * At this point the CPU runs in 64bit mode CS.L = 1 CS.D = 0,
+	 * and someone has loaded a mapped page table.
+	 *
+	 * We come here either from startup_64 (using physical addresses)
+	 * or from trampoline.S (using virtual addresses).
+	 *
+	 * Using virtual addresses from trampoline.S removes the need
+	 * to have any identity mapped pages in the kernel page table
+	 * after the boot processor executes this code.
+	 */
+
+	/* Sanitize CPU configuration */
+	call verify_cpu
+
+	/*
+	 * The secondary_startup_64_no_verify entry point is only used by
+	 * SEV-ES guests. In those guests the call to verify_cpu() would cause
+	 * #VC exceptions which can not be handled at this stage of secondary
+	 * CPU bringup.
+	 *
+	 * All non SEV-ES systems, especially Intel systems, need to execute
+	 * verify_cpu() above to make sure NX is enabled.
+	 */
+SYM_INNER_LABEL(secondary_startup_64_no_verify, SYM_L_GLOBAL)
+	UNWIND_HINT_END_OF_STACK
+	ANNOTATE_NOENDBR
+
+	/* Clear %R15 which holds the boot_params pointer on the boot CPU */
+	xorl	%r15d, %r15d
+
+	/* Derive the runtime physical address of init_top_pgt[] */
+	movq	phys_base(%rip), %rax
+	addq	$(init_top_pgt - __START_KERNEL_map), %rax
+
+	/*
+	 * Retrieve the modifier (SME encryption mask if SME is active) to be
+	 * added to the initial pgdir entry that will be programmed into CR3.
+	 */
+#ifdef CONFIG_AMD_MEM_ENCRYPT
+	addq	sme_me_mask(%rip), %rax
+#endif
+	/*
+	 * Switch to the init_top_pgt here, away from the trampoline_pgd and
+	 * unmap the identity mapped ranges.
+	 */
+	movq	%rax, %cr3
+
+SYM_INNER_LABEL(common_startup_64, SYM_L_LOCAL)
+	UNWIND_HINT_END_OF_STACK
+	ANNOTATE_NOENDBR
+
+	/*
+	 * Create a mask of CR4 bits to preserve. Omit PGE in order to flush
+	 * global 1:1 translations from the TLBs.
+	 *
+	 * From the SDM:
+	 * "If CR4.PGE is changing from 0 to 1, there were no global TLB
+	 *  entries before the execution; if CR4.PGE is changing from 1 to 0,
+	 *  there will be no global TLB entries after the execution."
+	 */
+	movl	$(X86_CR4_PAE | X86_CR4_LA57), %edx
+#ifdef CONFIG_X86_MCE
+	/*
+	 * Preserve CR4.MCE if the kernel will enable #MC support.
+	 * Clearing MCE may fault in some environments (that also force #MC
+	 * support). Any machine check that occurs before #MC support is fully
+	 * configured will crash the system regardless of the CR4.MCE value set
+	 * here.
+	 */
+	orl	$X86_CR4_MCE, %edx
+#endif
+	movq	%cr4, %rcx
+	andl	%edx, %ecx
+
+	/* Even if ignored in long mode, set PSE uniformly on all logical CPUs. */
+	btsl	$X86_CR4_PSE_BIT, %ecx
+	movq	%rcx, %cr4
+
+	/*
+	 * Set CR4.PGE to re-enable global translations.
+	 */
+	btsl	$X86_CR4_PGE_BIT, %ecx
+	movq	%rcx, %cr4
+
+#ifdef CONFIG_SMP
+	/*
+	 * For parallel boot, the APIC ID is read from the APIC, and then
+	 * used to look up the CPU number.  For booting a single CPU, the
+	 * CPU number is encoded in smpboot_control.
+	 *
+	 * Bit 31	STARTUP_READ_APICID (Read APICID from APIC)
+	 * Bit 0-23	CPU# if STARTUP_xx flags are not set
+	 */
+	movl	smpboot_control(%rip), %ecx
+	testl	$STARTUP_READ_APICID, %ecx
+	jnz	.Lread_apicid
+	/*
+	 * No control bit set, single CPU bringup. CPU number is provided
+	 * in bit 0-23. This is also the boot CPU case (CPU number 0).
+	 */
+	andl	$(~STARTUP_PARALLEL_MASK), %ecx
+	jmp	.Lsetup_cpu
+
+.Lread_apicid:
+	/* Check whether X2APIC mode is already enabled */
+	mov	$MSR_IA32_APICBASE, %ecx
+	rdmsr
+	testl	$X2APIC_ENABLE, %eax
+	jnz	.Lread_apicid_msr
+
+#ifdef CONFIG_X86_X2APIC
+	/*
+	 * If system is in X2APIC mode then MMIO base might not be
+	 * mapped causing the MMIO read below to fault. Faults can't
+	 * be handled at that point.
+	 */
+	cmpl	$0, x2apic_mode(%rip)
+	jz	.Lread_apicid_mmio
+
+	/* Force the AP into X2APIC mode. */
+	orl	$X2APIC_ENABLE, %eax
+	wrmsr
+	jmp	.Lread_apicid_msr
+#endif
+
+.Lread_apicid_mmio:
+	/* Read the APIC ID from the fix-mapped MMIO space. */
+	movq	apic_mmio_base(%rip), %rcx
+	addq	$APIC_ID, %rcx
+	movl	(%rcx), %eax
+	shr	$24, %eax
+	jmp	.Llookup_AP
+
+.Lread_apicid_msr:
+	mov	$APIC_X2APIC_ID_MSR, %ecx
+	rdmsr
+
+.Llookup_AP:
+	/* EAX contains the APIC ID of the current CPU */
+	xorl	%ecx, %ecx
+	leaq	cpuid_to_apicid(%rip), %rbx
+
+.Lfind_cpunr:
+	cmpl	(%rbx,%rcx,4), %eax
+	jz	.Lsetup_cpu
+	inc	%ecx
+#ifdef CONFIG_FORCE_NR_CPUS
+	cmpl	$NR_CPUS, %ecx
+#else
+	cmpl	nr_cpu_ids(%rip), %ecx
+#endif
+	jb	.Lfind_cpunr
+
+	/*  APIC ID not found in the table. Drop the trampoline lock and bail. */
+	movq	trampoline_lock(%rip), %rax
+	movl	$0, (%rax)
+
+1:	cli
+	hlt
+	jmp	1b
+
+.Lsetup_cpu:
+	/* Get the per cpu offset for the given CPU# which is in ECX */
+	movq	__per_cpu_offset(,%rcx,8), %rdx
+#else
+	xorl	%edx, %edx /* zero-extended to clear all of RDX */
+#endif /* CONFIG_SMP */
+
+	/*
+	 * Setup a boot time stack - Any secondary CPU will have lost its stack
+	 * by now because the cr3-switch above unmaps the real-mode stack.
+	 *
+	 * RDX contains the per-cpu offset
+	 */
+	movq	current_task(%rdx), %rax
+	movq	TASK_threadsp(%rax), %rsp
+
+	/*
+	 * Now that this CPU is running on its own stack, drop the realmode
+	 * protection. For the boot CPU the pointer is NULL!
+	 */
+	movq	trampoline_lock(%rip), %rax
+	testq	%rax, %rax
+	jz	.Lsetup_gdt
+	movl	$0, (%rax)
+
+.Lsetup_gdt:
+	/*
+	 * We must switch to a new descriptor in kernel space for the GDT
+	 * because soon the kernel won't have access anymore to the userspace
+	 * addresses where we're currently running on. We have to do that here
+	 * because in 32bit we couldn't load a 64bit linear address.
+	 */
+	subq	$16, %rsp
+	movw	$(GDT_SIZE-1), (%rsp)
+	leaq	gdt_page(%rdx), %rax
+	movq	%rax, 2(%rsp)
+	lgdt	(%rsp)
+	addq	$16, %rsp
+
+	/* set up data segments */
+	xorl %eax,%eax
+	movl %eax,%ds
+	movl %eax,%ss
+	movl %eax,%es
+
+	/*
+	 * We don't really need to load %fs or %gs, but load them anyway
+	 * to kill any stale realmode selectors.  This allows execution
+	 * under VT hardware.
+	 */
+	movl %eax,%fs
+	movl %eax,%gs
+
+	/*
+	 * Set up GSBASE.
+	 * Note that, on SMP, the boot cpu uses init data section until
+	 * the per cpu areas are set up.
+	 */
+	movl	$MSR_GS_BASE,%ecx
+	movl	%edx, %eax
+	shrq	$32, %rdx
+	wrmsr
+
+	/* Setup and Load IDT */
+	call	early_setup_idt
+
+	/* Check if nx is implemented */
+	movl	$0x80000001, %eax
+	cpuid
+	movl	%edx,%edi
+
+	/* Setup EFER (Extended Feature Enable Register) */
+	movl	$MSR_EFER, %ecx
+	rdmsr
+	/*
+	 * Preserve current value of EFER for comparison and to skip
+	 * EFER writes if no change was made (for TDX guest)
+	 */
+	movl    %eax, %edx
+	btsl	$_EFER_SCE, %eax	/* Enable System Call */
+	btl	$20,%edi		/* No Execute supported? */
+	jnc     1f
+	btsl	$_EFER_NX, %eax
+	btsq	$_PAGE_BIT_NX,early_pmd_flags(%rip)
+
+	/* Avoid writing EFER if no change was made (for TDX guest) */
+1:	cmpl	%edx, %eax
+	je	1f
+	xor	%edx, %edx
+	wrmsr				/* Make changes effective */
+1:
+	/* Setup cr0 */
+	movl	$CR0_STATE, %eax
+	/* Make changes effective */
+	movq	%rax, %cr0
+
+	/* zero EFLAGS after setting rsp */
+	pushq $0
+	popfq
+
+	/* Pass the boot_params pointer as first argument */
+	movq	%r15, %rdi
+
+.Ljump_to_C_code:
+	xorl	%ebp, %ebp	# clear frame pointer
+	ANNOTATE_RETPOLINE_SAFE
+	callq	*initial_code(%rip)
+	ud2
+SYM_CODE_END(secondary_startup_64)
+
+#include "verify_cpu.S"
+#include "sev_verify_cbit.S"
+
+#if defined(CONFIG_HOTPLUG_CPU) && defined(CONFIG_AMD_MEM_ENCRYPT)
+/*
+ * Entry point for soft restart of a CPU. Invoked from xxx_play_dead() for
+ * restarting the boot CPU or for restarting SEV guest CPUs after CPU hot
+ * unplug. Everything is set up already except the stack.
+ */
+SYM_CODE_START(soft_restart_cpu)
+	ANNOTATE_NOENDBR
+	UNWIND_HINT_END_OF_STACK
+
+	/* Find the idle task stack */
+	movq	PER_CPU_VAR(current_task), %rcx
+	movq	TASK_threadsp(%rcx), %rsp
+
+	jmp	.Ljump_to_C_code
+SYM_CODE_END(soft_restart_cpu)
+#endif
+
+#ifdef CONFIG_AMD_MEM_ENCRYPT
+/*
+ * VC Exception handler used during early boot when running on kernel
+ * addresses, but before the switch to the idt_table can be made.
+ * The early_idt_handler_array can't be used here because it calls into a lot
+ * of __init code and this handler is also used during CPU offlining/onlining.
+ * Therefore this handler ends up in the .text section so that it stays around
+ * when .init.text is freed.
+ */
+SYM_CODE_START_NOALIGN(vc_boot_ghcb)
+	UNWIND_HINT_IRET_REGS offset=8
+	ENDBR
+
+	/* Build pt_regs */
+	PUSH_AND_CLEAR_REGS
+
+	/* Call C handler */
+	movq    %rsp, %rdi
+	movq	ORIG_RAX(%rsp), %rsi
+	movq	initial_vc_handler(%rip), %rax
+	ANNOTATE_RETPOLINE_SAFE
+	call	*%rax
+
+	/* Unwind pt_regs */
+	POP_REGS
+
+	/* Remove Error Code */
+	addq    $8, %rsp
+
+	iretq
+SYM_CODE_END(vc_boot_ghcb)
+#endif
+
+	/* Both SMP bootup and ACPI suspend change these variables */
+	__REFDATA
+	.balign	8
+SYM_DATA(initial_code,	.quad x86_64_start_kernel)
+#ifdef CONFIG_AMD_MEM_ENCRYPT
+SYM_DATA(initial_vc_handler,	.quad handle_vc_boot_ghcb)
+#endif
+
+SYM_DATA(trampoline_lock, .quad 0);
+	__FINITDATA
+
+	__INIT
+SYM_CODE_START(early_idt_handler_array)
+	i = 0
+	.rept NUM_EXCEPTION_VECTORS
+	.if ((EXCEPTION_ERRCODE_MASK >> i) & 1) == 0
+		UNWIND_HINT_IRET_REGS
+		ENDBR
+		pushq $0	# Dummy error code, to make stack frame uniform
+	.else
+		UNWIND_HINT_IRET_REGS offset=8
+		ENDBR
+	.endif
+	pushq $i		# 72(%rsp) Vector number
+	jmp early_idt_handler_common
+	UNWIND_HINT_IRET_REGS
+	i = i + 1
+	.fill early_idt_handler_array + i*EARLY_IDT_HANDLER_SIZE - ., 1, 0xcc
+	.endr
+SYM_CODE_END(early_idt_handler_array)
+	ANNOTATE_NOENDBR // early_idt_handler_array[NUM_EXCEPTION_VECTORS]
+
+SYM_CODE_START_LOCAL(early_idt_handler_common)
+	UNWIND_HINT_IRET_REGS offset=16
+	/*
+	 * The stack is the hardware frame, an error code or zero, and the
+	 * vector number.
+	 */
+	cld
+
+	incl early_recursion_flag(%rip)
+
+	/* The vector number is currently in the pt_regs->di slot. */
+	pushq %rsi				/* pt_regs->si */
+	movq 8(%rsp), %rsi			/* RSI = vector number */
+	movq %rdi, 8(%rsp)			/* pt_regs->di = RDI */
+	pushq %rdx				/* pt_regs->dx */
+	pushq %rcx				/* pt_regs->cx */
+	pushq %rax				/* pt_regs->ax */
+	pushq %r8				/* pt_regs->r8 */
+	pushq %r9				/* pt_regs->r9 */
+	pushq %r10				/* pt_regs->r10 */
+	pushq %r11				/* pt_regs->r11 */
+	pushq %rbx				/* pt_regs->bx */
+	pushq %rbp				/* pt_regs->bp */
+	pushq %r12				/* pt_regs->r12 */
+	pushq %r13				/* pt_regs->r13 */
+	pushq %r14				/* pt_regs->r14 */
+	pushq %r15				/* pt_regs->r15 */
+	UNWIND_HINT_REGS
+
+	movq %rsp,%rdi		/* RDI = pt_regs; RSI is already trapnr */
+	call do_early_exception
+
+	decl early_recursion_flag(%rip)
+	jmp restore_regs_and_return_to_kernel
+SYM_CODE_END(early_idt_handler_common)
+
+#ifdef CONFIG_AMD_MEM_ENCRYPT
+/*
+ * VC Exception handler used during very early boot. The
+ * early_idt_handler_array can't be used because it returns via the
+ * paravirtualized INTERRUPT_RETURN and pv-ops don't work that early.
+ *
+ * XXX it does, fix this.
+ *
+ * This handler will end up in the .init.text section and not be
+ * available to boot secondary CPUs.
+ */
+SYM_CODE_START_NOALIGN(vc_no_ghcb)
+	UNWIND_HINT_IRET_REGS offset=8
+	ENDBR
+
+	/* Build pt_regs */
+	PUSH_AND_CLEAR_REGS
+
+	/* Call C handler */
+	movq    %rsp, %rdi
+	movq	ORIG_RAX(%rsp), %rsi
+	call    __pi_do_vc_no_ghcb
+
+	/* Unwind pt_regs */
+	POP_REGS
+
+	/* Remove Error Code */
+	addq    $8, %rsp
+
+	/* Pure iret required here - don't use INTERRUPT_RETURN */
+	iretq
+SYM_CODE_END(vc_no_ghcb)
+SYM_PIC_ALIAS(vc_no_ghcb);
+#endif
+
+#ifdef CONFIG_MITIGATION_PAGE_TABLE_ISOLATION
+/*
+ * Each PGD needs to be 8k long and 8k aligned.  We do not
+ * ever go out to userspace with these, so we do not
+ * strictly *need* the second page, but this allows us to
+ * have a single set_pgd() implementation that does not
+ * need to worry about whether it has 4k or 8k to work
+ * with.
+ *
+ * This ensures PGDs are 8k long:
+ */
+#define PTI_USER_PGD_FILL	512
+/* This ensures they are 8k-aligned: */
+#define SYM_DATA_START_PTI_ALIGNED(name) \
+	SYM_START(name, SYM_L_GLOBAL, .balign 2 * PAGE_SIZE)
+#else
+#define SYM_DATA_START_PTI_ALIGNED(name) \
+	SYM_DATA_START_PAGE_ALIGNED(name)
+#define PTI_USER_PGD_FILL	0
+#endif
+
+	__INITDATA
+	.balign 4
+
+SYM_DATA_START_PTI_ALIGNED(early_top_pgt)
+	.fill	511,8,0
+	.quad	level3_kernel_pgt - __START_KERNEL_map + _PAGE_TABLE_NOENC
+	.fill	PTI_USER_PGD_FILL,8,0
+SYM_DATA_END(early_top_pgt)
+SYM_PIC_ALIAS(early_top_pgt)
+
+SYM_DATA_START_PAGE_ALIGNED(early_dynamic_pgts)
+	.fill	512*EARLY_DYNAMIC_PAGE_TABLES,8,0
+SYM_DATA_END(early_dynamic_pgts)
+SYM_PIC_ALIAS(early_dynamic_pgts);
+
+SYM_DATA(early_recursion_flag, .long 0)
+
+	.data
+
+SYM_DATA_START_PTI_ALIGNED(init_top_pgt)
+	.fill	512,8,0
+	.fill	PTI_USER_PGD_FILL,8,0
+SYM_DATA_END(init_top_pgt)
+
+SYM_DATA_START_PAGE_ALIGNED(level4_kernel_pgt)
+	.fill	511,8,0
+	.quad	level3_kernel_pgt - __START_KERNEL_map + _PAGE_TABLE_NOENC
+SYM_DATA_END(level4_kernel_pgt)
+SYM_PIC_ALIAS(level4_kernel_pgt)
+
+SYM_DATA_START_PAGE_ALIGNED(level3_kernel_pgt)
+	.fill	L3_START_KERNEL,8,0
+	/* (2^48-(2*1024*1024*1024)-((2^39)*511))/(2^30) = 510 */
+	.quad	level2_kernel_pgt - __START_KERNEL_map + _KERNPG_TABLE_NOENC
+	.quad	level2_fixmap_pgt - __START_KERNEL_map + _PAGE_TABLE_NOENC
+SYM_DATA_END(level3_kernel_pgt)
+SYM_PIC_ALIAS(level3_kernel_pgt)
+
+SYM_DATA_START_PAGE_ALIGNED(level2_kernel_pgt)
+	/*
+	 * Kernel high mapping.
+	 *
+	 * The kernel code+data+bss must be located below KERNEL_IMAGE_SIZE in
+	 * virtual address space, which is 1 GiB if RANDOMIZE_BASE is enabled,
+	 * 512 MiB otherwise.
+	 *
+	 * (NOTE: after that starts the module area, see MODULES_VADDR.)
+	 *
+	 * This table is eventually used by the kernel during normal runtime.
+	 * Care must be taken to clear out undesired bits later, like _PAGE_RW
+	 * or _PAGE_GLOBAL in some cases.
+	 */
+	PMDS(0, __PAGE_KERNEL_LARGE_EXEC, KERNEL_IMAGE_SIZE/PMD_SIZE)
+SYM_DATA_END(level2_kernel_pgt)
+SYM_PIC_ALIAS(level2_kernel_pgt)
+
+SYM_DATA_START_PAGE_ALIGNED(level2_fixmap_pgt)
+	.fill	(512 - 4 - FIXMAP_PMD_NUM),8,0
+	pgtno = 0
+	.rept (FIXMAP_PMD_NUM)
+	.quad level1_fixmap_pgt + (pgtno << PAGE_SHIFT) - __START_KERNEL_map \
+		+ _PAGE_TABLE_NOENC;
+	pgtno = pgtno + 1
+	.endr
+	/* 6 MB reserved space + a 2MB hole */
+	.fill	4,8,0
+SYM_DATA_END(level2_fixmap_pgt)
+SYM_PIC_ALIAS(level2_fixmap_pgt)
+
+SYM_DATA_START_PAGE_ALIGNED(level1_fixmap_pgt)
+	.rept (FIXMAP_PMD_NUM)
+	.fill	512,8,0
+	.endr
+SYM_DATA_END(level1_fixmap_pgt)
+
+	.data
+	.align 16
+
+SYM_DATA(smpboot_control,		.long 0)
+
+	.align 16
+/* This must match the first entry in level2_kernel_pgt */
+SYM_DATA(phys_base, .quad 0x0)
+SYM_PIC_ALIAS(phys_base);
+EXPORT_SYMBOL(phys_base)
+
+#include "../xen/xen-head.S"
+// SPDX-License-Identifier: GPL-2.0
+/*
+ *  prepare to run common code
+ *
+ *  Copyright (C) 2000 Andrea Arcangeli <andrea@suse.de> SuSE
+ */
+
+/* cpu_feature_enabled() cannot be used this early */
+#define USE_EARLY_PGTABLE_L5
+
+#include <linux/init.h>
+#include <linux/linkage.h>
+#include <linux/types.h>
+#include <linux/kernel.h>
+#include <linux/string.h>
+#include <linux/percpu.h>
+#include <linux/start_kernel.h>
+#include <linux/io.h>
+#include <linux/memblock.h>
+#include <linux/cc_platform.h>
+#include <linux/pgtable.h>
+
+#include <asm/asm.h>
+#include <asm/page_64.h>
+#include <asm/processor.h>
+#include <asm/proto.h>
+#include <asm/smp.h>
+#include <asm/setup.h>
+#include <asm/desc.h>
+#include <asm/tlbflush.h>
+#include <asm/sections.h>
+#include <asm/kdebug.h>
+#include <asm/e820/api.h>
+#include <asm/bios_ebda.h>
+#include <asm/bootparam_utils.h>
+#include <asm/microcode.h>
+#include <asm/kasan.h>
+#include <asm/fixmap.h>
+#include <asm/realmode.h>
+#include <asm/extable.h>
+#include <asm/trapnr.h>
+#include <asm/sev.h>
+#include <asm/tdx.h>
+#include <asm/init.h>
+
+/*
+ * Manage page tables very early on.
+ */
+extern pmd_t early_dynamic_pgts[EARLY_DYNAMIC_PAGE_TABLES][PTRS_PER_PMD];
+unsigned int __initdata next_early_pgt;
+SYM_PIC_ALIAS(next_early_pgt);
+pmdval_t early_pmd_flags = __PAGE_KERNEL_LARGE & ~(_PAGE_GLOBAL | _PAGE_NX);
+
+unsigned int __pgtable_l5_enabled __ro_after_init;
+SYM_PIC_ALIAS(__pgtable_l5_enabled);
+unsigned int pgdir_shift __ro_after_init = 39;
+EXPORT_SYMBOL(pgdir_shift);
+SYM_PIC_ALIAS(pgdir_shift);
+unsigned int ptrs_per_p4d __ro_after_init = 1;
+EXPORT_SYMBOL(ptrs_per_p4d);
+SYM_PIC_ALIAS(ptrs_per_p4d);
+
+unsigned long page_offset_base __ro_after_init = __PAGE_OFFSET_BASE_L4;
+EXPORT_SYMBOL(page_offset_base);
+unsigned long vmalloc_base __ro_after_init = __VMALLOC_BASE_L4;
+EXPORT_SYMBOL(vmalloc_base);
+unsigned long vmemmap_base __ro_after_init = __VMEMMAP_BASE_L4;
+EXPORT_SYMBOL(vmemmap_base);
+
+/* Wipe all early page tables except for the kernel symbol map */
+static void __init reset_early_page_tables(void)
+{
+	memset(early_top_pgt, 0, sizeof(pgd_t)*(PTRS_PER_PGD-1));
+	next_early_pgt = 0;
+	write_cr3(__sme_pa_nodebug(early_top_pgt));
+}
+
+/* Create a new PMD entry */
+bool __init __early_make_pgtable(unsigned long address, pmdval_t pmd)
+{
+	unsigned long physaddr = address - __PAGE_OFFSET;
+	pgdval_t pgd, *pgd_p;
+	p4dval_t p4d, *p4d_p;
+	pudval_t pud, *pud_p;
+	pmdval_t *pmd_p;
+
+	/* Invalid address or early pgt is done ?  */
+	if (physaddr >= MAXMEM || read_cr3_pa() != __pa_nodebug(early_top_pgt))
+		return false;
+
+again:
+	pgd_p = &early_top_pgt[pgd_index(address)].pgd;
+	pgd = *pgd_p;
+
+	/*
+	 * The use of __START_KERNEL_map rather than __PAGE_OFFSET here is
+	 * critical -- __PAGE_OFFSET would point us back into the dynamic
+	 * range and we might end up looping forever...
+	 */
+	if (!pgtable_l5_enabled())
+		p4d_p = pgd_p;
+	else if (pgd)
+		p4d_p = (p4dval_t *)((pgd & PTE_PFN_MASK) + __START_KERNEL_map - phys_base);
+	else {
+		if (next_early_pgt >= EARLY_DYNAMIC_PAGE_TABLES) {
+			reset_early_page_tables();
+			goto again;
+		}
+
+		p4d_p = (p4dval_t *)early_dynamic_pgts[next_early_pgt++];
+		memset(p4d_p, 0, sizeof(*p4d_p) * PTRS_PER_P4D);
+		*pgd_p = (pgdval_t)p4d_p - __START_KERNEL_map + phys_base + _KERNPG_TABLE;
+	}
+	p4d_p += p4d_index(address);
+	p4d = *p4d_p;
+
+	if (p4d)
+		pud_p = (pudval_t *)((p4d & PTE_PFN_MASK) + __START_KERNEL_map - phys_base);
+	else {
+		if (next_early_pgt >= EARLY_DYNAMIC_PAGE_TABLES) {
+			reset_early_page_tables();
+			goto again;
+		}
+
+		pud_p = (pudval_t *)early_dynamic_pgts[next_early_pgt++];
+		memset(pud_p, 0, sizeof(*pud_p) * PTRS_PER_PUD);
+		*p4d_p = (p4dval_t)pud_p - __START_KERNEL_map + phys_base + _KERNPG_TABLE;
+	}
+	pud_p += pud_index(address);
+	pud = *pud_p;
+
+	if (pud)
+		pmd_p = (pmdval_t *)((pud & PTE_PFN_MASK) + __START_KERNEL_map - phys_base);
+	else {
+		if (next_early_pgt >= EARLY_DYNAMIC_PAGE_TABLES) {
+			reset_early_page_tables();
+			goto again;
+		}
+
+		pmd_p = (pmdval_t *)early_dynamic_pgts[next_early_pgt++];
+		memset(pmd_p, 0, sizeof(*pmd_p) * PTRS_PER_PMD);
+		*pud_p = (pudval_t)pmd_p - __START_KERNEL_map + phys_base + _KERNPG_TABLE;
+	}
+	pmd_p[pmd_index(address)] = pmd;
+
+	return true;
+}
+
+static bool __init early_make_pgtable(unsigned long address)
+{
+	unsigned long physaddr = address - __PAGE_OFFSET;
+	pmdval_t pmd;
+
+	pmd = (physaddr & PMD_MASK) + early_pmd_flags;
+
+	return __early_make_pgtable(address, pmd);
+}
+
+void __init do_early_exception(struct pt_regs *regs, int trapnr)
+{
+	if (trapnr == X86_TRAP_PF &&
+	    early_make_pgtable(native_read_cr2()))
+		return;
+
+	if (IS_ENABLED(CONFIG_AMD_MEM_ENCRYPT) &&
+	    trapnr == X86_TRAP_VC && handle_vc_boot_ghcb(regs))
+		return;
+
+	if (trapnr == X86_TRAP_VE && tdx_early_handle_ve(regs))
+		return;
+
+	early_fixup_exception(regs, trapnr);
+}
+
+/* Don't add a printk in there. printk relies on the PDA which is not initialized 
+   yet. */
+void __init clear_bss(void)
+{
+	memset(__bss_start, 0,
+	       (unsigned long) __bss_stop - (unsigned long) __bss_start);
+	memset(__brk_base, 0,
+	       (unsigned long) __brk_limit - (unsigned long) __brk_base);
+}
+
+static unsigned long get_cmd_line_ptr(void)
+{
+	unsigned long cmd_line_ptr = boot_params.hdr.cmd_line_ptr;
+
+	cmd_line_ptr |= (u64)boot_params.ext_cmd_line_ptr << 32;
+
+	return cmd_line_ptr;
+}
+
+static void __init copy_bootdata(char *real_mode_data)
+{
+	char * command_line;
+	unsigned long cmd_line_ptr;
+
+	/*
+	 * If SME is active, this will create decrypted mappings of the
+	 * boot data in advance of the copy operations.
+	 */
+	sme_map_bootdata(real_mode_data);
+
+	memcpy(&boot_params, real_mode_data, sizeof(boot_params));
+	sanitize_boot_params(&boot_params);
+	cmd_line_ptr = get_cmd_line_ptr();
+	if (cmd_line_ptr) {
+		command_line = __va(cmd_line_ptr);
+		memcpy(boot_command_line, command_line, COMMAND_LINE_SIZE);
+	}
+
+	/*
+	 * The old boot data is no longer needed and won't be reserved,
+	 * freeing up that memory for use by the system. If SME is active,
+	 * we need to remove the mappings that were created so that the
+	 * memory doesn't remain mapped as decrypted.
+	 */
+	sme_unmap_bootdata(real_mode_data);
+}
+
+asmlinkage __visible void __init __noreturn x86_64_start_kernel(char * real_mode_data)
+{
+	/*
+	 * Build-time sanity checks on the kernel image and module
+	 * area mappings. (these are purely build-time and produce no code)
+	 */
+	BUILD_BUG_ON(MODULES_VADDR < __START_KERNEL_map);
+	BUILD_BUG_ON(MODULES_VADDR - __START_KERNEL_map < KERNEL_IMAGE_SIZE);
+	BUILD_BUG_ON(MODULES_LEN + KERNEL_IMAGE_SIZE > 2*PUD_SIZE);
+	BUILD_BUG_ON((__START_KERNEL_map & ~PMD_MASK) != 0);
+	BUILD_BUG_ON((MODULES_VADDR & ~PMD_MASK) != 0);
+	BUILD_BUG_ON(!(MODULES_VADDR > __START_KERNEL));
+	MAYBE_BUILD_BUG_ON(!(((MODULES_END - 1) & PGDIR_MASK) ==
+				(__START_KERNEL & PGDIR_MASK)));
+	BUILD_BUG_ON(__fix_to_virt(__end_of_fixed_addresses) <= MODULES_END);
+
+	cr4_init_shadow();
+
+	/* Kill off the identity-map trampoline */
+	reset_early_page_tables();
+
+	if (pgtable_l5_enabled()) {
+		page_offset_base	= __PAGE_OFFSET_BASE_L5;
+		vmalloc_base		= __VMALLOC_BASE_L5;
+		vmemmap_base		= __VMEMMAP_BASE_L5;
+	}
+
+	clear_bss();
+
+	/*
+	 * This needs to happen *before* kasan_early_init() because latter maps stuff
+	 * into that page.
+	 */
+	clear_page(init_top_pgt);
+
+	/*
+	 * SME support may update early_pmd_flags to include the memory
+	 * encryption mask, so it needs to be called before anything
+	 * that may generate a page fault.
+	 */
+	sme_early_init();
+
+	kasan_early_init();
+
+	/*
+	 * Flush global TLB entries which could be left over from the trampoline page
+	 * table.
+	 *
+	 * This needs to happen *after* kasan_early_init() as KASAN-enabled .configs
+	 * instrument native_write_cr4() so KASAN must be initialized for that
+	 * instrumentation to work.
+	 */
+	__native_tlb_flush_global(this_cpu_read(cpu_tlbstate.cr4));
+
+	idt_setup_early_handler();
+
+	/* Needed before cc_platform_has() can be used for TDX */
+	tdx_early_init();
+
+	copy_bootdata(__va(real_mode_data));
+
+	/*
+	 * Load microcode early on BSP.
+	 */
+	load_ucode_bsp();
+
+	/* set init_top_pgt kernel high mapping*/
+	init_top_pgt[511] = early_top_pgt[511];
+
+	x86_64_start_reservations(real_mode_data);
+}
+
+void __init __noreturn x86_64_start_reservations(char *real_mode_data)
+{
+	/* version is always not zero if it is copied */
+	if (!boot_params.hdr.version)
+		copy_bootdata(__va(real_mode_data));
+
+	x86_early_init_platform_quirks();
+
+	switch (boot_params.hdr.hardware_subarch) {
+	case X86_SUBARCH_INTEL_MID:
+		x86_intel_mid_early_setup();
+		break;
+	default:
+		break;
+	}
+
+	start_kernel();
+}
+
+void early_setup_idt(void)
+{
+	void *handler = NULL;
+
+	if (IS_ENABLED(CONFIG_AMD_MEM_ENCRYPT)) {
+		setup_ghcb();
+		handler = vc_boot_ghcb;
+	}
+
+	__pi_startup_64_load_idt(handler);
+}

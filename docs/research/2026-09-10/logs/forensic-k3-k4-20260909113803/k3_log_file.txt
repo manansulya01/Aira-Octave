@@ -1,0 +1,3 @@
+logs/kernel-foundation-boot-20260830-082619.log
+logs/kernel-k34-boot-20260830-082619.log
+logs/qemu-clean-boot.log

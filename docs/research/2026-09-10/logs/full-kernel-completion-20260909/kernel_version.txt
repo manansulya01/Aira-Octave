@@ -1,0 +1,3 @@
+make: Entering directory '/home/manan/Aira-Octave/linux-7.2.2'
+7.2.2
+make: Leaving directory '/home/manan/Aira-Octave/linux-7.2.2'

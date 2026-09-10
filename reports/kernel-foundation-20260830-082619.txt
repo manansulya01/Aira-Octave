@@ -1,0 +1,39 @@
+==============================================================
+AIRA OCTAVE KERNEL FOUNDATION REPORT
+==============================================================
+
+RUN_ID=20260830-082619
+DATE=Sun Aug 30 08:27:35 UTC 2026
+GIT=83a73251c
+
+RESULTS
+--------------------------------------------------------------
+PASS=74
+FAIL=0
+WARN=3
+
+K1_K2_GATE=PASS
+
+ARTIFACTS
+--------------------------------------------------------------
+-rw-r--r-- 1 manan manan 15M Aug 30 06:20 /home/manan/Aira-Octave/linux-7.2.2/arch/x86/boot/bzImage
+-rw-r--r-- 1 manan manan 2.1M Aug 30 07:09 /home/manan/Aira-Octave/initramfs.cpio
+
+BOOT LOG K1/K2
+logs/kernel-foundation-boot-20260830-082619.log
+
+BOOT LOG K3/K4
+logs/kernel-k34-boot-20260830-082619.log
+
+CONFIG BACKUP
+linux-7.2.2/.config.pre-foundation-20260830-082619
+
+GIT STATUS
+ M initramfs.cpio
+?? logs/initramfs-20260830-082619.sha256
+?? logs/initramfs-result.txt
+?? logs/initramfs.sha256
+?? reports/kernel-foundation-20260830-082619.txt
+?? scripts/
+
+==============================================================

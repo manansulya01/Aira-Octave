@@ -1,0 +1,1 @@
+-rw-r--r-- 1 manan manan 3.0M Sep  9 11:53 linux-7.2.2/arch/x86/boot/bzImage

@@ -1,0 +1,144 @@
+Initramfs directory:
+-rwxr-xr-x 2190672 /home/manan/Aira-Octave/initramfs/bin/busybox
+-rwxr-xr-x 642 /home/manan/Aira-Octave/initramfs/init
+drwxr-xr-x 4096 /home/manan/Aira-Octave/initramfs
+drwxr-xr-x 4096 /home/manan/Aira-Octave/initramfs/bin
+drwxr-xr-x 4096 /home/manan/Aira-Octave/initramfs/dev
+drwxr-xr-x 4096 /home/manan/Aira-Octave/initramfs/etc
+drwxr-xr-x 4096 /home/manan/Aira-Octave/initramfs/proc
+drwxr-xr-x 4096 /home/manan/Aira-Octave/initramfs/sys
+lrwxrwxrwx 7 /home/manan/Aira-Octave/initramfs/bin/cat
+lrwxrwxrwx 7 /home/manan/Aira-Octave/initramfs/bin/clear
+lrwxrwxrwx 7 /home/manan/Aira-Octave/initramfs/bin/cp
+lrwxrwxrwx 7 /home/manan/Aira-Octave/initramfs/bin/date
+lrwxrwxrwx 7 /home/manan/Aira-Octave/initramfs/bin/dmesg
+lrwxrwxrwx 7 /home/manan/Aira-Octave/initramfs/bin/echo
+lrwxrwxrwx 7 /home/manan/Aira-Octave/initramfs/bin/free
+lrwxrwxrwx 7 /home/manan/Aira-Octave/initramfs/bin/grep
+lrwxrwxrwx 7 /home/manan/Aira-Octave/initramfs/bin/head
+lrwxrwxrwx 7 /home/manan/Aira-Octave/initramfs/bin/hostname
+lrwxrwxrwx 7 /home/manan/Aira-Octave/initramfs/bin/ls
+lrwxrwxrwx 7 /home/manan/Aira-Octave/initramfs/bin/mkdir
+lrwxrwxrwx 7 /home/manan/Aira-Octave/initramfs/bin/mount
+lrwxrwxrwx 7 /home/manan/Aira-Octave/initramfs/bin/mv
+lrwxrwxrwx 7 /home/manan/Aira-Octave/initramfs/bin/poweroff
+lrwxrwxrwx 7 /home/manan/Aira-Octave/initramfs/bin/ps
+lrwxrwxrwx 7 /home/manan/Aira-Octave/initramfs/bin/pwd
+lrwxrwxrwx 7 /home/manan/Aira-Octave/initramfs/bin/reboot
+lrwxrwxrwx 7 /home/manan/Aira-Octave/initramfs/bin/rm
+lrwxrwxrwx 7 /home/manan/Aira-Octave/initramfs/bin/sh
+lrwxrwxrwx 7 /home/manan/Aira-Octave/initramfs/bin/sleep
+lrwxrwxrwx 7 /home/manan/Aira-Octave/initramfs/bin/tail
+lrwxrwxrwx 7 /home/manan/Aira-Octave/initramfs/bin/uname
+lrwxrwxrwx 7 /home/manan/Aira-Octave/initramfs/bin/wc
+
+initramfs/init:
+#!/bin/sh
+
+echo
+echo "========================================"
+echo "          AIRAOS LINUX"
+echo "========================================"
+echo
+
+mount -t devtmpfs devtmpfs /dev
+mount -t proc proc /proc
+mount -t sysfs sysfs /sys
+
+echo "AiraOS Linux kernel is alive."
+echo
+
+echo "Kernel:"
+uname -a
+echo
+
+echo "CPU:"
+grep -m1 "model name" /proc/cpuinfo
+echo
+
+echo "Memory:"
+grep MemTotal /proc/meminfo
+echo
+
+echo "========================================"
+echo "        AiraOS userspace ready"
+echo "========================================"
+echo
+
+echo "Available commands:"
+echo "  ls  cat  ps  free  mount  dmesg  uname"
+echo
+
+exec /bin/sh
+
+BusyBox:
+/home/manan/Aira-Octave/initramfs/bin/busybox: ELF 64-bit LSB executable, x86-64, version 1 (GNU/Linux), statically linked, BuildID[sha1]=45585fa7eea9146e74dd8d23ba506c66b4d1b809, for GNU/Linux 3.2.0, stripped
+BusyBox v1.37.0 (Ubuntu 1:1.37.0-7ubuntu1) multi-call binary.
+BusyBox is copyrighted by many authors between 1998-2015.
+Licensed under GPLv2. See source distribution for detailed
+copyright notices.
+
+Usage: busybox [function [arguments]...]
+   or: busybox --list[-full]
+   or: busybox --install [-s] [DIR]
+   or: function [arguments]...
+
+	BusyBox is a multi-call binary that combines many common Unix
+	utilities into a single executable.  The shell in this build
+	is configured to run built-in utilities without $PATH search.
+	You don't need to install a link to busybox for each utility.
+	To run external program, use full path (/sbin/ip instead of ip).
+
+Currently defined functions:
+	[, [[, acpid, adjtimex, ar, arch, arp, arping, ascii, ash, awk, base64,
+	basename, bc, blkdiscard, blockdev, brctl, bunzip2, busybox, bzcat,
+	bzip2, cal, cat, chattr, chgrp, chmod, chown, chpasswd, chroot, chvt,
+	clear, cmp, cp, cpio, crc32, crond, crontab, cttyhack, cut, date, dc,
+	dd, deallocvt, depmod, devmem, df, diff, dirname, dmesg, dnsdomainname,
+	dos2unix, dpkg, dpkg-deb, du, dumpkmap, dumpleases, echo, ed, egrep,
+	env, expand, expr, factor, fallocate, false, fatattr, fdisk, fgrep,
+	find, findfs, fold, free, freeramdisk, fsfreeze, fstrim, ftpget,
+	ftpput, getfattr, getopt, getty, grep, groups, gunzip, gzip, halt,
+	head, hexdump, hostid, hostname, httpd, hwclock, i2cdetect, i2cdump,
+	i2cget, i2cset, i2ctransfer, id, ifconfig, ifdown, ifup, init, insmod,
+	install, ionice, ip, ipcalc, kill, killall, klogd, last, less, link,
+	linux32, linux64, linuxrc, ln, loadfont, loadkmap, logger, login,
+
+Packed initramfs:
+-rw-r--r-- 1 manan manan 2.1M Aug 30 07:09 /home/manan/Aira-Octave/initramfs.cpio
+/home/manan/Aira-Octave/initramfs.cpio: ASCII cpio archive (SVR4 with no CRC)
+e9effb81e70280ed4d28a48110892aa3be365c07fc4cefb35771ae66eeae877b  /home/manan/Aira-Octave/initramfs.cpio
+
+Archive contents:
+.
+bin
+bin/busybox
+bin/cat
+bin/clear
+bin/cp
+bin/date
+bin/dmesg
+bin/echo
+bin/free
+bin/grep
+bin/head
+bin/hostname
+bin/ls
+bin/mkdir
+bin/mount
+bin/mv
+bin/poweroff
+bin/ps
+bin/pwd
+bin/reboot
+bin/rm
+bin/sh
+bin/sleep
+bin/tail
+bin/uname
+bin/wc
+dev
+etc
+init
+proc
+sys

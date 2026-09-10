@@ -1,0 +1,440 @@
+arping
+ascii
+ash
+awk
+base64
+basename
+bc
+blkdiscard
+blockdev
+brctl
+bunzip2
+busybox
+bzcat
+bzip2
+cal
+cat
+chattr
+chgrp
+chmod
+chown
+chpasswd
+chroot
+chvt
+clear
+cmp
+cp
+cpio
+crc32
+crond
+crontab
+cttyhack
+cut
+date
+dc
+dd
+deallocvt
+depmod
+devmem
+df
+diff
+dirname
+dmesg
+dnsdomainname
+dos2unix
+dpkg
+dpkg-deb
+du
+dumpkmap
+dumpleases
+echo
+ed
+egrep
+env
+expand
+expr
+factor
+fallocate
+false
+fatattr
+fdisk
+fgrep
+find
+findfs
+fold
+free
+freeramdisk
+fsfreeze
+fstrim
+ftpget
+ftpput
+getfattr
+getopt
+getty
+grep
+groups
+gunzip
+gzip
+halt
+head
+hexdump
+hostid
+hostname
+httpd
+hwclock
+i2cdetect
+i2cdump
+i2cget
+i2cset
+i2ctransfer
+id
+ifconfig
+ifdown
+ifup
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\==============================================================
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\9. BUILD KERNEL AGAIN
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\==============================================================
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\Sun Aug 30 06:38:47 UTC 2026
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\make: Entering directory '/home/manan/Aira-Octave/linux-7.2.2'
+  DESCEND objtool
+Kernel: arch/x86/boot/bzImage is ready  (#3)
+--
+./configs/airaos-x86_64-working.config:57:# CONFIG_SYSVIPC is not set
+./configs/airaos-x86_64-working.config:60:# CONFIG_CROSS_MEMORY_ATTACH is not set
+./configs/airaos-x86_64-working.config:62:CONFIG_HAVE_ARCH_AUDITSYSCALL=y
+./configs/airaos-x86_64-working.config:73:CONFIG_IRQ_DOMAIN=y
+./configs/airaos-x86_64-working.config:74:CONFIG_IRQ_DOMAIN_HIERARCHY=y
+./configs/airaos-x86_64-working.config:113:# CONFIG_BPF_SYSCALL is not set
+./configs/airaos-x86_64-working.config:153:# Scheduler features
+./configs/airaos-x86_64-working.config:157:# end of Scheduler features
+./configs/airaos-x86_64-working.config:192:# CONFIG_SYSFS_SYSCALL is not set
+./configs/airaos-x86_64-working.config:196:# CONFIG_SGETMASK_SYSCALL is not set
+./configs/airaos-x86_64-working.config:210:# CONFIG_AIO is not set
+./configs/airaos-x86_64-working.config:212:# CONFIG_ADVISE_SYSCALLS is not set
+./configs/airaos-x86_64-working.config:216:# CONFIG_CACHESTAT_SYSCALL is not set
+./configs/airaos-x86_64-working.config:223:# Kernel Performance Events And Counters
+./configs/airaos-x86_64-working.config:227:# end of Kernel Performance Events And Counters
+./configs/airaos-x86_64-working.config:326:CONFIG_X86_VSYSCALL_EMULATION=y
+./configs/airaos-x86_64-working.config:345:CONFIG_X86_KERNEL_IBT=y
+./configs/airaos-x86_64-working.config:346:CONFIG_X86_INTEL_MEMORY_PROTECTION_KEYS=y
+./configs/airaos-x86_64-working.config:378:CONFIG_RANDOMIZE_MEMORY=y
+./configs/airaos-x86_64-working.config:379:CONFIG_RANDOMIZE_MEMORY_PHYSICAL_PADDING=0x0
+./configs/airaos-x86_64-working.config:382:CONFIG_LEGACY_VSYSCALL_XONLY=y
+./configs/airaos-x86_64-working.config:383:# CONFIG_LEGACY_VSYSCALL_NONE is not set
+./configs/airaos-x86_64-working.config:385:# CONFIG_MODIFY_LDT_SYSCALL is not set
+./configs/airaos-x86_64-working.config:443:CONFIG_ACPI_CONTAINER=y
+./configs/airaos-x86_64-working.config:473:# CONFIG_CPU_FREQ_DEFAULT_GOV_USERSPACE is not set
+./configs/airaos-x86_64-working.config:477:# CONFIG_CPU_FREQ_GOV_USERSPACE is not set
+./configs/airaos-x86_64-working.config:585:CONFIG_GENERIC_SYSCALL=y
+./configs/airaos-x86_64-working.config:606:CONFIG_ARCH_HAS_SET_MEMORY=y
+./configs/airaos-x86_64-working.config:612:CONFIG_ARCH_MEMORY_ORDER_TSO=y
+./configs/airaos-x86_64-working.config:690:CONFIG_ARCH_HAS_STRICT_KERNEL_RWX=y
+./configs/airaos-x86_64-working.config:691:CONFIG_STRICT_KERNEL_RWX=y
+./configs/airaos-x86_64-working.config:709:CONFIG_ARCH_HAS_KERNEL_FPU_SUPPORT=y
+./configs/airaos-x86_64-working.config:714:# GCOV-based kernel profiling
+./configs/airaos-x86_64-working.config:717:# end of GCOV-based kernel profiling
+./configs/airaos-x86_64-working.config:732:# CONFIG_MODULE_UNLOAD_TAINT_TRACKING is not set
+./configs/airaos-x86_64-working.config:761:# IO Schedulers
+./configs/airaos-x86_64-working.config:766:# end of IO Schedulers
+./configs/airaos-x86_64-working.config:779:CONFIG_ARCH_HAS_SYSCALL_WRAPPER=y
+./configs/airaos-x86_64-working.config:791:# Memory Management options
+./configs/airaos-x86_64-working.config:815:CONFIG_ARCH_ENABLE_MEMORY_HOTPLUG=y
+./configs/airaos-x86_64-working.config:816:# CONFIG_MEMORY_HOTPLUG is not set
+./configs/airaos-x86_64-working.config:817:CONFIG_ARCH_MHP_MEMMAP_ON_MEMORY_ENABLE=y
+./configs/airaos-x86_64-working.config:862:CONFIG_PT_RECLAIM=y
+./configs/airaos-x86_64-working.config:869:# end of Memory Management options
+./configs/airaos-x86_64-working.config:874:# Networking options
+./configs/airaos-x86_64-working.config:896:# CONFIG_INET_IPCOMP is not set
+./configs/airaos-x86_64-working.config:914:# CONFIG_INET6_IPCOMP is not set
+./configs/airaos-x86_64-working.config:928:# CONFIG_NETWORK_SECMARK is not set
+./configs/airaos-x86_64-working.config:929:# CONFIG_NETWORK_PHY_TIMESTAMPING is not set
+./configs/airaos-x86_64-working.config:933:# CONFIG_TIPC is not set
+./configs/airaos-x86_64-working.config:968:# Network testing
+./configs/airaos-x86_64-working.config:971:# end of Network testing
+./configs/airaos-x86_64-working.config:972:# end of Networking options
+./configs/airaos-x86_64-working.config:995:# CONFIG_FAILOVER is not set
+./configs/airaos-x86_64-working.config:1004:CONFIG_PCI_DOMAINS=y
+./configs/airaos-x86_64-working.config:1251:# CONFIG_RAID_ATTRS is not set
+./configs/airaos-x86_64-working.config:1426:# Enable PHYLIB and NETWORK_PHY_TIMESTAMPING to see the additional clocks.
+./configs/airaos-x86_64-working.config:1456:# CONFIG_THERMAL_DEFAULT_GOV_FAIR_SHARE is not set
+./configs/airaos-x86_64-working.config:1458:# CONFIG_THERMAL_GOV_FAIR_SHARE is not set
+./configs/airaos-x86_64-working.config:1664:# CONFIG_HID_SAITEK is not set
+./configs/airaos-x86_64-working.config:1771:CONFIG_MAILBOX=y
+./configs/airaos-x86_64-working.config:1839:# PM Domains
+./configs/airaos-x86_64-working.config:1843:# Amlogic PM Domains
+./configs/airaos-x86_64-working.config:1845:# end of Amlogic PM Domains
+./configs/airaos-x86_64-working.config:1848:# Broadcom PM Domains
+./configs/airaos-x86_64-working.config:1850:# end of Broadcom PM Domains
+./configs/airaos-x86_64-working.config:1853:# i.MX PM Domains
+./configs/airaos-x86_64-working.config:1855:# end of i.MX PM Domains
+./configs/airaos-x86_64-working.config:1858:# Qualcomm PM Domains
+./configs/airaos-x86_64-working.config:1860:# end of Qualcomm PM Domains
+./configs/airaos-x86_64-working.config:1861:# end of PM Domains
+./configs/airaos-x86_64-working.config:1865:# CONFIG_MEMORY is not set
+./configs/airaos-x86_64-working.config:1910:# CONFIG_ANDROID_BINDER_IPC is not set
+./configs/airaos-x86_64-working.config:2036:CONFIG_NETWORK_FILESYSTEMS=y
+./configs/airaos-x86_64-working.config:2110:# Kernel hardening options
+./configs/airaos-x86_64-working.config:2114:# Memory initialization
+./configs/airaos-x86_64-working.config:2126:# end of Memory initialization
+./configs/airaos-x86_64-working.config:2136:# Hardening of kernel data structures
+./configs/airaos-x86_64-working.config:2140:# end of Hardening of kernel data structures
+./configs/airaos-x86_64-working.config:2143:# end of Kernel hardening options
+./configs/airaos-x86_64-working.config:2237:# Kernel hacking
+./configs/airaos-x86_64-working.config:2249:CONFIG_DEBUG_KERNEL=y
+./configs/airaos-x86_64-working.config:2257:# CONFIG_DEBUG_INFO_DWARF_TOOLCHAIN_DEFAULT is not set
+./configs/airaos-x86_64-working.config:2274:# Generic Kernel Debugging Instruments
+./configs/airaos-x86_64-working.config:2285:# end of Generic Kernel Debugging Instruments
+./configs/airaos-x86_64-working.config:2288:# Networking Debugging
+./configs/airaos-x86_64-working.config:2294:# end of Networking Debugging
+./configs/airaos-x86_64-working.config:2297:# Memory Debugging
+./configs/airaos-x86_64-working.config:2320:# CONFIG_DEBUG_MEMORY_INIT is not set
+./configs/airaos-x86_64-working.config:2333:# end of Memory Debugging
+./configs/airaos-x86_64-working.config:2353:# Scheduler Debugging
+./configs/airaos-x86_64-working.config:2356:# end of Scheduler Debugging
+./configs/airaos-x86_64-working.config:2377:# CONFIG_CSD_LOCK_WAIT_DEBUG is not set
+./configs/airaos-x86_64-working.config:2386:# Debug kernel data structures
+./configs/airaos-x86_64-working.config:2393:# end of Debug kernel data structures
+./configs/airaos-x86_64-working.config:2421:CONFIG_HAVE_SYSCALL_TRACEPOINTS=y
+./configs/airaos-x86_64-working.config:2459:# Kernel Testing and Coverage
+./configs/airaos-x86_64-working.config:2469:# end of Kernel Testing and Coverage
+./configs/airaos-x86_64-working.config:2475:# end of Kernel hacking
+./logs/autonomous-kernel-build.log:1:make: Entering directory '/home/manan/Aira-Octave/linux-7.2.2'
+./logs/autonomous-kernel-build.log:3:Kernel: arch/x86/boot/bzImage is ready  (#3)
+./logs/autonomous-kernel-build.log:4:make: Leaving directory '/home/manan/Aira-Octave/linux-7.2.2'
+./logs/kernel-build.log:1:make: Entering directory '/home/manan/Aira-Octave/linux-7.2.2'
+./logs/kernel-build.log:3:  CC      /home/manan/Aira-Octave/linux-7.2.2/tools/objtool/libsubcmd/exec-cmd.o
+./logs/kernel-build.log:4:  CC      /home/manan/Aira-Octave/linux-7.2.2/tools/objtool/libsubcmd/help.o
+./logs/kernel-build.log:5:  CC      /home/manan/Aira-Octave/linux-7.2.2/tools/objtool/libsubcmd/pager.o
+./logs/kernel-build.log:6:  CC      /home/manan/Aira-Octave/linux-7.2.2/tools/objtool/libsubcmd/parse-options.o
+./logs/kernel-build.log:7:  CC      /home/manan/Aira-Octave/linux-7.2.2/tools/objtool/libsubcmd/run-command.o
+./logs/kernel-build.log:8:  CC      /home/manan/Aira-Octave/linux-7.2.2/tools/objtool/libsubcmd/sigchain.o
+./logs/kernel-build.log:9:  CC      /home/manan/Aira-Octave/linux-7.2.2/tools/objtool/libsubcmd/subcmd-config.o
+./logs/kernel-build.log:10:  LD      /home/manan/Aira-Octave/linux-7.2.2/tools/objtool/libsubcmd/libsubcmd-in.o
+./logs/kernel-build.log:11:  AR      /home/manan/Aira-Octave/linux-7.2.2/tools/objtool/libsubcmd/libsubcmd.a
+./logs/kernel-build.log:12:  CC      /home/manan/Aira-Octave/linux-7.2.2/tools/objtool/weak.o
+./logs/kernel-build.log:13:  CC      /home/manan/Aira-Octave/linux-7.2.2/tools/objtool/check.o
+./logs/kernel-build.log:14:  CC      /home/manan/Aira-Octave/linux-7.2.2/tools/objtool/special.o
+./logs/kernel-build.log:15:  CC      /home/manan/Aira-Octave/linux-7.2.2/tools/objtool/builtin-check.o
+./logs/kernel-build.log:16:  CC      /home/manan/Aira-Octave/linux-7.2.2/tools/objtool/elf.o
+./logs/kernel-build.log:17:  CC      /home/manan/Aira-Octave/linux-7.2.2/tools/objtool/objtool.o
+./logs/kernel-build.log:18:  CC      /home/manan/Aira-Octave/linux-7.2.2/tools/objtool/orc_gen.o
+./logs/kernel-build.log:19:  CC      /home/manan/Aira-Octave/linux-7.2.2/tools/objtool/arch/x86/decode.o
+./logs/kernel-build.log:20:  CC      /home/manan/Aira-Octave/linux-7.2.2/tools/objtool/orc_dump.o
+./logs/kernel-build.log:21:  CC      /home/manan/Aira-Octave/linux-7.2.2/tools/objtool/libstring.o
+./logs/kernel-build.log:22:  CC      /home/manan/Aira-Octave/linux-7.2.2/tools/objtool/libctype.o
+./logs/kernel-build.log:23:  CC      /home/manan/Aira-Octave/linux-7.2.2/tools/objtool/str_error_r.o
+./logs/kernel-build.log:24:  CC      /home/manan/Aira-Octave/linux-7.2.2/tools/objtool/librbtree.o
+./logs/kernel-build.log:25:  CC      /home/manan/Aira-Octave/linux-7.2.2/tools/objtool/signal.o
+./logs/kernel-build.log:26:  CC      /home/manan/Aira-Octave/linux-7.2.2/tools/objtool/arch/x86/special.o
+./logs/kernel-build.log:27:  CC      /home/manan/Aira-Octave/linux-7.2.2/tools/objtool/arch/x86/orc.o
+./logs/kernel-build.log:28:  LD      /home/manan/Aira-Octave/linux-7.2.2/tools/objtool/arch/x86/objtool-in.o
+./logs/kernel-build.log:29:  LD      /home/manan/Aira-Octave/linux-7.2.2/tools/objtool/objtool-in.o
+./logs/kernel-build.log:30:  LINK    /home/manan/Aira-Octave/linux-7.2.2/tools/objtool/objtool
+./logs/kernel-build.log:32:  CC      arch/x86/boot/startup/map_kernel.o
+./logs/kernel-build.log:34:  OBJCOPY arch/x86/boot/startup/map_kernel.pi.o
+./logs/kernel-build.log:77:Kernel: arch/x86/boot/bzImage is ready  (#3)
+--
+-rwxr-xr-x manan:manan initramfs/bin/busybox
+-rwxr-xr-x manan:manan initramfs/init
+drwxr-xr-x manan:manan initramfs
+drwxr-xr-x manan:manan initramfs/bin
+drwxr-xr-x manan:manan initramfs/dev
+drwxr-xr-x manan:manan initramfs/etc
+drwxr-xr-x manan:manan initramfs/proc
+drwxr-xr-x manan:manan initramfs/sys
+lrwxrwxrwx manan:manan initramfs/bin/cat
+lrwxrwxrwx manan:manan initramfs/bin/clear
+lrwxrwxrwx manan:manan initramfs/bin/cp
+lrwxrwxrwx manan:manan initramfs/bin/date
+lrwxrwxrwx manan:manan initramfs/bin/dmesg
+lrwxrwxrwx manan:manan initramfs/bin/echo
+lrwxrwxrwx manan:manan initramfs/bin/free
+lrwxrwxrwx manan:manan initramfs/bin/grep
+lrwxrwxrwx manan:manan initramfs/bin/head
+lrwxrwxrwx manan:manan initramfs/bin/hostname
+lrwxrwxrwx manan:manan initramfs/bin/ls
+lrwxrwxrwx manan:manan initramfs/bin/mkdir
+lrwxrwxrwx manan:manan initramfs/bin/mount
+lrwxrwxrwx manan:manan initramfs/bin/mv
+lrwxrwxrwx manan:manan initramfs/bin/poweroff
+lrwxrwxrwx manan:manan initramfs/bin/ps
+lrwxrwxrwx manan:manan initramfs/bin/pwd
+lrwxrwxrwx manan:manan initramfs/bin/reboot
+lrwxrwxrwx manan:manan initramfs/bin/rm
+lrwxrwxrwx manan:manan initramfs/bin/sh
+lrwxrwxrwx manan:manan initramfs/bin/sleep
+lrwxrwxrwx manan:manan initramfs/bin/tail
+lrwxrwxrwx manan:manan initramfs/bin/uname
+lrwxrwxrwx manan:manan initramfs/bin/wc
+
+===== ROOT DIRECTORY =====
+total 153M
+drwxr-xr-x 10 manan manan 4.0K Aug 30 06:38 .
+drwxr-x--- 11 manan manan 4.0K Aug 30 06:38 ..
+drwxr-xr-x  7 manan manan 4.0K Aug 30 06:54 .git
+-rw-r--r--  1 manan manan  330 Aug 30 06:39 .gitignore
+drwxr-xr-x  2 manan manan 4.0K Aug 29 12:00 configs
+drwxr-xr-x  7 manan manan 4.0K Aug 29 12:37 initramfs
+drwxr-xr-x 26 manan manan 4.0K Aug 30 06:39 linux-7.2.2
+-rwxr-xr-x  1 manan manan 153M Aug 29 11:42 linux-7.2.2.tar.xz
+drwxr-xr-x  2 manan manan 4.0K Aug 30 06:38 logs
+drwxr-xr-x  2 manan manan 4.0K Aug 30 06:39 reports
+drwxr-xr-x  2 manan manan 4.0K Aug 30 06:19 scripts
+drwxr-xr-x  2 manan manan 4.0K Aug 29 11:53 test
+
+===== GIT STATUS =====
+ D initramfs.cpio
+
+===== GIT HISTORY AROUND INITRAMFS =====
+f677e7377 feat: boot AiraOS Linux userspace
+
+===== LAST COMMIT FILE TREE =====
+83a73251c test: autonomous kernel and userspace validation
+ .gitignore                                |  5 +++
+ reports/AIRA-OCTAVE-AUTONOMOUS-REPORT.txt | 67 +++++++++++++++++++++++++++++++
+ 2 files changed, 72 insertions(+)
+
+===== BUILD LOG =====
+--- logs/initramfs-build.log ---
+.
+./sys
+./dev
+./etc
+./proc
+./bin
+./bin/wc
+./bin/mount
+./bin/date
+./bin/sleep
+./bin/uname
+./bin/ps
+./bin/clear
+./bin/dmesg
+./bin/ls
+./bin/poweroff
+./bin/cat
+./bin/tail
+./bin/mv
+./bin/sh
+./bin/free
+./bin/pwd
+./bin/rm
+./bin/reboot
+./bin/head
+./bin/busybox
+./bin/mkdir
+./bin/grep
+./bin/echo
+./bin/cp
+./bin/hostname
+./init
+4288 blocks
+--- logs/autonomous-build-start.txt ---
+Sun Aug 30 06:38:47 UTC 2026
+--- logs/autonomous-kernel-build.log ---
+make: Entering directory '/home/manan/Aira-Octave/linux-7.2.2'
+  DESCEND objtool
+Kernel: arch/x86/boot/bzImage is ready  (#3)
+--
+
+==============================================================
+[2] VERIFY TOOLCHAIN
+==============================================================
+OK: gcc -> /usr/bin/gcc
+OK: make -> /usr/bin/make
+OK: nasm -> /usr/bin/nasm
+OK: ld -> /usr/bin/ld
+OK: cpio -> /usr/bin/cpio
+OK: gzip -> /usr/bin/gzip
+OK: qemu-system-x86_64 -> /usr/bin/qemu-system-x86_64
+
+==============================================================
+[3] VERIFY INITRAMFS SOURCE
+==============================================================
+PASS: initramfs/init exists and is executable
+PASS: BusyBox exists and is executable
+PASS: BusyBox shell symlink exists
+
+==============================================================
+[4] REBUILD INITRAMFS
+==============================================================
+4288 blocks
+PASS: initramfs.cpio rebuilt
+-rw-r--r-- 1 manan manan 2.1M Aug 30 07:09 initramfs.cpio
+
+==============================================================
+[5] VERIFY INITRAMFS CONTENT
+==============================================================
+4288 blocks
+PASS: initramfs contains init
+PASS: initramfs contains bin/busybox
+PASS: initramfs contains bin/sh
+PASS: initramfs contains bin/mount
+PASS: initramfs contains bin/uname
+PASS: initramfs contains bin/dmesg
+
+==============================================================
+[6] VERIFY INIT SCRIPT
+==============================================================
+----- initramfs/init -----
+#!/bin/sh
+
+echo
+echo "========================================"
+echo "          AIRAOS LINUX"
+echo "========================================"
+echo
+
+mount -t devtmpfs devtmpfs /dev
+mount -t proc proc /proc
+mount -t sysfs sysfs /sys
+
+echo "AiraOS Linux kernel is alive."
+echo
+
+echo "Kernel:"
+uname -a
+echo
+
+echo "CPU:"
+grep -m1 "model name" /proc/cpuinfo
+echo
+
+echo "Memory:"
+grep MemTotal /proc/meminfo
+echo
+
+echo "========================================"
+echo "        AiraOS userspace ready"
+echo "========================================"
+echo
+
+echo "Available commands:"
+echo "  ls  cat  ps  free  mount  dmesg  uname"
+echo
+
+exec /bin/sh
+--------------------------
+PASS: /init has /bin/sh interpreter
+
+==============================================================
+[7] CHECK LINUX CONFIG
+==============================================================
+CONFIG_BLK_DEV_INITRD=y
+CONFIG_INITRAMFS_SOURCE=""
+CONFIG_64BIT=y
+CONFIG_X86_64=y
+CONFIG_DEVTMPFS=y
+CONFIG_DEVTMPFS_MOUNT=y
+CONFIG_PROC_FS=y
+CONFIG_SYSFS=y
+CONFIG_TMPFS=y
+PASS: Linux INITRD support enabled
+
+==============================================================
+[8] REBUILD LINUX KERNEL
+==============================================================
+make: Entering directory '/home/manan/Aira-Octave/linux-7.2.2'
+  DESCEND objtool
+Kernel: arch/x86/boot/bzImage is ready  (#3)

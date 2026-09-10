@@ -1,0 +1,2304 @@
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\==============================================================
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\              AIRA OCTAVE AUTONOMOUS RUN
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\==============================================================
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\Sun Aug 30 06:38:45 UTC 2026
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\HOST=IPAD-SERVER
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\PWD=/home/manan/Aira-Octave
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\==============================================================
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\1. GIT BASELINE
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\==============================================================
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\On branch main
+Your branch is up to date with 'origin/main'.
+
+nothing to commit, working tree clean
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\1eec0061e test: rebuild and boot-test Aira Octave
+44935635f chore: remove large Linux source archive
+f677e7377 feat: boot AiraOS Linux userspace
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\origin	https://github.com/manansulya01/Aira-Octave.git (fetch)
+origin	https://github.com/manansulya01/Aira-Octave.git (push)
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\Tracked files:
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\94887
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\Large tracked files:
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\6.3M	linux-7.2.2/drivers/gpu/drm/amd/include/asic_reg/dcn/dcn_3_1_5_sh_mask.h
+6.4M	linux-7.2.2/drivers/gpu/drm/amd/include/asic_reg/dcn/dcn_3_1_4_sh_mask.h
+6.4M	linux-7.2.2/drivers/gpu/drm/amd/include/asic_reg/dcn/dcn_3_6_0_sh_mask.h
+6.5M	linux-7.2.2/drivers/gpu/drm/amd/include/asic_reg/dcn/dcn_3_1_6_sh_mask.h
+6.6M	linux-7.2.2/drivers/gpu/drm/amd/include/asic_reg/dce/dce_12_0_sh_mask.h
+6.6M	linux-7.2.2/drivers/gpu/drm/amd/include/asic_reg/dcn/dcn_3_0_2_sh_mask.h
+6.8M	linux-7.2.2/drivers/gpu/drm/amd/include/asic_reg/dcn/dcn_4_2_0_sh_mask.h
+6.9M	linux-7.2.2/drivers/gpu/drm/amd/include/asic_reg/dcn/dcn_2_0_0_sh_mask.h
+7.3M	linux-7.2.2/drivers/gpu/drm/amd/include/asic_reg/dcn/dcn_3_0_0_sh_mask.h
+8.4M	linux-7.2.2/drivers/gpu/drm/amd/include/asic_reg/nbio/nbio_4_3_0_sh_mask.h
+11M	linux-7.2.2/drivers/gpu/drm/amd/include/asic_reg/dpcs/dpcs_4_2_0_sh_mask.h
+11M	linux-7.2.2/drivers/gpu/drm/amd/include/asic_reg/dpcs/dpcs_4_2_2_sh_mask.h
+13M	linux-7.2.2/drivers/gpu/drm/amd/include/asic_reg/nbio/nbio_2_3_sh_mask.h
+13M	linux-7.2.2/drivers/gpu/drm/amd/include/asic_reg/nbio/nbio_7_0_sh_mask.h
+14M	linux-7.2.2/drivers/gpu/drm/amd/include/asic_reg/dpcs/dpcs_4_2_3_sh_mask.h
+14M	linux-7.2.2/drivers/gpu/drm/amd/include/asic_reg/nbio/nbio_6_1_sh_mask.h
+15M	linux-7.2.2/drivers/gpu/drm/amd/include/asic_reg/dcn/dcn_4_1_0_sh_mask.h
+16M	linux-7.2.2/drivers/gpu/drm/amd/include/asic_reg/nbio/nbio_7_2_0_sh_mask.h
+16M	linux-7.2.2/drivers/gpu/drm/amd/include/asic_reg/nbio/nbio_7_7_0_sh_mask.h
+23M	linux-7.2.2/drivers/gpu/drm/amd/include/asic_reg/dcn/dcn_3_2_0_sh_mask.h
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\Huge Linux archive check:
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\OK: linux-7.2.2.tar.xz NOT TRACKED
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\==============================================================
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\2. PROJECT STRUCTURE
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\==============================================================
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\./.gitignore
+./configs/airaos-x86_64-working.config
+./configs/airaos-x86_64.config
+./initramfs.cpio
+./initramfs/init
+./linux-7.2.2.tar.xz
+./logs/AIRA-OCTAVE-BUILD-REPORT.txt
+./logs/autonomous-20260830-063845.log
+./logs/build-start.log
+./logs/initramfs-build.log
+./logs/kernel-build.log
+./logs/qemu-boot.log
+./test/airaos-bzImage
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\==============================================================
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\3. TOOLCHAIN
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\==============================================================
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\OK   gcc -> /usr/bin/gcc
+OK   g++ -> /usr/bin/g++
+OK   make -> /usr/bin/make
+OK   ld -> /usr/bin/ld
+OK   objdump -> /usr/bin/objdump
+OK   nm -> /usr/bin/nm
+OK   readelf -> /usr/bin/readelf
+OK   qemu-system-x86_64 -> /usr/bin/qemu-system-x86_64
+OK   cpio -> /usr/bin/cpio
+OK   gzip -> /usr/bin/gzip
+OK   xz -> /usr/bin/xz
+OK   git -> /usr/bin/git
+OK   python3 -> /usr/bin/python3
+OK   awk -> /usr/bin/awk
+OK   sed -> /usr/bin/sed
+OK   grep -> alias grep='grep --color=auto'
+OK   find -> /usr/bin/find
+OK   file -> /usr/bin/file
+OK   timeout -> /usr/bin/timeout
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\gcc (Ubuntu 15.2.0-16ubuntu1) 15.2.0
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\GNU Make 4.4.1
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\GNU ld (GNU Binutils for Ubuntu) 2.46
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\QEMU emulator version 10.2.1 (Debian 1:10.2.1+ds-1ubuntu3.2)
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\cpio (GNU cpio) 2.15
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\==============================================================
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\4. LINUX SOURCE / CONFIG AUDIT
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\==============================================================
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\Linux source PRESENT
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\Kernel config PRESENT
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\===== IMPORTANT CONFIG =====
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\CONFIG_PREEMPT_DYNAMIC=y
+CONFIG_BLK_DEV_INITRD=y
+CONFIG_RD_GZIP=y
+CONFIG_RD_XZ=y
+CONFIG_64BIT=y
+CONFIG_X86_64=y
+CONFIG_SMP=y
+CONFIG_HZ=1000
+CONFIG_ACPI=y
+CONFIG_BINFMT_ELF=y
+CONFIG_NET=y
+CONFIG_INET=y
+CONFIG_PCI=y
+CONFIG_PCI_MSI=y
+CONFIG_DEVTMPFS=y
+CONFIG_DEVTMPFS_MOUNT=y
+CONFIG_VIRTIO_NET=y
+CONFIG_VIRTIO=y
+CONFIG_VIRTIO_PCI=y
+CONFIG_EXT4_FS=y
+CONFIG_PROC_FS=y
+CONFIG_SYSFS=y
+CONFIG_TMPFS=y
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\===== CPU CONFIG =====
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\CONFIG_NR_CPUS=64
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\===== KERNEL VERSION =====
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\7.2.2
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\==============================================================
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\5. KERNEL ARTIFACT AUDIT
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\==============================================================
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\-rwxr-xr-x 1 manan manan 52M Aug 30 06:20 linux-7.2.2/vmlinux
+linux-7.2.2/vmlinux: ELF 64-bit LSB executable, x86-64, version 1 (SYSV), statically linked, BuildID[sha1]=c28624d6bf4e64c4559a8cdff497bef4014e55db, not stripped
+-rw-r--r-- 1 manan manan 8.9M Aug 30 06:19 linux-7.2.2/System.map
+linux-7.2.2/System.map: ASCII text
+-rw-r--r-- 1 manan manan 15M Aug 30 06:20 linux-7.2.2/arch/x86/boot/bzImage
+linux-7.2.2/arch/x86/boot/bzImage: Linux kernel x86 boot executable, bzImage, version 7.2.2 (manan@IPAD-SERVER) #3 SMP PREEMPT_DYNAMIC Sun Aug 30 06:19:50 UTC 2026, RO-rootFS, Normal VGA, setup size 512*39, syssize 0xe5640, jump 0x26c 0x8cd88ec0fc8cd239 instruction, protocol 2.15, from protected-mode code at offset 0x2c4 0xe4585b bytes gzip compressed, relocatable, handover offset 0xe53600, legacy 64-bit entry point, can be above 4G, 32-bit EFI handoff entry point, 64-bit EFI handoff entry point, EFI kexec boot support, xloadflags bit 5, max cmdline size 2047, init_size 0x2aec000
+-rw-r--r-- 1 manan manan 144K Aug 29 12:01 linux-7.2.2/.config
+linux-7.2.2/.config: Linux make config build file, ASCII text
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\==============================================================
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\6. INITRAMFS AUDIT
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\==============================================================
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\-rw-r--r-- 1 manan manan 2.1M Aug 30 06:20 initramfs.cpio
+
+===== INITRAMFS CONTENTS =====
+.
+bin
+bin/busybox
+bin/cat
+bin/clear
+bin/cp
+bin/date
+bin/dmesg
+bin/echo
+bin/free
+bin/grep
+bin/head
+bin/hostname
+bin/ls
+bin/mkdir
+bin/mount
+bin/mv
+bin/poweroff
+bin/ps
+bin/pwd
+bin/reboot
+bin/rm
+bin/sh
+bin/sleep
+bin/tail
+bin/uname
+bin/wc
+dev
+etc
+init
+proc
+sys
+
+Total entries:
+32 /tmp/aira-initramfs-list.txt
+
+===== IMPORTANT FILES =====
+OK   init
+OK   bin/busybox
+OK   bin/sh
+OK   bin/ls
+OK   bin/cat
+OK   bin/ps
+OK   bin/free
+OK   bin/mount
+OK   bin/uname
+OK   bin/dmesg
+OK   bin/echo
+OK   bin/grep
+OK   bin/sleep
+OK   bin/poweroff
+OK   bin/reboot
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\==============================================================
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\7. INIT SCRIPT AUDIT
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\==============================================================
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\===== initramfs/init =====
+#!/bin/sh
+
+echo
+echo "========================================"
+echo "          AIRAOS LINUX"
+echo "========================================"
+echo
+
+mount -t devtmpfs devtmpfs /dev
+mount -t proc proc /proc
+mount -t sysfs sysfs /sys
+
+echo "AiraOS Linux kernel is alive."
+echo
+
+echo "Kernel:"
+uname -a
+echo
+
+echo "CPU:"
+grep -m1 "model name" /proc/cpuinfo
+echo
+
+echo "Memory:"
+grep MemTotal /proc/meminfo
+echo
+
+echo "========================================"
+echo "        AiraOS userspace ready"
+echo "========================================"
+echo
+
+echo "Available commands:"
+echo "  ls  cat  ps  free  mount  dmesg  uname"
+echo
+
+exec /bin/sh
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\==============================================================
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\8. BUSYBOX / USERSPACE AUDIT
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\==============================================================
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\initramfs/bin/busybox: ELF 64-bit LSB executable, x86-64, version 1 (GNU/Linux), statically linked, BuildID[sha1]=45585fa7eea9146e74dd8d23ba506c66b4d1b809, for GNU/Linux 3.2.0, stripped
+
+BusyBox version:
+BusyBox v1.37.0 (Ubuntu 1:1.37.0-7ubuntu1) multi-call binary.
+BusyBox is copyrighted by many authors between 1998-2015.
+Licensed under GPLv2. See source distribution for detailed
+
+Available applets:
+[
+[[
+acpid
+adjtimex
+ar
+arch
+arp
+arping
+ascii
+ash
+awk
+base64
+basename
+bc
+blkdiscard
+blockdev
+brctl
+bunzip2
+busybox
+bzcat
+bzip2
+cal
+cat
+chattr
+chgrp
+chmod
+chown
+chpasswd
+chroot
+chvt
+clear
+cmp
+cp
+cpio
+crc32
+crond
+crontab
+cttyhack
+cut
+date
+dc
+dd
+deallocvt
+depmod
+devmem
+df
+diff
+dirname
+dmesg
+dnsdomainname
+dos2unix
+dpkg
+dpkg-deb
+du
+dumpkmap
+dumpleases
+echo
+ed
+egrep
+env
+expand
+expr
+factor
+fallocate
+false
+fatattr
+fdisk
+fgrep
+find
+findfs
+fold
+free
+freeramdisk
+fsfreeze
+fstrim
+ftpget
+ftpput
+getfattr
+getopt
+getty
+grep
+groups
+gunzip
+gzip
+halt
+head
+hexdump
+hostid
+hostname
+httpd
+hwclock
+i2cdetect
+i2cdump
+i2cget
+i2cset
+i2ctransfer
+id
+ifconfig
+ifdown
+ifup
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\==============================================================
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\9. BUILD KERNEL AGAIN
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\==============================================================
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\Sun Aug 30 06:38:47 UTC 2026
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\make: Entering directory '/home/manan/Aira-Octave/linux-7.2.2'
+  DESCEND objtool
+Kernel: arch/x86/boot/bzImage is ready  (#3)
+make: Leaving directory '/home/manan/Aira-Octave/linux-7.2.2'
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\BUILD_RESULT=0
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\KERNEL BUILD SUCCESS
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\==============================================================
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\10. REBUILD INITRAMFS
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\==============================================================
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\-bash: ../logs/autonomous-initramfs-build.log: No such file or directory
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\INITRAMFS_RESULT=1
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\==============================================================
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\11. INITRAMFS VALIDATION
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\==============================================================
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\-bash: initramfs.cpio: No such file or directory
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\grep: /tmp/aira-initramfs-final.txt: No such file or directory
+MISS init
+grep: /tmp/aira-initramfs-final.txt: No such file or directory
+MISS bin/busybox
+grep: /tmp/aira-initramfs-final.txt: No such file or directory
+MISS bin/sh
+grep: /tmp/aira-initramfs-final.txt: No such file or directory
+MISS bin/ls
+grep: /tmp/aira-initramfs-final.txt: No such file or directory
+MISS bin/cat
+grep: /tmp/aira-initramfs-final.txt: No such file or directory
+MISS bin/ps
+grep: /tmp/aira-initramfs-final.txt: No such file or directory
+MISS bin/free
+grep: /tmp/aira-initramfs-final.txt: No such file or directory
+MISS bin/mount
+grep: /tmp/aira-initramfs-final.txt: No such file or directory
+MISS bin/uname
+grep: /tmp/aira-initramfs-final.txt: No such file or directory
+MISS bin/dmesg
+grep: /tmp/aira-initramfs-final.txt: No such file or directory
+MISS bin/echo
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\==============================================================
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\12. BOOT TEST
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\==============================================================
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\qemu: error reading initrd initramfs.cpio: Failed to open file “initramfs.cpio”: open() failed: No such file or directory
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\QEMU_RESULT=1
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\==============================================================
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\13. BOOT MARKER ANALYSIS
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\==============================================================
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\MISS  Linux version
+MISS  Run /init as init process
+MISS  AIRAOS LINUX
+MISS  AiraOS Linux kernel is alive.
+MISS  AiraOS userspace ready
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\==============================================================
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\14. NETWORK / DEVICE BOOT AUDIT
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\==============================================================
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\==============================================================
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\15. ERROR SCAN
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\==============================================================
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\NO OBVIOUS FATAL KERNEL ERRORS
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\==============================================================
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\16. WARNINGS / NON-FATAL MESSAGES
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\==============================================================
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\1:qemu: error reading initrd initramfs.cpio: Failed to open file “initramfs.cpio”: open() failed: No such file or directory
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\==============================================================
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\17. KERNEL SYMBOL / SIZE AUDIT
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\==============================================================
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\===== SIZE =====
+   text	   data	    bss	    dec	    hex	filename
+31214888	8950782	1120948	41286618	275fbda	linux-7.2.2/vmlinux
+
+===== TOP SYMBOLS =====
+ffffffff83737a30 000000000000a11c R __alt_instructions
+ffffffff82549520 000000000000af40 d hid_usage_table
+ffffffff82b0695f 000000000000b5d5 d .LC28
+ffffffff835b53a0 000000000000d700 d i8042_dmi_quirk_table
+ffffffff83774000 000000000000e000 R __smp_locks
+ffffffff837288d0 000000000000f160 R __ibt_endbr_seal
+ffffffff82c3f960 0000000000010000 T __apicid_to_node
+ffffffff83818000 0000000000010000 B __brk_base
+ffffffff83828000 0000000000010000 b __brk_dmi_alloc
+ffffffff83838000 0000000000010000 b __brk_early_pgt_alloc
+ffffffff82bef000 0000000000011000 T __end_rodata
+ffffffff835d58f0 00000000000112a8 R __retpoline_sites
+ffffffff82b53570 0000000000016218 D __stop___jump_table
+ffffffff82b3a010 0000000000019560 D __start___jump_table
+ffffffff82eedf40 000000000002f420 D __start___bug_table
+ffffffff82d0cb20 0000000000030000 t _printk_rb_static_descs
+ffffffff8379bd18 0000000000040000 b __log_buf
+ffffffff8352a000 0000000000040000 D __pi_early_dynamic_pgts
+ffffffff8352a000 0000000000040000 D early_dynamic_pgts
+ffffffff835e6b98 000000000004804c R __return_sites
+ffffffff83451cfc 000000000004cab4 B orc_lookup
+ffffffff82939bc4 0000000000098abc D kallsyms_seqs_of_names
+ffffffff82c5cb20 00000000000b0000 t _printk_rb_static_infos
+ffffffff8286e5a4 00000000000cb620 D kallsyms_offsets
+ffffffff8362ebe8 00000000000f9ce8 R __call_sites
+ffffffff8100200b 00000000001020f9 T __entry_text_end
+ffffffff82f1d374 000000000021509c R __start_orc_unwind_ip
+ffffffff8259a0b0 00000000002d3298 D kallsyms_names
+ffffffff83132410 000000000031f8ea R __start_orc_unwind
+ffffffff8349f000 fffffffffffff7b0 B __init_begin
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\==============================================================
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\18. KERNEL CONFIG CONSISTENCY
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\==============================================================
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\make: Entering directory '/home/manan/Aira-Octave/linux-7.2.2'
+#
+# No change to .config
+#
+make: Leaving directory '/home/manan/Aira-Octave/linux-7.2.2'
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\==============================================================
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\19. SOURCE CODE QUICK AUDIT
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\==============================================================
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\C source files:
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\Shell scripts:
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\./initramfs/init
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\Makefiles:
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\==============================================================
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\20. SEARCH FOR AIRA OCTAVE COMPONENTS
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\==============================================================
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\./initramfs/init:5:echo "          AIRAOS LINUX"
+./initramfs/init:13:echo "AiraOS Linux kernel is alive."
+./initramfs/init:16:echo "Kernel:"
+./initramfs/init:24:echo "Memory:"
+./initramfs/init:29:echo "        AiraOS userspace ready"
+./initramfs/init:33:echo "Available commands:"
+./configs/airaos-x86_64.config:3:# Linux/x86 7.2.2 Kernel Configuration
+./configs/airaos-x86_64.config:41:CONFIG_HAVE_KERNEL_GZIP=y
+./configs/airaos-x86_64.config:42:CONFIG_HAVE_KERNEL_BZIP2=y
+./configs/airaos-x86_64.config:43:CONFIG_HAVE_KERNEL_LZMA=y
+./configs/airaos-x86_64.config:44:CONFIG_HAVE_KERNEL_XZ=y
+./configs/airaos-x86_64.config:45:CONFIG_HAVE_KERNEL_LZO=y
+./configs/airaos-x86_64.config:46:CONFIG_HAVE_KERNEL_LZ4=y
+./configs/airaos-x86_64.config:47:CONFIG_HAVE_KERNEL_ZSTD=y
+./configs/airaos-x86_64.config:48:# CONFIG_KERNEL_GZIP is not set
+./configs/airaos-x86_64.config:49:# CONFIG_KERNEL_BZIP2 is not set
+./configs/airaos-x86_64.config:50:# CONFIG_KERNEL_LZMA is not set
+./configs/airaos-x86_64.config:51:CONFIG_KERNEL_XZ=y
+./configs/airaos-x86_64.config:52:# CONFIG_KERNEL_LZO is not set
+./configs/airaos-x86_64.config:53:# CONFIG_KERNEL_LZ4 is not set
+./configs/airaos-x86_64.config:54:# CONFIG_KERNEL_ZSTD is not set
+./configs/airaos-x86_64.config:57:# CONFIG_SYSVIPC is not set
+./configs/airaos-x86_64.config:60:# CONFIG_CROSS_MEMORY_ATTACH is not set
+./configs/airaos-x86_64.config:62:CONFIG_HAVE_ARCH_AUDITSYSCALL=y
+./configs/airaos-x86_64.config:73:CONFIG_IRQ_DOMAIN=y
+./configs/airaos-x86_64.config:74:CONFIG_IRQ_DOMAIN_HIERARCHY=y
+./configs/airaos-x86_64.config:113:# CONFIG_BPF_SYSCALL is not set
+./configs/airaos-x86_64.config:153:# Scheduler features
+./configs/airaos-x86_64.config:157:# end of Scheduler features
+./configs/airaos-x86_64.config:192:# CONFIG_SYSFS_SYSCALL is not set
+./configs/airaos-x86_64.config:196:# CONFIG_SGETMASK_SYSCALL is not set
+./configs/airaos-x86_64.config:210:# CONFIG_AIO is not set
+./configs/airaos-x86_64.config:212:# CONFIG_ADVISE_SYSCALLS is not set
+./configs/airaos-x86_64.config:216:# CONFIG_CACHESTAT_SYSCALL is not set
+./configs/airaos-x86_64.config:223:# Kernel Performance Events And Counters
+./configs/airaos-x86_64.config:227:# end of Kernel Performance Events And Counters
+./configs/airaos-x86_64.config:326:CONFIG_X86_VSYSCALL_EMULATION=y
+./configs/airaos-x86_64.config:345:CONFIG_X86_KERNEL_IBT=y
+./configs/airaos-x86_64.config:346:CONFIG_X86_INTEL_MEMORY_PROTECTION_KEYS=y
+./configs/airaos-x86_64.config:378:CONFIG_RANDOMIZE_MEMORY=y
+./configs/airaos-x86_64.config:379:CONFIG_RANDOMIZE_MEMORY_PHYSICAL_PADDING=0x0
+./configs/airaos-x86_64.config:382:CONFIG_LEGACY_VSYSCALL_XONLY=y
+./configs/airaos-x86_64.config:383:# CONFIG_LEGACY_VSYSCALL_NONE is not set
+./configs/airaos-x86_64.config:385:# CONFIG_MODIFY_LDT_SYSCALL is not set
+./configs/airaos-x86_64.config:443:CONFIG_ACPI_CONTAINER=y
+./configs/airaos-x86_64.config:473:# CONFIG_CPU_FREQ_DEFAULT_GOV_USERSPACE is not set
+./configs/airaos-x86_64.config:477:# CONFIG_CPU_FREQ_GOV_USERSPACE is not set
+./configs/airaos-x86_64.config:585:CONFIG_GENERIC_SYSCALL=y
+./configs/airaos-x86_64.config:606:CONFIG_ARCH_HAS_SET_MEMORY=y
+./configs/airaos-x86_64.config:612:CONFIG_ARCH_MEMORY_ORDER_TSO=y
+./configs/airaos-x86_64.config:690:CONFIG_ARCH_HAS_STRICT_KERNEL_RWX=y
+./configs/airaos-x86_64.config:691:CONFIG_STRICT_KERNEL_RWX=y
+./configs/airaos-x86_64.config:709:CONFIG_ARCH_HAS_KERNEL_FPU_SUPPORT=y
+./configs/airaos-x86_64.config:714:# GCOV-based kernel profiling
+./configs/airaos-x86_64.config:717:# end of GCOV-based kernel profiling
+./configs/airaos-x86_64.config:732:# CONFIG_MODULE_UNLOAD_TAINT_TRACKING is not set
+./configs/airaos-x86_64.config:761:# IO Schedulers
+./configs/airaos-x86_64.config:766:# end of IO Schedulers
+./configs/airaos-x86_64.config:779:CONFIG_ARCH_HAS_SYSCALL_WRAPPER=y
+./configs/airaos-x86_64.config:791:# Memory Management options
+./configs/airaos-x86_64.config:815:CONFIG_ARCH_ENABLE_MEMORY_HOTPLUG=y
+./configs/airaos-x86_64.config:816:# CONFIG_MEMORY_HOTPLUG is not set
+./configs/airaos-x86_64.config:817:CONFIG_ARCH_MHP_MEMMAP_ON_MEMORY_ENABLE=y
+./configs/airaos-x86_64.config:862:CONFIG_PT_RECLAIM=y
+./configs/airaos-x86_64.config:869:# end of Memory Management options
+./configs/airaos-x86_64.config:874:# Networking options
+./configs/airaos-x86_64.config:896:# CONFIG_INET_IPCOMP is not set
+./configs/airaos-x86_64.config:914:# CONFIG_INET6_IPCOMP is not set
+./configs/airaos-x86_64.config:928:# CONFIG_NETWORK_SECMARK is not set
+./configs/airaos-x86_64.config:929:# CONFIG_NETWORK_PHY_TIMESTAMPING is not set
+./configs/airaos-x86_64.config:933:# CONFIG_TIPC is not set
+./configs/airaos-x86_64.config:968:# Network testing
+./configs/airaos-x86_64.config:971:# end of Network testing
+./configs/airaos-x86_64.config:972:# end of Networking options
+./configs/airaos-x86_64.config:995:# CONFIG_FAILOVER is not set
+./configs/airaos-x86_64.config:1004:CONFIG_PCI_DOMAINS=y
+./configs/airaos-x86_64.config:1251:# CONFIG_RAID_ATTRS is not set
+./configs/airaos-x86_64.config:1426:# Enable PHYLIB and NETWORK_PHY_TIMESTAMPING to see the additional clocks.
+./configs/airaos-x86_64.config:1456:# CONFIG_THERMAL_DEFAULT_GOV_FAIR_SHARE is not set
+./configs/airaos-x86_64.config:1458:# CONFIG_THERMAL_GOV_FAIR_SHARE is not set
+./configs/airaos-x86_64.config:1664:# CONFIG_HID_SAITEK is not set
+./configs/airaos-x86_64.config:1771:CONFIG_MAILBOX=y
+./configs/airaos-x86_64.config:1839:# PM Domains
+./configs/airaos-x86_64.config:1843:# Amlogic PM Domains
+./configs/airaos-x86_64.config:1845:# end of Amlogic PM Domains
+./configs/airaos-x86_64.config:1848:# Broadcom PM Domains
+./configs/airaos-x86_64.config:1850:# end of Broadcom PM Domains
+./configs/airaos-x86_64.config:1853:# i.MX PM Domains
+./configs/airaos-x86_64.config:1855:# end of i.MX PM Domains
+./configs/airaos-x86_64.config:1858:# Qualcomm PM Domains
+./configs/airaos-x86_64.config:1860:# end of Qualcomm PM Domains
+./configs/airaos-x86_64.config:1861:# end of PM Domains
+./configs/airaos-x86_64.config:1865:# CONFIG_MEMORY is not set
+./configs/airaos-x86_64.config:1910:# CONFIG_ANDROID_BINDER_IPC is not set
+./configs/airaos-x86_64.config:2036:CONFIG_NETWORK_FILESYSTEMS=y
+./configs/airaos-x86_64.config:2110:# Kernel hardening options
+./configs/airaos-x86_64.config:2114:# Memory initialization
+./configs/airaos-x86_64.config:2126:# end of Memory initialization
+./configs/airaos-x86_64.config:2136:# Hardening of kernel data structures
+./configs/airaos-x86_64.config:2140:# end of Hardening of kernel data structures
+./configs/airaos-x86_64.config:2143:# end of Kernel hardening options
+./configs/airaos-x86_64.config:2237:# Kernel hacking
+./configs/airaos-x86_64.config:2249:CONFIG_DEBUG_KERNEL=y
+./configs/airaos-x86_64.config:2257:# CONFIG_DEBUG_INFO_DWARF_TOOLCHAIN_DEFAULT is not set
+./configs/airaos-x86_64.config:2274:# Generic Kernel Debugging Instruments
+./configs/airaos-x86_64.config:2285:# end of Generic Kernel Debugging Instruments
+./configs/airaos-x86_64.config:2288:# Networking Debugging
+./configs/airaos-x86_64.config:2294:# end of Networking Debugging
+./configs/airaos-x86_64.config:2297:# Memory Debugging
+./configs/airaos-x86_64.config:2320:# CONFIG_DEBUG_MEMORY_INIT is not set
+./configs/airaos-x86_64.config:2333:# end of Memory Debugging
+./configs/airaos-x86_64.config:2353:# Scheduler Debugging
+./configs/airaos-x86_64.config:2356:# end of Scheduler Debugging
+./configs/airaos-x86_64.config:2377:# CONFIG_CSD_LOCK_WAIT_DEBUG is not set
+./configs/airaos-x86_64.config:2386:# Debug kernel data structures
+./configs/airaos-x86_64.config:2393:# end of Debug kernel data structures
+./configs/airaos-x86_64.config:2421:CONFIG_HAVE_SYSCALL_TRACEPOINTS=y
+./configs/airaos-x86_64.config:2459:# Kernel Testing and Coverage
+./configs/airaos-x86_64.config:2469:# end of Kernel Testing and Coverage
+./configs/airaos-x86_64.config:2475:# end of Kernel hacking
+./configs/airaos-x86_64-working.config:3:# Linux/x86 7.2.2 Kernel Configuration
+./configs/airaos-x86_64-working.config:41:CONFIG_HAVE_KERNEL_GZIP=y
+./configs/airaos-x86_64-working.config:42:CONFIG_HAVE_KERNEL_BZIP2=y
+./configs/airaos-x86_64-working.config:43:CONFIG_HAVE_KERNEL_LZMA=y
+./configs/airaos-x86_64-working.config:44:CONFIG_HAVE_KERNEL_XZ=y
+./configs/airaos-x86_64-working.config:45:CONFIG_HAVE_KERNEL_LZO=y
+./configs/airaos-x86_64-working.config:46:CONFIG_HAVE_KERNEL_LZ4=y
+./configs/airaos-x86_64-working.config:47:CONFIG_HAVE_KERNEL_ZSTD=y
+./configs/airaos-x86_64-working.config:48:# CONFIG_KERNEL_GZIP is not set
+./configs/airaos-x86_64-working.config:49:# CONFIG_KERNEL_BZIP2 is not set
+./configs/airaos-x86_64-working.config:50:# CONFIG_KERNEL_LZMA is not set
+./configs/airaos-x86_64-working.config:51:CONFIG_KERNEL_XZ=y
+./configs/airaos-x86_64-working.config:52:# CONFIG_KERNEL_LZO is not set
+./configs/airaos-x86_64-working.config:53:# CONFIG_KERNEL_LZ4 is not set
+./configs/airaos-x86_64-working.config:54:# CONFIG_KERNEL_ZSTD is not set
+./configs/airaos-x86_64-working.config:57:# CONFIG_SYSVIPC is not set
+./configs/airaos-x86_64-working.config:60:# CONFIG_CROSS_MEMORY_ATTACH is not set
+./configs/airaos-x86_64-working.config:62:CONFIG_HAVE_ARCH_AUDITSYSCALL=y
+./configs/airaos-x86_64-working.config:73:CONFIG_IRQ_DOMAIN=y
+./configs/airaos-x86_64-working.config:74:CONFIG_IRQ_DOMAIN_HIERARCHY=y
+./configs/airaos-x86_64-working.config:113:# CONFIG_BPF_SYSCALL is not set
+./configs/airaos-x86_64-working.config:153:# Scheduler features
+./configs/airaos-x86_64-working.config:157:# end of Scheduler features
+./configs/airaos-x86_64-working.config:192:# CONFIG_SYSFS_SYSCALL is not set
+./configs/airaos-x86_64-working.config:196:# CONFIG_SGETMASK_SYSCALL is not set
+./configs/airaos-x86_64-working.config:210:# CONFIG_AIO is not set
+./configs/airaos-x86_64-working.config:212:# CONFIG_ADVISE_SYSCALLS is not set
+./configs/airaos-x86_64-working.config:216:# CONFIG_CACHESTAT_SYSCALL is not set
+./configs/airaos-x86_64-working.config:223:# Kernel Performance Events And Counters
+./configs/airaos-x86_64-working.config:227:# end of Kernel Performance Events And Counters
+./configs/airaos-x86_64-working.config:326:CONFIG_X86_VSYSCALL_EMULATION=y
+./configs/airaos-x86_64-working.config:345:CONFIG_X86_KERNEL_IBT=y
+./configs/airaos-x86_64-working.config:346:CONFIG_X86_INTEL_MEMORY_PROTECTION_KEYS=y
+./configs/airaos-x86_64-working.config:378:CONFIG_RANDOMIZE_MEMORY=y
+./configs/airaos-x86_64-working.config:379:CONFIG_RANDOMIZE_MEMORY_PHYSICAL_PADDING=0x0
+./configs/airaos-x86_64-working.config:382:CONFIG_LEGACY_VSYSCALL_XONLY=y
+./configs/airaos-x86_64-working.config:383:# CONFIG_LEGACY_VSYSCALL_NONE is not set
+./configs/airaos-x86_64-working.config:385:# CONFIG_MODIFY_LDT_SYSCALL is not set
+./configs/airaos-x86_64-working.config:443:CONFIG_ACPI_CONTAINER=y
+./configs/airaos-x86_64-working.config:473:# CONFIG_CPU_FREQ_DEFAULT_GOV_USERSPACE is not set
+./configs/airaos-x86_64-working.config:477:# CONFIG_CPU_FREQ_GOV_USERSPACE is not set
+./configs/airaos-x86_64-working.config:585:CONFIG_GENERIC_SYSCALL=y
+./configs/airaos-x86_64-working.config:606:CONFIG_ARCH_HAS_SET_MEMORY=y
+./configs/airaos-x86_64-working.config:612:CONFIG_ARCH_MEMORY_ORDER_TSO=y
+./configs/airaos-x86_64-working.config:690:CONFIG_ARCH_HAS_STRICT_KERNEL_RWX=y
+./configs/airaos-x86_64-working.config:691:CONFIG_STRICT_KERNEL_RWX=y
+./configs/airaos-x86_64-working.config:709:CONFIG_ARCH_HAS_KERNEL_FPU_SUPPORT=y
+./configs/airaos-x86_64-working.config:714:# GCOV-based kernel profiling
+./configs/airaos-x86_64-working.config:717:# end of GCOV-based kernel profiling
+./configs/airaos-x86_64-working.config:732:# CONFIG_MODULE_UNLOAD_TAINT_TRACKING is not set
+./configs/airaos-x86_64-working.config:761:# IO Schedulers
+./configs/airaos-x86_64-working.config:766:# end of IO Schedulers
+./configs/airaos-x86_64-working.config:779:CONFIG_ARCH_HAS_SYSCALL_WRAPPER=y
+./configs/airaos-x86_64-working.config:791:# Memory Management options
+./configs/airaos-x86_64-working.config:815:CONFIG_ARCH_ENABLE_MEMORY_HOTPLUG=y
+./configs/airaos-x86_64-working.config:816:# CONFIG_MEMORY_HOTPLUG is not set
+./configs/airaos-x86_64-working.config:817:CONFIG_ARCH_MHP_MEMMAP_ON_MEMORY_ENABLE=y
+./configs/airaos-x86_64-working.config:862:CONFIG_PT_RECLAIM=y
+./configs/airaos-x86_64-working.config:869:# end of Memory Management options
+./configs/airaos-x86_64-working.config:874:# Networking options
+./configs/airaos-x86_64-working.config:896:# CONFIG_INET_IPCOMP is not set
+./configs/airaos-x86_64-working.config:914:# CONFIG_INET6_IPCOMP is not set
+./configs/airaos-x86_64-working.config:928:# CONFIG_NETWORK_SECMARK is not set
+./configs/airaos-x86_64-working.config:929:# CONFIG_NETWORK_PHY_TIMESTAMPING is not set
+./configs/airaos-x86_64-working.config:933:# CONFIG_TIPC is not set
+./configs/airaos-x86_64-working.config:968:# Network testing
+./configs/airaos-x86_64-working.config:971:# end of Network testing
+./configs/airaos-x86_64-working.config:972:# end of Networking options
+./configs/airaos-x86_64-working.config:995:# CONFIG_FAILOVER is not set
+./configs/airaos-x86_64-working.config:1004:CONFIG_PCI_DOMAINS=y
+./configs/airaos-x86_64-working.config:1251:# CONFIG_RAID_ATTRS is not set
+./configs/airaos-x86_64-working.config:1426:# Enable PHYLIB and NETWORK_PHY_TIMESTAMPING to see the additional clocks.
+./configs/airaos-x86_64-working.config:1456:# CONFIG_THERMAL_DEFAULT_GOV_FAIR_SHARE is not set
+./configs/airaos-x86_64-working.config:1458:# CONFIG_THERMAL_GOV_FAIR_SHARE is not set
+./configs/airaos-x86_64-working.config:1664:# CONFIG_HID_SAITEK is not set
+./configs/airaos-x86_64-working.config:1771:CONFIG_MAILBOX=y
+./configs/airaos-x86_64-working.config:1839:# PM Domains
+./configs/airaos-x86_64-working.config:1843:# Amlogic PM Domains
+./configs/airaos-x86_64-working.config:1845:# end of Amlogic PM Domains
+./configs/airaos-x86_64-working.config:1848:# Broadcom PM Domains
+./configs/airaos-x86_64-working.config:1850:# end of Broadcom PM Domains
+./configs/airaos-x86_64-working.config:1853:# i.MX PM Domains
+./configs/airaos-x86_64-working.config:1855:# end of i.MX PM Domains
+./configs/airaos-x86_64-working.config:1858:# Qualcomm PM Domains
+./configs/airaos-x86_64-working.config:1860:# end of Qualcomm PM Domains
+./configs/airaos-x86_64-working.config:1861:# end of PM Domains
+./configs/airaos-x86_64-working.config:1865:# CONFIG_MEMORY is not set
+./configs/airaos-x86_64-working.config:1910:# CONFIG_ANDROID_BINDER_IPC is not set
+./configs/airaos-x86_64-working.config:2036:CONFIG_NETWORK_FILESYSTEMS=y
+./configs/airaos-x86_64-working.config:2110:# Kernel hardening options
+./configs/airaos-x86_64-working.config:2114:# Memory initialization
+./configs/airaos-x86_64-working.config:2126:# end of Memory initialization
+./configs/airaos-x86_64-working.config:2136:# Hardening of kernel data structures
+./configs/airaos-x86_64-working.config:2140:# end of Hardening of kernel data structures
+./configs/airaos-x86_64-working.config:2143:# end of Kernel hardening options
+./configs/airaos-x86_64-working.config:2237:# Kernel hacking
+./configs/airaos-x86_64-working.config:2249:CONFIG_DEBUG_KERNEL=y
+./configs/airaos-x86_64-working.config:2257:# CONFIG_DEBUG_INFO_DWARF_TOOLCHAIN_DEFAULT is not set
+./configs/airaos-x86_64-working.config:2274:# Generic Kernel Debugging Instruments
+./configs/airaos-x86_64-working.config:2285:# end of Generic Kernel Debugging Instruments
+./configs/airaos-x86_64-working.config:2288:# Networking Debugging
+./configs/airaos-x86_64-working.config:2294:# end of Networking Debugging
+./configs/airaos-x86_64-working.config:2297:# Memory Debugging
+./configs/airaos-x86_64-working.config:2320:# CONFIG_DEBUG_MEMORY_INIT is not set
+./configs/airaos-x86_64-working.config:2333:# end of Memory Debugging
+./configs/airaos-x86_64-working.config:2353:# Scheduler Debugging
+./configs/airaos-x86_64-working.config:2356:# end of Scheduler Debugging
+./configs/airaos-x86_64-working.config:2377:# CONFIG_CSD_LOCK_WAIT_DEBUG is not set
+./configs/airaos-x86_64-working.config:2386:# Debug kernel data structures
+./configs/airaos-x86_64-working.config:2393:# end of Debug kernel data structures
+./configs/airaos-x86_64-working.config:2421:CONFIG_HAVE_SYSCALL_TRACEPOINTS=y
+./configs/airaos-x86_64-working.config:2459:# Kernel Testing and Coverage
+./configs/airaos-x86_64-working.config:2469:# end of Kernel Testing and Coverage
+./configs/airaos-x86_64-working.config:2475:# end of Kernel hacking
+./logs/autonomous-kernel-build.log:1:make: Entering directory '/home/manan/Aira-Octave/linux-7.2.2'
+./logs/autonomous-kernel-build.log:3:Kernel: arch/x86/boot/bzImage is ready  (#3)
+./logs/autonomous-kernel-build.log:4:make: Leaving directory '/home/manan/Aira-Octave/linux-7.2.2'
+./logs/kernel-build.log:1:make: Entering directory '/home/manan/Aira-Octave/linux-7.2.2'
+./logs/kernel-build.log:3:  CC      /home/manan/Aira-Octave/linux-7.2.2/tools/objtool/libsubcmd/exec-cmd.o
+./logs/kernel-build.log:4:  CC      /home/manan/Aira-Octave/linux-7.2.2/tools/objtool/libsubcmd/help.o
+./logs/kernel-build.log:5:  CC      /home/manan/Aira-Octave/linux-7.2.2/tools/objtool/libsubcmd/pager.o
+./logs/kernel-build.log:6:  CC      /home/manan/Aira-Octave/linux-7.2.2/tools/objtool/libsubcmd/parse-options.o
+./logs/kernel-build.log:7:  CC      /home/manan/Aira-Octave/linux-7.2.2/tools/objtool/libsubcmd/run-command.o
+./logs/kernel-build.log:8:  CC      /home/manan/Aira-Octave/linux-7.2.2/tools/objtool/libsubcmd/sigchain.o
+./logs/kernel-build.log:9:  CC      /home/manan/Aira-Octave/linux-7.2.2/tools/objtool/libsubcmd/subcmd-config.o
+./logs/kernel-build.log:10:  LD      /home/manan/Aira-Octave/linux-7.2.2/tools/objtool/libsubcmd/libsubcmd-in.o
+./logs/kernel-build.log:11:  AR      /home/manan/Aira-Octave/linux-7.2.2/tools/objtool/libsubcmd/libsubcmd.a
+./logs/kernel-build.log:12:  CC      /home/manan/Aira-Octave/linux-7.2.2/tools/objtool/weak.o
+./logs/kernel-build.log:13:  CC      /home/manan/Aira-Octave/linux-7.2.2/tools/objtool/check.o
+./logs/kernel-build.log:14:  CC      /home/manan/Aira-Octave/linux-7.2.2/tools/objtool/special.o
+./logs/kernel-build.log:15:  CC      /home/manan/Aira-Octave/linux-7.2.2/tools/objtool/builtin-check.o
+./logs/kernel-build.log:16:  CC      /home/manan/Aira-Octave/linux-7.2.2/tools/objtool/elf.o
+./logs/kernel-build.log:17:  CC      /home/manan/Aira-Octave/linux-7.2.2/tools/objtool/objtool.o
+./logs/kernel-build.log:18:  CC      /home/manan/Aira-Octave/linux-7.2.2/tools/objtool/orc_gen.o
+./logs/kernel-build.log:19:  CC      /home/manan/Aira-Octave/linux-7.2.2/tools/objtool/arch/x86/decode.o
+./logs/kernel-build.log:20:  CC      /home/manan/Aira-Octave/linux-7.2.2/tools/objtool/orc_dump.o
+./logs/kernel-build.log:21:  CC      /home/manan/Aira-Octave/linux-7.2.2/tools/objtool/libstring.o
+./logs/kernel-build.log:22:  CC      /home/manan/Aira-Octave/linux-7.2.2/tools/objtool/libctype.o
+./logs/kernel-build.log:23:  CC      /home/manan/Aira-Octave/linux-7.2.2/tools/objtool/str_error_r.o
+./logs/kernel-build.log:24:  CC      /home/manan/Aira-Octave/linux-7.2.2/tools/objtool/librbtree.o
+./logs/kernel-build.log:25:  CC      /home/manan/Aira-Octave/linux-7.2.2/tools/objtool/signal.o
+./logs/kernel-build.log:26:  CC      /home/manan/Aira-Octave/linux-7.2.2/tools/objtool/arch/x86/special.o
+./logs/kernel-build.log:27:  CC      /home/manan/Aira-Octave/linux-7.2.2/tools/objtool/arch/x86/orc.o
+./logs/kernel-build.log:28:  LD      /home/manan/Aira-Octave/linux-7.2.2/tools/objtool/arch/x86/objtool-in.o
+./logs/kernel-build.log:29:  LD      /home/manan/Aira-Octave/linux-7.2.2/tools/objtool/objtool-in.o
+./logs/kernel-build.log:30:  LINK    /home/manan/Aira-Octave/linux-7.2.2/tools/objtool/objtool
+./logs/kernel-build.log:32:  CC      arch/x86/boot/startup/map_kernel.o
+./logs/kernel-build.log:34:  OBJCOPY arch/x86/boot/startup/map_kernel.pi.o
+./logs/kernel-build.log:77:Kernel: arch/x86/boot/bzImage is ready  (#3)
+./logs/kernel-build.log:78:make: Leaving directory '/home/manan/Aira-Octave/linux-7.2.2'
+./logs/AIRA-OCTAVE-BUILD-REPORT.txt:1:AIRA OCTAVE BUILD REPORT
+./logs/AIRA-OCTAVE-BUILD-REPORT.txt:8:Kernel:
+./logs/AIRA-OCTAVE-BUILD-REPORT.txt:17:          AIRAOS LINUX
+./logs/AIRA-OCTAVE-BUILD-REPORT.txt:18:AiraOS Linux kernel is alive.
+./logs/AIRA-OCTAVE-BUILD-REPORT.txt:19:        AiraOS userspace ready
+./logs/autonomous-qemu.log:1:qemu: error reading initrd initramfs.cpio: Failed to open file “initramfs.cpio”: open() failed: No such file or directory
+./logs/qemu-boot.log:20:[    0.000000] DMI: Memory slots populated: 1/1
+./logs/qemu-boot.log:37:[    0.000000] ACPI: Reserving FACP table memory at [mem 0x1ffe21e9-0x1ffe225c]
+./logs/qemu-boot.log:38:[    0.000000] ACPI: Reserving DSDT table memory at [mem 0x1ffe0040-0x1ffe21e8]
+./logs/qemu-boot.log:39:[    0.000000] ACPI: Reserving FACS table memory at [mem 0x1ffe0000-0x1ffe003f]
+./logs/qemu-boot.log:40:[    0.000000] ACPI: Reserving APIC table memory at [mem 0x1ffe225d-0x1ffe22d4]
+./logs/qemu-boot.log:41:[    0.000000] ACPI: Reserving HPET table memory at [mem 0x1ffe22d5-0x1ffe230c]
+./logs/qemu-boot.log:42:[    0.000000] ACPI: Reserving WAET table memory at [mem 0x1ffe230d-0x1ffe2334]
+./logs/qemu-boot.log:65:[    0.000000] PM: hibernation: Registered nosave memory: [mem 0x00000000-0x00000fff]
+./logs/qemu-boot.log:66:[    0.000000] PM: hibernation: Registered nosave memory: [mem 0x0009f000-0x000fffff]
+./logs/qemu-boot.log:67:[    0.000000] [gap 0x20000000-0xfffbffff] available for PCI devices
+./logs/qemu-boot.log:68:[    0.000000] Booting paravirtualized kernel on bare hardware
+./logs/qemu-boot.log:75:[    0.000000] Early memory node ranges
+./logs/qemu-boot.log:79:[    0.000000] On node 0, zone DMA: 1 pages in unavailable ranges
+./logs/qemu-boot.log:80:[    0.000000] On node 0, zone DMA: 97 pages in unavailable ranges
+./logs/qemu-boot.log:81:[    0.000000] On node 0, zone DMA32: 32 pages in unavailable ranges
+./logs/qemu-boot.log:86:[    0.000000] Kernel command line: console=ttyS0,115200n8 earlycon=uart8250,io,0x3f8,115200 loglevel=8 rdinit=/init
+./logs/qemu-boot.log:101:[    0.000000] rcu: RCU calculated value of scheduler-enlistment delay is 100 jiffies.
+./logs/qemu-boot.log:116:[    0.016000] tsc: Unable to calibrate against PIT
+./logs/qemu-boot.log:123:[    0.007644] mitigations: Enabled attack vectors: user_kernel, user_user, SMT mitigations: auto
+./logs/qemu-boot.log:134:[    0.584378] Performance Events: PMU not available due to virtualization, using software events only.
+./logs/qemu-boot.log:141:[    0.606886] Memory: 467824K/523768K available (19626K kernel code, 2999K rwdata, 8124K rodata, 2900K init, 596K bss, 53132K reserved, 0K cma-reserved)
+./logs/qemu-boot.log:151:[    0.655381] Freeing SMP alternatives memory: 56K
+./logs/qemu-boot.log:167:[    0.873569] ACPI: PCI Root Bridge [PCI0] (domain 0000 [bus 00-ff])
+./logs/qemu-boot.log:170:[    0.877578] acpi PNP0A03:00: _OSC: platform retains control of PCIe features (AE_ERROR)
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\==============================================================
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\21. DISK USAGE
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\==============================================================
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\3.2G	.
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\2.7G	linux-7.2.2
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\2.2M	initramfs
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\140K	logs
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\==============================================================
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\22. REPOSITORY CLEANUP
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\==============================================================
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\ M .gitignore
+ D initramfs.cpio
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\==============================================================
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\23. GENERATE AUTONOMOUS REPORT
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\==============================================================
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\==============================================================
+AIRA OCTAVE AUTONOMOUS DEVELOPMENT REPORT
+==============================================================
+Sun Aug 30 06:39:04 UTC 2026
+
+GIT
+--------------------------------------------------------------
+1eec0061e test: rebuild and boot-test Aira Octave
+ M .gitignore
+ D initramfs.cpio
+?? reports/
+
+KERNEL
+--------------------------------------------------------------
+7.2.2
+-rw-r--r-- 1 manan manan 15M Aug 30 06:20 linux-7.2.2/arch/x86/boot/bzImage
+
+INITRAMFS
+--------------------------------------------------------------
+
+BUILD
+--------------------------------------------------------------
+BUILD_RESULT=0
+INITRAMFS_RESULT=1
+
+BOOT
+--------------------------------------------------------------
+QEMU_RESULT=1
+MISS: Linux version
+MISS: Run /init as init process
+MISS: AIRAOS LINUX
+MISS: AiraOS Linux kernel is alive.
+MISS: AiraOS userspace ready
+
+ERRORS
+--------------------------------------------------------------
+No obvious fatal kernel errors detected.
+
+IMPORTANT CONFIG
+--------------------------------------------------------------
+CONFIG_PREEMPT_DYNAMIC=y
+CONFIG_BLK_DEV_INITRD=y
+CONFIG_64BIT=y
+CONFIG_X86_64=y
+CONFIG_SMP=y
+CONFIG_HZ=1000
+CONFIG_ACPI=y
+CONFIG_BINFMT_ELF=y
+CONFIG_NET=y
+CONFIG_INET=y
+CONFIG_PCI=y
+CONFIG_PCI_MSI=y
+CONFIG_DEVTMPFS=y
+CONFIG_DEVTMPFS_MOUNT=y
+CONFIG_VIRTIO_NET=y
+CONFIG_VIRTIO=y
+CONFIG_VIRTIO_PCI=y
+CONFIG_EXT4_FS=y
+CONFIG_PROC_FS=y
+CONFIG_SYSFS=y
+CONFIG_TMPFS=y
+
+ARCHIVE TRACKING
+--------------------------------------------------------------
+OK: Linux source archive not tracked
+
+==============================================================
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\==============================================================
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\24. GIT STATUS
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\==============================================================
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\ M .gitignore
+ D initramfs.cpio
+?? reports/
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\==============================================================
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\25. COMMIT RESULTS
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\==============================================================
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\[main 83a73251c] test: autonomous kernel and userspace validation
+ 2 files changed, 72 insertions(+)
+ create mode 100644 reports/AIRA-OCTAVE-AUTONOMOUS-REPORT.txt
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\==============================================================
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\26. PUSH
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\==============================================================
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\To https://github.com/manansulya01/Aira-Octave.git
+   1eec0061e..83a73251c  main -> main
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\==============================================================
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\27. FINAL STATE
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\==============================================================
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\83a73251c test: autonomous kernel and userspace validation
+1eec0061e test: rebuild and boot-test Aira Octave
+44935635f chore: remove large Linux source archive
+f677e7377 feat: boot AiraOS Linux userspace
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    initramfs.cpio
+
+no changes added to commit (use "git add" and/or "git commit -a")
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\==============================================================
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\             AIRA OCTAVE AUTONOMOUS RUN DONE
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\==============================================================
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\Sun Aug 30 06:39:07 UTC 2026
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\REPORT:
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\==============================================================
+AIRA OCTAVE AUTONOMOUS DEVELOPMENT REPORT
+==============================================================
+Sun Aug 30 06:39:04 UTC 2026
+
+GIT
+--------------------------------------------------------------
+1eec0061e test: rebuild and boot-test Aira Octave
+ M .gitignore
+ D initramfs.cpio
+?? reports/
+
+KERNEL
+--------------------------------------------------------------
+7.2.2
+-rw-r--r-- 1 manan manan 15M Aug 30 06:20 linux-7.2.2/arch/x86/boot/bzImage
+
+INITRAMFS
+--------------------------------------------------------------
+
+BUILD
+--------------------------------------------------------------
+BUILD_RESULT=0
+INITRAMFS_RESULT=1
+
+BOOT
+--------------------------------------------------------------
+QEMU_RESULT=1
+MISS: Linux version
+MISS: Run /init as init process
+MISS: AIRAOS LINUX
+MISS: AiraOS Linux kernel is alive.
+MISS: AiraOS userspace ready
+
+ERRORS
+--------------------------------------------------------------
+No obvious fatal kernel errors detected.
+
+IMPORTANT CONFIG
+--------------------------------------------------------------
+CONFIG_PREEMPT_DYNAMIC=y
+CONFIG_BLK_DEV_INITRD=y
+CONFIG_64BIT=y
+CONFIG_X86_64=y
+CONFIG_SMP=y
+CONFIG_HZ=1000
+CONFIG_ACPI=y
+CONFIG_BINFMT_ELF=y
+CONFIG_NET=y
+CONFIG_INET=y
+CONFIG_PCI=y
+CONFIG_PCI_MSI=y
+CONFIG_DEVTMPFS=y
+CONFIG_DEVTMPFS_MOUNT=y
+CONFIG_VIRTIO_NET=y
+CONFIG_VIRTIO=y
+CONFIG_VIRTIO_PCI=y
+CONFIG_EXT4_FS=y
+CONFIG_PROC_FS=y
+CONFIG_SYSFS=y
+CONFIG_TMPFS=y
+
+ARCHIVE TRACKING
+--------------------------------------------------------------
+OK: Linux source archive not tracked
+
+==============================================================
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\==============================================================
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\                 GO BUILD AIRA OCTAVE
+]3008;start=566b14ce-8641-447f-84fe-de1273ad84a7;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\==============================================================
+]3008;end=566b14ce-8641-447f-84fe-de1273ad84a7;exit=success\]3008;start=76d0807d-6167-4cbc-ab5b-81e7d9e59065;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=shell;cwd=/home/manan/Aira-Octave\[?2004h]0;manan@IPAD-SERVER: ~/Aira-Octave[01;32mmanan@IPAD-SERVER[00m:[01;34m~/Aira-Octave[00m$ clear
+[?2004l]3008;start=476eb881-3d52-479b-8f5e-fe88c8659f00;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\[H[2J[3J]3008;end=476eb881-3d52-479b-8f5e-fe88c8659f00;exit=success\]3008;start=76d0807d-6167-4cbc-ab5b-81e7d9e59065;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=shell;cwd=/home/manan/Aira-Octave\[?2004h]0;manan@IPAD-SERVER: ~/Aira-Octave[01;32mmanan@IPAD-SERVER[00m:[01;34m~/Aira-Octave[00m$ [7mcd ~/Aira-Octave[27m
+[7mcat reports/AIRA-OCTAVE-AUTONOMOUS-REPORT.txt[27m
+[7mgit log --oneline -5[27m
+[7mgit status[27m[A[A[A]0;manan@IPAD-SERVER: ~/Aira-Octave[01;32mmanan@IPAD-SERVER[00m:[01;34m~/Aira-Octave[00m$ cd ~/Aira-Octave
+cat reports/AIRA-OCTAVE-AUTONOMOUS-REPORT.txt
+git log --oneline -5
+git status
+[?2004l]3008;start=1542ba00-f814-412c-a416-4054c15bf15a;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\]3008;start=1542ba00-f814-412c-a416-4054c15bf15a;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\==============================================================
+AIRA OCTAVE AUTONOMOUS DEVELOPMENT REPORT
+==============================================================
+Sun Aug 30 06:39:04 UTC 2026
+
+GIT
+--------------------------------------------------------------
+1eec0061e test: rebuild and boot-test Aira Octave
+ M .gitignore
+ D initramfs.cpio
+?? reports/
+
+KERNEL
+--------------------------------------------------------------
+7.2.2
+-rw-r--r-- 1 manan manan 15M Aug 30 06:20 linux-7.2.2/arch/x86/boot/bzImage
+
+INITRAMFS
+--------------------------------------------------------------
+
+BUILD
+--------------------------------------------------------------
+BUILD_RESULT=0
+INITRAMFS_RESULT=1
+
+BOOT
+--------------------------------------------------------------
+QEMU_RESULT=1
+MISS: Linux version
+MISS: Run /init as init process
+MISS: AIRAOS LINUX
+MISS: AiraOS Linux kernel is alive.
+MISS: AiraOS userspace ready
+
+ERRORS
+--------------------------------------------------------------
+No obvious fatal kernel errors detected.
+
+IMPORTANT CONFIG
+--------------------------------------------------------------
+CONFIG_PREEMPT_DYNAMIC=y
+CONFIG_BLK_DEV_INITRD=y
+CONFIG_64BIT=y
+CONFIG_X86_64=y
+CONFIG_SMP=y
+CONFIG_HZ=1000
+CONFIG_ACPI=y
+CONFIG_BINFMT_ELF=y
+CONFIG_NET=y
+CONFIG_INET=y
+CONFIG_PCI=y
+CONFIG_PCI_MSI=y
+CONFIG_DEVTMPFS=y
+CONFIG_DEVTMPFS_MOUNT=y
+CONFIG_VIRTIO_NET=y
+CONFIG_VIRTIO=y
+CONFIG_VIRTIO_PCI=y
+CONFIG_EXT4_FS=y
+CONFIG_PROC_FS=y
+CONFIG_SYSFS=y
+CONFIG_TMPFS=y
+
+ARCHIVE TRACKING
+--------------------------------------------------------------
+OK: Linux source archive not tracked
+
+==============================================================
+]3008;start=1542ba00-f814-412c-a416-4054c15bf15a;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\83a73251c test: autonomous kernel and userspace validation
+1eec0061e test: rebuild and boot-test Aira Octave
+44935635f chore: remove large Linux source archive
+f677e7377 feat: boot AiraOS Linux userspace
+]3008;start=1542ba00-f814-412c-a416-4054c15bf15a;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    initramfs.cpio
+
+no changes added to commit (use "git add" and/or "git commit -a")
+]3008;end=1542ba00-f814-412c-a416-4054c15bf15a;exit=success\]3008;start=76d0807d-6167-4cbc-ab5b-81e7d9e59065;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=shell;cwd=/home/manan/Aira-Octave\[?2004h]0;manan@IPAD-SERVER: ~/Aira-Octave[01;32mmanan@IPAD-SERVER[00m:[01;34m~/Aira-Octave[00m$ cleatr[K[Kr
+[?2004l]3008;start=a2688b2d-2c35-4392-9373-b11d904cbcb6;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\[H[2J[3J]3008;end=a2688b2d-2c35-4392-9373-b11d904cbcb6;exit=success\]3008;start=76d0807d-6167-4cbc-ab5b-81e7d9e59065;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=shell;cwd=/home/manan/Aira-Octave\[?2004h]0;manan@IPAD-SERVER: ~/Aira-Octave[01;32mmanan@IPAD-SERVER[00m:[01;34m~/Aira-Octave[00m$ [7mcd ~/Aira-Octave && \[27m
+[7mecho "===== INITRAMFS FILES =====" && \[27m
+[7mfind . -maxdepth 3 -type f \( -name '*initramfs*' -o -name 'init' -o -name '[27m[7m*[27m[7mbuild*' \) -print | sort && \ [27m
+[7mecho && \[27m
+[7mecho "===== MAKEFILE =====" && \[27m
+[7msed -n '1,260p' Makefile 2>/dev/null && \[27m
+[7mecho && \[27m
+[7mecho "===== SCRIPTS =====" && \[27m
+[7mfind scripts -maxdepth 2 -type f -print -exec sh -c 'echo "--- $1 ---"; sed [27m[7m-[27m[7mn "1,260p" "$1"' _ {} \; && \ [27m
+[7mecho && \[27m
+[7mecho "===== GIT TRACKING =====" && \[27m
+[7mgit ls-files | grep -E '(^|/)(initramfs|init|scripts|Makefile)' | sort && \[27m
+[7mecho && \[27m
+[7mecho "===== DIRECTORY =====" && \[27m
+[7mls -lah[27m[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A]0;manan@IPAD-SERVER: ~/Aira-Octave[01;32mmanan@IPAD-SERVER[00m:[01;34m~/Aira-Octave[00m$ cd ~/Aira-Octave && \
+echo "===== INITRAMFS FILES =====" && \
+find . -maxdepth 3 -type f \( -name '*initramfs*' -o -name 'init' -o -name '*build*' \) -print | sort && \
+echo && \
+echo "===== MAKEFILE =====" && \
+sed -n '1,260p' Makefile 2>/dev/null && \
+echo && \
+echo "===== SCRIPTS =====" && \
+find scripts -maxdepth 2 -type f -print -exec sh -c 'echo "--- $1 ---"; sed -n "1,260p" "$1"' _ {} \; && \
+echo && \
+echo "===== GIT TRACKING =====" && \
+git ls-files | grep -E '(^|/)(initramfs|init|scripts|Makefile)' | sort && \
+echo && \
+echo "===== DIRECTORY =====" && \
+ls -lah
+[?2004l]3008;start=af1e7602-35c7-486e-b214-890334a4e701;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\===== INITRAMFS FILES =====
+./initramfs/init
+./linux-7.2.2/Kbuild
+./linux-7.2.2/include/Kbuild
+./linux-7.2.2/init/.initramfs.o.cmd
+./linux-7.2.2/init/initramfs.c
+./linux-7.2.2/init/initramfs.o
+./linux-7.2.2/init/initramfs_internal.h
+./linux-7.2.2/init/initramfs_test.c
+./linux-7.2.2/init/noinitramfs.c
+./linux-7.2.2/lib/.buildid.o.cmd
+./linux-7.2.2/lib/build_OID_registry
+./linux-7.2.2/lib/buildid.c
+./linux-7.2.2/lib/buildid.o
+./linux-7.2.2/rust/build_error.rs
+./linux-7.2.2/scripts/Kbuild.include
+./linux-7.2.2/scripts/Makefile.build
+./linux-7.2.2/scripts/build-version
+./linux-7.2.2/scripts/rustdoc_test_builder.rs
+./linux-7.2.2/usr/.initramfs_data.cpio.cmd
+./linux-7.2.2/usr/.initramfs_data.cpio.d
+./linux-7.2.2/usr/.initramfs_data.o.cmd
+./linux-7.2.2/usr/.initramfs_inc_data.cmd
+./linux-7.2.2/usr/gen_initramfs.sh
+./linux-7.2.2/usr/initramfs_data.S
+./linux-7.2.2/usr/initramfs_data.cpio
+./linux-7.2.2/usr/initramfs_data.o
+./linux-7.2.2/usr/initramfs_inc_data
+./logs/autonomous-build-start.txt
+./logs/autonomous-kernel-build.log
+./logs/build-start.log
+./logs/initramfs-build.log
+./logs/kernel-build.log
+
+===== MAKEFILE =====
+]3008;end=af1e7602-35c7-486e-b214-890334a4e701;exit=failure;status=2\]3008;start=76d0807d-6167-4cbc-ab5b-81e7d9e59065;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=shell;cwd=/home/manan/Aira-Octave\[?2004h]0;manan@IPAD-SERVER: ~/Aira-Octave[01;32mmanan@IPAD-SERVER[00m:[01;34m~/Aira-Octave[00m$ clear
+[?2004l]3008;start=66800005-0c8a-439b-bfb1-70f56878a009;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\[H[2J[3J]3008;end=66800005-0c8a-439b-bfb1-70f56878a009;exit=success\]3008;start=76d0807d-6167-4cbc-ab5b-81e7d9e59065;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=shell;cwd=/home/manan/Aira-Octave\[?2004h]0;manan@IPAD-SERVER: ~/Aira-Octave[01;32mmanan@IPAD-SERVER[00m:[01;34m~/Aira-Octave[00m$ [H[2J]0;manan@IPAD-SERVER: ~/Aira-Octave[01;32mmanan@IPAD-SERVER[00m:[01;34m~/Aira-Octave[00m$ cd ~/Aira-Octave && \
+echo "==============================================================" && \
+echo "AIRA OCTAVE — INITRAMFS FORENSIC INSPECTION" && \
+echo "==============================================================" && \
+echo && \
+echo "===== initramfs/init =====" && \
+ls -lah initramfs/init && \
+file initramfs/init && \
+sed -n '1,240p' initramfs/init && \
+echo && \
+echo "===== INITRAMFS DIRECTORY =====" && \
+find initramfs -maxdepth 3 -printf '%M %u:%g %p\n' | sort && \
+echo && \
+echo "===== ROOT DIRECTORY =====" && \
+[7mls -lah && \[27m
+[7mecho && \[27m
+[7mecho "===== GIT STATUS =====" && \[27m
+[7mgit status --short && \[27m
+[7mecho && \[27m
+[7mecho "===== GIT HISTORY AROUND INITRAMFS =====" && \[27m
+[7mgit log --all --oneline --decorate -- initramfs.cpio initramfs Makefile scri[27m[7mp[27m[7mts | head -30 && \ [27m
+[7mecho && \[27m
+[7mecho "===== LAST COMMIT FILE TREE =====" && \[27m
+[7mgit show --stat --oneline HEAD && \[27m
+[7mecho && \[27m
+[7mecho "===== BUILD LOG =====" && \[27m
+[7mfor f in logs/initramfs-build.log logs/autonomous-build-start.txt logs/auton[27m[7mo[27m[7mmous-kernel-build.log; do \ [27m
+[7m  if [ -f "$f" ]; then \[27m
+[7m    echo "--- $f ---"; \[27m
+[7m    tail -n 120 "$f"; \[27m
+[7m  fi; \[27m
+[7mdone && \[27m
+[7mecho && \[27m
+[7mecho "===== AVAILABLE INITRAMFS TOOLS =====" && \[27m
+[7mcommand -v cpio || true && \[27m
+[7mcpio --version 2>/dev/null | head -2 || true && \[27m
+[7mcommand -v gzip || true && \[27m
+[7mcommand -v find || true && \[27m
+[7mecho && \[27m
+[7mecho "===== LINUX INITRAMFS CONFIG =====" && \[27m
+[7mgrep -E '^(CONFIG_BLK_DEV_INITRD|CONFIG_INITRAMFS_SOURCE|CONFIG_INITRAMFS_RO[27m[7mO[27m[7mT_UID|CONFIG_INITRAMFS_ROOT_GID|CONFIG_INITRAMFS_COMPRESSION)' linux-7.2.2/[27m[7m.[27m[7mconfig 2>/dev/null || true && \ [27m
+[7mecho && \[27m
+[7mecho "===== EXISTING LINUX-GENERATED INITRAMFS =====" && \[27m
+[7mls -lh linux-7.2.2/usr/initramfs_data.cpio linux-7.2.2/usr/initramfs_data.o [27m[7m2[27m[7m>/dev/null || true && \ [27m
+[7mecho && \[27m
+[7mecho "===== INITRAMFS CONTENT =====" && \[27m
+[7mif command -v cpio >/dev/null 2>&1 && [ -f linux-7.2.2/usr/initramfs_data.cp[27m[7mi[27m[7mo ]; then \ [27m
+[7m  (cd /tmp && rm -rf aira-initramfs-inspect && mkdir aira-initramfs-inspect [27m[7m&[27m[7m& cd aira-initramfs-inspect && cpio -itv < "$OLDPWD/../home/manan/Aira-Octa[27m[7mv[27m[7me/linux-7.2.2/usr/initramfs_data.cpio" 2>/dev/null | head -100); \ [27m
+[7mfi[27m[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[Als -lah && \
+echo && \
+echo "===== GIT STATUS =====" && \
+git status --short && \
+echo && \
+echo "===== GIT HISTORY AROUND INITRAMFS =====" && \
+git log --all --oneline --decorate -- initramfs.cpio initramfs Makefile scripts | head -30 && \
+echo && \
+echo "===== LAST COMMIT FILE TREE =====" && \
+git show --stat --oneline HEAD && \
+echo && \
+echo "===== BUILD LOG =====" && \
+for f in logs/initramfs-build.log logs/autonomous-build-start.txt logs/autonomous-kernel-build.log; do \
+  if [ -f "$f" ]; then \
+    echo "--- $f ---"; \
+    tail -n 120 "$f"; \
+  fi; \
+done && \
+echo && \
+echo "===== AVAILABLE INITRAMFS TOOLS =====" && \
+command -v cpio || true && \
+cpio --version 2>/dev/null | head -2 || true && \
+command -v gzip || true && \
+command -v find || true && \
+echo && \
+echo "===== LINUX INITRAMFS CONFIG =====" && \
+grep -E '^(CONFIG_BLK_DEV_INITRD|CONFIG_INITRAMFS_SOURCE|CONFIG_INITRAMFS_ROOT_UID|CONFIG_INITRAMFS_ROOT_GID|CONFIG_INITRAMFS_COMPRESSION)' linux-7.2.2/.config 2>/dev/null || true && \
+echo && \
+echo "===== EXISTING LINUX-GENERATED INITRAMFS =====" && \
+ls -lh linux-7.2.2/usr/initramfs_data.cpio linux-7.2.2/usr/initramfs_data.o 2>/dev/null || true && \
+echo && \
+echo "===== INITRAMFS CONTENT =====" && \
+if command -v cpio >/dev/null 2>&1 && [ -f linux-7.2.2/usr/initramfs_data.cpio ]; then \
+  (cd /tmp && rm -rf aira-initramfs-inspect && mkdir aira-initramfs-inspect && cd aira-initramfs-inspect && cpio -itv < "$OLDPWD/../home/manan/Aira-Octave/linux-7.2.2/usr/initramfs_data.cpio" 2>/dev/null | head -100); \
+fi
+[?2004l]3008;start=e21933f4-5bba-42d4-8714-e6cb98129a11;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\==============================================================
+AIRA OCTAVE — INITRAMFS FORENSIC INSPECTION
+==============================================================
+
+===== initramfs/init =====
+-rwxr-xr-x 1 manan manan 642 Aug 29 12:37 initramfs/init
+initramfs/init: POSIX shell script, ASCII text executable
+#!/bin/sh
+
+echo
+echo "========================================"
+echo "          AIRAOS LINUX"
+echo "========================================"
+echo
+
+mount -t devtmpfs devtmpfs /dev
+mount -t proc proc /proc
+mount -t sysfs sysfs /sys
+
+echo "AiraOS Linux kernel is alive."
+echo
+
+echo "Kernel:"
+uname -a
+echo
+
+echo "CPU:"
+grep -m1 "model name" /proc/cpuinfo
+echo
+
+echo "Memory:"
+grep MemTotal /proc/meminfo
+echo
+
+echo "========================================"
+echo "        AiraOS userspace ready"
+echo "========================================"
+echo
+
+echo "Available commands:"
+echo "  ls  cat  ps  free  mount  dmesg  uname"
+echo
+
+exec /bin/sh
+
+===== INITRAMFS DIRECTORY =====
+-rwxr-xr-x manan:manan initramfs/bin/busybox
+-rwxr-xr-x manan:manan initramfs/init
+drwxr-xr-x manan:manan initramfs
+drwxr-xr-x manan:manan initramfs/bin
+drwxr-xr-x manan:manan initramfs/dev
+drwxr-xr-x manan:manan initramfs/etc
+drwxr-xr-x manan:manan initramfs/proc
+drwxr-xr-x manan:manan initramfs/sys
+lrwxrwxrwx manan:manan initramfs/bin/cat
+lrwxrwxrwx manan:manan initramfs/bin/clear
+lrwxrwxrwx manan:manan initramfs/bin/cp
+lrwxrwxrwx manan:manan initramfs/bin/date
+lrwxrwxrwx manan:manan initramfs/bin/dmesg
+lrwxrwxrwx manan:manan initramfs/bin/echo
+lrwxrwxrwx manan:manan initramfs/bin/free
+lrwxrwxrwx manan:manan initramfs/bin/grep
+lrwxrwxrwx manan:manan initramfs/bin/head
+lrwxrwxrwx manan:manan initramfs/bin/hostname
+lrwxrwxrwx manan:manan initramfs/bin/ls
+lrwxrwxrwx manan:manan initramfs/bin/mkdir
+lrwxrwxrwx manan:manan initramfs/bin/mount
+lrwxrwxrwx manan:manan initramfs/bin/mv
+lrwxrwxrwx manan:manan initramfs/bin/poweroff
+lrwxrwxrwx manan:manan initramfs/bin/ps
+lrwxrwxrwx manan:manan initramfs/bin/pwd
+lrwxrwxrwx manan:manan initramfs/bin/reboot
+lrwxrwxrwx manan:manan initramfs/bin/rm
+lrwxrwxrwx manan:manan initramfs/bin/sh
+lrwxrwxrwx manan:manan initramfs/bin/sleep
+lrwxrwxrwx manan:manan initramfs/bin/tail
+lrwxrwxrwx manan:manan initramfs/bin/uname
+lrwxrwxrwx manan:manan initramfs/bin/wc
+
+===== ROOT DIRECTORY =====
+total 153M
+drwxr-xr-x 10 manan manan 4.0K Aug 30 06:38 .
+drwxr-x--- 11 manan manan 4.0K Aug 30 06:38 ..
+drwxr-xr-x  7 manan manan 4.0K Aug 30 06:54 .git
+-rw-r--r--  1 manan manan  330 Aug 30 06:39 .gitignore
+drwxr-xr-x  2 manan manan 4.0K Aug 29 12:00 configs
+drwxr-xr-x  7 manan manan 4.0K Aug 29 12:37 initramfs
+drwxr-xr-x 26 manan manan 4.0K Aug 30 06:39 linux-7.2.2
+-rwxr-xr-x  1 manan manan 153M Aug 29 11:42 linux-7.2.2.tar.xz
+drwxr-xr-x  2 manan manan 4.0K Aug 30 06:38 logs
+drwxr-xr-x  2 manan manan 4.0K Aug 30 06:39 reports
+drwxr-xr-x  2 manan manan 4.0K Aug 30 06:19 scripts
+drwxr-xr-x  2 manan manan 4.0K Aug 29 11:53 test
+
+===== GIT STATUS =====
+ D initramfs.cpio
+
+===== GIT HISTORY AROUND INITRAMFS =====
+f677e7377 feat: boot AiraOS Linux userspace
+
+===== LAST COMMIT FILE TREE =====
+83a73251c test: autonomous kernel and userspace validation
+ .gitignore                                |  5 +++
+ reports/AIRA-OCTAVE-AUTONOMOUS-REPORT.txt | 67 +++++++++++++++++++++++++++++++
+ 2 files changed, 72 insertions(+)
+
+===== BUILD LOG =====
+--- logs/initramfs-build.log ---
+.
+./sys
+./dev
+./etc
+./proc
+./bin
+./bin/wc
+./bin/mount
+./bin/date
+./bin/sleep
+./bin/uname
+./bin/ps
+./bin/clear
+./bin/dmesg
+./bin/ls
+./bin/poweroff
+./bin/cat
+./bin/tail
+./bin/mv
+./bin/sh
+./bin/free
+./bin/pwd
+./bin/rm
+./bin/reboot
+./bin/head
+./bin/busybox
+./bin/mkdir
+./bin/grep
+./bin/echo
+./bin/cp
+./bin/hostname
+./init
+4288 blocks
+--- logs/autonomous-build-start.txt ---
+Sun Aug 30 06:38:47 UTC 2026
+--- logs/autonomous-kernel-build.log ---
+make: Entering directory '/home/manan/Aira-Octave/linux-7.2.2'
+  DESCEND objtool
+Kernel: arch/x86/boot/bzImage is ready  (#3)
+make: Leaving directory '/home/manan/Aira-Octave/linux-7.2.2'
+
+===== AVAILABLE INITRAMFS TOOLS =====
+/usr/bin/cpio
+cpio (GNU cpio) 2.15
+Copyright (C) 2024 Free Software Foundation, Inc.
+/usr/bin/gzip
+/usr/bin/find
+
+===== LINUX INITRAMFS CONFIG =====
+CONFIG_BLK_DEV_INITRD=y
+CONFIG_INITRAMFS_SOURCE=""
+
+===== EXISTING LINUX-GENERATED INITRAMFS =====
+-rw------- 1 manan manan  512 Aug 29 12:02 linux-7.2.2/usr/initramfs_data.cpio
+-rw-r--r-- 1 manan manan 1.4K Aug 29 12:02 linux-7.2.2/usr/initramfs_data.o
+
+===== INITRAMFS CONTENT =====
+drwxr-xr-x   2 root     root            0 Aug 29 12:02 dev
+crw-------   1 root     root       5,   1 Aug 29 12:02 dev/console
+drwx------   2 root     root            0 Aug 29 12:02 root
+]3008;end=e21933f4-5bba-42d4-8714-e6cb98129a11;exit=success\]3008;start=76d0807d-6167-4cbc-ab5b-81e7d9e59065;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=shell;cwd=/home/manan/Aira-Octave\[?2004h]0;manan@IPAD-SERVER: ~/Aira-Octave[01;32mmanan@IPAD-SERVER[00m:[01;34m~/Aira-Octave[00m$ CLEAR
+[?2004l]3008;start=67c92a18-6ead-4033-b61c-a4e7e55a1bdb;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\CLEAR: command not found
+]3008;end=67c92a18-6ead-4033-b61c-a4e7e55a1bdb;exit=failure;status=127\]3008;start=76d0807d-6167-4cbc-ab5b-81e7d9e59065;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=shell;cwd=/home/manan/Aira-Octave\[?2004h]0;manan@IPAD-SERVER: ~/Aira-Octave[01;32mmanan@IPAD-SERVER[00m:[01;34m~/Aira-Octave[00m$ C[Kclear
+[?2004l]3008;start=8836cfe2-959e-4a7c-be34-93ab586ff707;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\[H[2J[3J]3008;end=8836cfe2-959e-4a7c-be34-93ab586ff707;exit=success\]3008;start=76d0807d-6167-4cbc-ab5b-81e7d9e59065;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=shell;cwd=/home/manan/Aira-Octave\[?2004h]0;manan@IPAD-SERVER: ~/Aira-Octave[01;32mmanan@IPAD-SERVER[00m:[01;34m~/Aira-Octave[00m$ [7mcd ~/Aira-Octave && \[27m
+[7mset -e && \[27m
+[7mecho "==============================================================" && \[27m
+[7mecho " AIRA OCTAVE — SPRINT: REPAIR INITRAMFS PIPELINE" && \[27m
+[7mecho "==============================================================" && \[27m
+[7mecho && \[27m
+[7mecho "[1/6] Verifying initramfs..." && \[27m
+[7mtest -x initramfs/init && \[27m
+[7mtest -x initramfs/bin/busybox && \[27m
+[7mecho "OK: initramfs source tree valid" && \[27m
+[7mecho && \[27m
+[7mecho "[2/6] Rebuilding external initramfs..." && \[27m
+[7mrm -f initramfs.cpio initramfs.cpio.gz && \[27m
+[7m( cd initramfs && find . -print0 | sort -z | cpio --null -o -H newc > ../ini[27m[7mt[27m[7mramfs.cpio ) && \ [27m
+[7mchmod 644 initramfs.cpio && \[27m
+[7mecho "OK: initramfs.cpio created" && \[27m
+[7mls -lh initramfs.cpio && \[27m
+[7mecho && \[27m
+[7mecho "[3/6] Verifying archive contains /init and BusyBox..." && \[27m
+[7mcpio -it < initramfs.cpio | tee /tmp/aira-initramfs-list.txt >/dev/null && \[27m 
+[7mgrep -qx './init' /tmp/aira-initramfs-list.txt && \[27m
+[7mgrep -qx './bin/busybox' /tmp/aira-initramfs-list.txt && \[27m
+[7mgrep -qx './bin/sh' /tmp/aira-initramfs-list.txt && \[27m
+[7mecho "OK: required userspace files present" && \[27m
+[7mecho && \[27m
+[7mecho "[4/6] Verifying initramfs /init interpreter..." && \[27m
+[7mhead -1 initramfs/init && \[27m
+[7mecho && \[27m
+[7mecho "[5/6] Recording reproducible build metadata..." && \[27m
+[7msha256sum initramfs.cpio > logs/initramfs.sha256 && \[27m
+[7mprintf 'INITRAMFS_RESULT=0\n' > logs/initramfs-result.txt && \[27m
+[7mecho "OK: archive checksum recorded" && \[27m
+[7mcat logs/initramfs.sha256 && \[27m
+[7mecho && \[27m
+[7mecho "[6/6] Git state..." && \[27m
+[7mgit status --short && \[27m
+[7mecho && \[27m
+[7mecho "==============================================================" && \[27m
+[7mecho " INITRAMFS REPAIR COMPLETE" && \[27m
+[7mecho "=============================================================="[27m[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[Ccd ~/Aira-Octave && \
+set -e && \
+echo "==============================================================" && \
+echo " AIRA OCTAVE — SPRINT: REPAIR INITRAMFS PIPELINE" && \
+echo "==============================================================" && \
+echo && \
+echo "[1/6] Verifying initramfs..." && \
+test -x initramfs/init && \
+test -x initramfs/bin/busybox && \
+echo "OK: initramfs source tree valid" && \
+echo && \
+echo "[2/6] Rebuilding external initramfs..." && \
+rm -f initramfs.cpio initramfs.cpio.gz && \
+( cd initramfs && find . -print0 | sort -z | cpio --null -o -H newc > ../initramfs.cpio ) && \
+chmod 644 initramfs.cpio && \
+echo "OK: initramfs.cpio created" && \
+ls -lh initramfs.cpio && \
+echo && \
+echo "[3/6] Verifying archive contains /init and BusyBox..." && \
+cpio -it < initramfs.cpio | tee /tmp/aira-initramfs-list.txt >/dev/null && \ 
+grep -qx './init' /tmp/aira-initramfs-list.txt && \
+grep -qx './bin/busybox' /tmp/aira-initramfs-list.txt && \
+grep -qx './bin/sh' /tmp/aira-initramfs-list.txt && \
+echo "OK: required userspace files present" && \
+echo && \
+echo "[4/6] Verifying initramfs /init interpreter..." && \
+head -1 initramfs/init && \
+echo && \
+echo "[5/6] Recording reproducible build metadata..." && \
+sha256sum initramfs.cpio > logs/initramfs.sha256 && \
+printf 'INITRAMFS_RESULT=0\n' > logs/initramfs-result.txt && \
+echo "OK: archive checksum recorded" && \
+cat logs/initramfs.sha256 && \
+echo && \
+echo "[6/6] Git state..." && \
+git status --short && \
+echo && \
+echo "==============================================================" && \
+echo " INITRAMFS REPAIR COMPLETE" && \
+echo "=============================================================="
+[?2004l]3008;start=7f548fc5-14e7-40a4-afc4-6f10e8925273;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\==============================================================
+ AIRA OCTAVE — SPRINT: REPAIR INITRAMFS PIPELINE
+==============================================================
+
+[1/6] Verifying initramfs...
+OK: initramfs source tree valid
+
+[2/6] Rebuilding external initramfs...
+4288 blocks
+OK: initramfs.cpio created
+-rw-r--r-- 1 manan manan 2.1M Aug 30 06:56 initramfs.cpio
+
+[3/6] Verifying archive contains /init and BusyBox...
+4288 blocks
+]3008;end=7f548fc5-14e7-40a4-afc4-6f10e8925273;exit=failure;status=1\]3008;start=76d0807d-6167-4cbc-ab5b-81e7d9e59065;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=shell;cwd=/home/manan/Aira-Octave\[?2004h]0;manan@IPAD-SERVER: ~/Aira-Octave[01;32mmanan@IPAD-SERVER[00m:[01;34m~/Aira-Octave[00m$ [7mcd ~/Aira-Octave && \[27m
+[7mecho "===== ARCHIVE SIZE =====" && \[27m
+[7mls -lh initramfs.cpio && \[27m
+[7mecho && \[27m
+[7mecho "===== ARCHIVE CONTENT =====" && \[27m
+[7mcpio -it < initramfs.cpio | head -80 && \[27m
+[7mecho && \[27m
+[7mecho "===== REQUIRED FILES =====" && \[27m
+[7mfor f in ./init ./bin/busybox ./bin/sh ./bin/mount ./bin/uname ./bin/dmesg; [27m[7md[27m[7mo \ [27m
+[7m    if cpio -it < initramfs.cpio | grep -qx "$f"; then \[27m
+[7m        echo "OK   $f"; \[27m
+[7m    else \[27m
+[7m        echo "MISS $f"; \[27m
+[7m    fi \[27m
+[7mdone && \[27m
+[7mecho && \[27m
+[7mecho "===== INITRAMFS CHECKSUM =====" && \[27m
+[7mcat logs/initramfs.sha256 && \[27m
+[7mecho && \[27m
+[7mecho "===== GIT STATUS =====" && \[27m
+[7mgit status --short[27m[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A]0;manan@IPAD-SERVER: ~/Aira-Octave[01;32mmanan@IPAD-SERVER[00m:[01;34m~/Aira-Octave[00m$ cd ~/Aira-Octave && \
+echo "===== ARCHIVE SIZE =====" && \
+ls -lh initramfs.cpio && \
+echo && \
+echo "===== ARCHIVE CONTENT =====" && \
+cpio -it < initramfs.cpio | head -80 && \
+echo && \
+echo "===== REQUIRED FILES =====" && \
+for f in ./init ./bin/busybox ./bin/sh ./bin/mount ./bin/uname ./bin/dmesg; do \
+    if cpio -it < initramfs.cpio | grep -qx "$f"; then \
+        echo "OK   $f"; \
+    else \
+        echo "MISS $f"; \
+    fi \
+done && \
+echo && \
+echo "===== INITRAMFS CHECKSUM =====" && \
+cat logs/initramfs.sha256 && \
+echo && \
+echo "===== GIT STATUS =====" && \
+git status --short
+[?2004l]3008;start=9640e987-a6ad-4c7b-a325-aec9357c47fa;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\===== ARCHIVE SIZE =====
+-rw-r--r-- 1 manan manan 2.1M Aug 30 06:56 initramfs.cpio
+
+===== ARCHIVE CONTENT =====
+4288 blocks
+.
+bin
+bin/busybox
+bin/cat
+bin/clear
+bin/cp
+bin/date
+bin/dmesg
+bin/echo
+bin/free
+bin/grep
+bin/head
+bin/hostname
+bin/ls
+bin/mkdir
+bin/mount
+bin/mv
+bin/poweroff
+bin/ps
+bin/pwd
+bin/reboot
+bin/rm
+bin/sh
+bin/sleep
+bin/tail
+bin/uname
+bin/wc
+dev
+etc
+init
+proc
+sys
+
+===== REQUIRED FILES =====
+4288 blocks
+MISS ./init
+4288 blocks
+MISS ./bin/busybox
+4288 blocks
+MISS ./bin/sh
+4288 blocks
+MISS ./bin/mount
+4288 blocks
+MISS ./bin/uname
+4288 blocks
+MISS ./bin/dmesg
+
+===== INITRAMFS CHECKSUM =====
+cat: logs/initramfs.sha256: No such file or directory
+]3008;end=9640e987-a6ad-4c7b-a325-aec9357c47fa;exit=failure;status=1\]3008;start=76d0807d-6167-4cbc-ab5b-81e7d9e59065;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=shell;cwd=/home/manan/Aira-Octave\[?2004h]0;manan@IPAD-SERVER: ~/Aira-Octave[01;32mmanan@IPAD-SERVER[00m:[01;34m~/Aira-Octave[00m$ clear
+[?2004l]3008;start=79ca8b21-fad8-439c-b841-6aee8f119784;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\[H[2J[3J]3008;end=79ca8b21-fad8-439c-b841-6aee8f119784;exit=success\]3008;start=76d0807d-6167-4cbc-ab5b-81e7d9e59065;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=shell;cwd=/home/manan/Aira-Octave\[?2004h]0;manan@IPAD-SERVER: ~/Aira-Octave[01;32mmanan@IPAD-SERVER[00m:[01;34m~/Aira-Octave[00m$ [7mcd ~/Aira-Octave && \[27m
+[7mset -e && \[27m
+[7mecho "==============================================================" && \[27m
+[7mecho " AIRA OCTAVE — SPRINT 2: VALIDATE + LOCK INITRAMFS" && \[27m
+[7mecho "==============================================================" && \[27m
+[7mecho && \[27m
+[7mecho "[1/5] Checking archive..." && \[27m
+[7mtest -s initramfs.cpio && \[27m
+[7mecho "OK: initramfs.cpio exists ($(du -h initramfs.cpio | cut -f1))" && \[27m
+[7mecho && \[27m
+[7mecho "[2/5] Checking required files..." && \[27m
+[7mcpio -it < initramfs.cpio > /tmp/aira-initramfs-list.txt && \[27m
+[7mfor f in init bin/busybox bin/sh bin/mount bin/uname bin/dmesg; do \[27m
+[7m    if grep -qx "$f" /tmp/aira-initramfs-list.txt; then \[27m
+[7m        echo "OK   $f"; \[27m
+[7m    else \[27m
+[7m        echo "FAIL $f"; \[27m
+[7m        exit 1; \[27m
+[7m    fi; \[27m
+[7mdone && \[27m
+[7mecho && \[27m
+[7mecho "[3/5] Checking /init..." && \[27m
+[7mtest -x initramfs/init && \[27m
+[7mhead -1 initramfs/init && \[27m
+[7mecho "OK: /init executable" && \[27m
+[7mecho && \[27m
+[7mecho "[4/5] Recording checksum..." && \[27m
+[7msha256sum initramfs.cpio | tee logs/initramfs.sha256 && \[27m
+[7mprintf 'INITRAMFS_RESULT=0\n' | tee logs/initramfs-result.txt && \[27m
+[7mecho && \[27m
+[7mecho "[5/5] Final state..." && \[27m
+[7mgit status --short && \[27m
+[7mecho && \[27m
+[7mecho "==============================================================" && \[27m
+[7mecho " INITRAMFS VALIDATION: PASS" && \[27m
+[7mecho "=============================================================="[27m[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[Ccd ~/Aira-Octave && \
+set -e && \
+echo "==============================================================" && \
+echo " AIRA OCTAVE — SPRINT 2: VALIDATE + LOCK INITRAMFS" && \
+echo "==============================================================" && \
+echo && \
+echo "[1/5] Checking archive..." && \
+test -s initramfs.cpio && \
+echo "OK: initramfs.cpio exists ($(du -h initramfs.cpio | cut -f1))" && \
+echo && \
+echo "[2/5] Checking required files..." && \
+cpio -it < initramfs.cpio > /tmp/aira-initramfs-list.txt && \
+for f in init bin/busybox bin/sh bin/mount bin/uname bin/dmesg; do \
+    if grep -qx "$f" /tmp/aira-initramfs-list.txt; then \
+        echo "OK   $f"; \
+    else \
+        echo "FAIL $f"; \
+        exit 1; \
+    fi; \
+done && \
+echo && \
+echo "[3/5] Checking /init..." && \
+test -x initramfs/init && \
+head -1 initramfs/init && \
+echo "OK: /init executable" && \
+echo && \
+echo "[4/5] Recording checksum..." && \
+sha256sum initramfs.cpio | tee logs/initramfs.sha256 && \
+printf 'INITRAMFS_RESULT=0\n' | tee logs/initramfs-result.txt && \
+echo && \
+echo "[5/5] Final state..." && \
+git status --short && \
+echo && \
+echo "==============================================================" && \
+echo " INITRAMFS VALIDATION: PASS" && \
+echo "=============================================================="
+[?2004l]3008;start=ca232f60-7d35-4a17-bac7-d01dc91cd521;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\==============================================================
+ AIRA OCTAVE — SPRINT 2: VALIDATE + LOCK INITRAMFS
+==============================================================
+
+[1/5] Checking archive...
+OK: initramfs.cpio exists (2.1M)
+
+[2/5] Checking required files...
+4288 blocks
+OK   init
+OK   bin/busybox
+OK   bin/sh
+OK   bin/mount
+OK   bin/uname
+OK   bin/dmesg
+
+[3/5] Checking /init...
+#!/bin/sh
+OK: /init executable
+
+[4/5] Recording checksum...
+e9effb81e70280ed4d28a48110892aa3be365c07fc4cefb35771ae66eeae877b  initramfs.cpio
+INITRAMFS_RESULT=0
+
+[5/5] Final state...
+ M initramfs.cpio
+?? logs/initramfs-result.txt
+?? logs/initramfs.sha256
+
+==============================================================
+ INITRAMFS VALIDATION: PASS
+==============================================================
+]3008;end=ca232f60-7d35-4a17-bac7-d01dc91cd521;exit=success\]3008;start=76d0807d-6167-4cbc-ab5b-81e7d9e59065;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=shell;cwd=/home/manan/Aira-Octave\[?2004h]0;manan@IPAD-SERVER: ~/Aira-Octave[01;32mmanan@IPAD-SERVER[00m:[01;34m~/Aira-Octave[00m$ clear
+[?2004l]3008;start=b8de08b1-5665-4a68-af15-78589d7c1518;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\[H[2J[3J]3008;end=b8de08b1-5665-4a68-af15-78589d7c1518;exit=success\]3008;start=76d0807d-6167-4cbc-ab5b-81e7d9e59065;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=shell;cwd=/home/manan/Aira-Octave\[?2004h]0;manan@IPAD-SERVER: ~/Aira-Octave[01;32mmanan@IPAD-SERVER[00m:[01;34m~/Aira-Octave[00m$ [H[2J]0;manan@IPAD-SERVER: ~/Aira-Octave[01;32mmanan@IPAD-SERVER[00m:[01;34m~/Aira-Octave[00m$ cd ~/Aira-Octave && \
+cat > /tmp/aira_autonomous_sprint.sh <<'AIRAEOF'
+#!/usr/bin/env bash
+
+set +e
+
+ROOT="$HOME/Aira-Octave"
+cd "$ROOT" || exit 1
+
+mkdir -p logs reports scripts
+
+RUN_ID="$(date +%Y%m%d-%H%M%S)"
+LOG="logs/autonomous-full-${RUN_ID}.log"
+REPORT="reports/AIRA-OCTAVE-AUTONOMOUS-${RUN_ID}.txt"
+
+exec > >(tee -a "$LOG") 2>&1
+
+PASS=0
+FAIL=0
+WARN=0
+
+step() {
+    echo
+    echo "=============================================================="
+    echo "[$1] $2"
+    echo "=============================================================="
+}
+
+ok() {
+    echo "PASS: $1"
+    PASS=$((PASS+1))
+}
+
+fail() {
+    echo "FAIL: $1"
+    FAIL=$((FAIL+1))
+}
+
+warn() {
+    echo "WARN: $1"
+    WARN=$((WARN+1))
+}
+
+step 1 "INITIAL PROJECT SNAPSHOT"
+
+echo "DATE=$(date)"
+echo "HOST=$(hostname)"
+echo "PWD=$PWD"
+echo "GIT=$(git rev-parse --short HEAD 2>/dev/null)"
+echo "BRANCH=$(git branch --show-current 2>/dev/null)"
+
+git status --short
+
+step 2 "VERIFY TOOLCHAIN"
+
+for tool in gcc make nasm ld cpio gzip qemu-system-x86_64; do
+    if command -v "$tool" >/dev/null 2>&1; then
+        echo "OK: $tool -> $(command -v "$tool")"
+    else
+        warn "Missing tool: $tool"
+    fi
+done
+
+step 3 "VERIFY INITRAMFS SOURCE"
+
+if [ -x initramfs/init ]; then
+    ok "initramfs/init exists and is executable"
+else
+    fail "initramfs/init missing or not executable"
+fi
+
+if [ -x initramfs/bin/busybox ]; then
+    ok "BusyBox exists and is executable"
+else
+    fail "BusyBox missing"
+fi
+
+if [ -L initramfs/bin/sh ]; then
+    ok "BusyBox shell symlink exists"
+else
+    warn "initramfs/bin/sh is not a symlink"
+fi
+
+step 4 "REBUILD INITRAMFS"
+
+rm -f initramfs.cpio initramfs.cpio.gz
+
+if (
+    cd initramfs &&
+    find . -print0 | sort -z | cpio --null -o -H newc > ../initramfs.cpio
+); then
+    chmod 644 initramfs.cpio
+
+    if [ -s initramfs.cpio ]; then
+        ok "initramfs.cpio rebuilt"
+        ls -lh initramfs.cpio
+    else
+        fail "initramfs.cpio is empty"
+    fi
+else
+    fail "initramfs archive generation failed"
+fi
+
+step 5 "VERIFY INITRAMFS CONTENT"
+
+if [ -s initramfs.cpio ]; then
+    cpio -it < initramfs.cpio > /tmp/aira-initramfs-list.txt
+
+    for f in init bin/busybox bin/sh bin/mount bin/uname bin/dmesg; do
+        if grep -qx "$f" /tmp/aira-initramfs-list.txt; then
+            ok "initramfs contains $f"
+        else
+            fail "initramfs missing $f"
+        fi
+    done
+fi
+
+step 6 "VERIFY INIT SCRIPT"
+
+if [ -x initramfs/init ]; then
+    echo "----- initramfs/init -----"
+    sed -n '1,240p' initramfs/init
+    echo "--------------------------"
+
+    if head -1 initramfs/init | grep -q '^#!/bin/sh'; then
+        ok "/init has /bin/sh interpreter"
+    else
+        fail "/init interpreter is unexpected"
+    fi
+fi
+
+step 7 "CHECK LINUX CONFIG"
+
+if [ -f linux-7.2.2/.config ]; then
+    grep -E '^(CONFIG_BLK_DEV_INITRD|CONFIG_INITRAMFS_SOURCE|CONFIG_64BIT|CONFIG_X86_64|CONFIG_DEVTMPFS|CONFIG_DEVTMPFS_MOUNT|CONFIG_PROC_FS|CONFIG_SYSFS|CONFIG_TMPFS)=' \ 
+        linux-7.2.2/.config || true
+
+    if grep -q '^CONFIG_BLK_DEV_INITRD=y' linux-7.2.2/.config; then
+        ok "Linux INITRD support enabled"
+    else
+        fail "CONFIG_BLK_DEV_INITRD is not enabled"
+    fi
+else
+    fail "Linux .config missing"
+fi
+
+step 8 "REBUILD LINUX KERNEL"
+
+if [ -f linux-7.2.2/Makefile ]; then
+    make -C linux-7.2.2 -j"$(nproc)" bzImage
+    KERNEL_RESULT=$?
+
+    if [ "$KERNEL_RESULT" -eq 0 ] && [ -f linux-7.2.2/arch/x86/boot/bzImage ]; then 
+        ok "Linux bzImage built"
+        ls -lh linux-7.2.2/arch/x86/boot/bzImage
+    else
+        fail "Linux kernel build failed"
+    fi
+else
+    fail "Linux source tree missing"
+fi
+
+step 9 "CREATE AUTONOMOUS BOOT SCRIPT"
+
+cat > scripts/boot-qemu-autonomous.sh <<'BOOTEOF'
+#!/usr/bin/env bash
+
+set +e
+
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$ROOT" || exit 1
+
+KERNEL="$ROOT/linux-7.2.2/arch/x86/boot/bzImage"
+INITRAMFS="$ROOT/initramfs.cpio"
+
+if [ ! -f "$KERNEL" ]; then
+    echo "ERROR: kernel missing"
+    exit 1
+fi
+
+if [ ! -s "$INITRAMFS" ]; then
+    echo "ERROR: initramfs missing"
+    exit 1
+fi
+
+echo "AIRA OCTAVE QEMU BOOT"
+echo "Kernel: $KERNEL"
+echo "Initramfs: $INITRAMFS"
+
+exec qemu-system-x86_64 \
+    -kernel "$KERNEL" \
+    -initrd "$INITRAMFS" \
+    -append "console=ttyS0 rdinit=/init" \
+    -m 512M \
+    -nographic \
+    -serial mon:stdio \
+    -no-reboot \
+    -no-shutdown
+BOOTEOF
+
+chmod +x scripts/boot-qemu-autonomous.sh
+ok "Autonomous QEMU boot script created"
+
+step 10 "BOOT TEST"
+
+BOOTLOG="logs/qemu-autonomous-${RUN_ID}.log"
+
+if [ -x scripts/boot-qemu-autonomous.sh ]; then
+
+    echo "Starting QEMU timeout test..."
+
+    timeout 35s scripts/boot-qemu-autonomous.sh > "$BOOTLOG" 2>&1
+    QEMU_RESULT=$?
+
+    echo "QEMU_EXIT=$QEMU_RESULT"
+
+    echo "----- QEMU OUTPUT -----"
+    tail -n 300 "$BOOTLOG"
+    echo "-----------------------"
+
+    if grep -q "AIRAOS LINUX" "$BOOTLOG"; then
+        ok "AIRAOS LINUX reached userspace"
+    else
+        fail "AIRAOS LINUX banner not detected"
+    fi
+
+    if grep -q "AiraOS Linux kernel is alive." "$BOOTLOG"; then
+        ok "/init executed"
+    else
+        fail "/init execution not detected"
+    fi
+
+    if grep -q "AiraOS userspace ready" "$BOOTLOG"; then
+        ok "AiraOS userspace ready detected"
+    else
+        fail "AiraOS userspace ready not detected"
+    fi
+
+    if grep -q "Linux version" "$BOOTLOG"; then
+        ok "Linux kernel boot detected"
+    else
+        fail "Linux kernel boot banner missing"
+    fi
+
+else
+    fail "QEMU boot script unavailable"
+fi
+
+step 11 "AUTOMATIC DIAGNOSTICS"
+
+echo "===== KERNEL BOOT PARAMETERS ====="
+grep -R "qemu-system-x86_64" -n scripts Makefile 2>/dev/null | head -50
+
+echo
+echo "===== INITRAMFS REFERENCES ====="
+grep -R "initramfs.cpio\|initramfs" -n scripts Makefile .gitignore 2>/dev/null | head -100 
+
+echo
+echo "===== KERNEL ARTIFACT ====="
+ls -lh linux-7.2.2/arch/x86/boot/bzImage 2>/dev/null || true
+
+echo
+echo "===== INITRAMFS ARTIFACT ====="
+ls -lh initramfs.cpio 2>/dev/null || true
+
+echo
+echo "===== ARCHIVE CHECKSUM ====="
+if [ -s initramfs.cpio ]; then
+    sha256sum initramfs.cpio | tee "logs/initramfs-${RUN_ID}.sha256"
+fi
+
+step 12 "UPDATE REPRODUCIBLE BUILD SCRIPT"
+
+cat > scripts/build-and-boot.sh <<'BUILDEOF'
+#!/usr/bin/env bash
+
+set -e
+
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$ROOT"
+
+mkdir -p logs reports
+
+echo "=============================================================="
+echo "AIRA OCTAVE BUILD + BOOT"
+echo "=============================================================="
+
+echo "[1] Building initramfs"
+
+rm -f initramfs.cpio
+
+(
+    cd initramfs
+    find . -print0 | sort -z | cpio --null -o -H newc > ../initramfs.cpio
+)
+
+test -s initramfs.cpio
+
+echo "[2] Building Linux"
+
+make -C linux-7.2.2 -j"$(nproc)" bzImage
+
+test -f linux-7.2.2/arch/x86/boot/bzImage
+
+echo "[3] Booting Aira Octave"
+
+exec qemu-system-x86_64 \
+    -kernel linux-7.2.2/arch/x86/boot/bzImage \
+    -initrd initramfs.cpio \
+    -append "console=ttyS0 rdinit=/init" \
+    -m 512M \
+    -nographic \
+    -serial mon:stdio \
+    -no-reboot \
+    -no-shutdown
+BUILDEOF
+
+chmod +x scripts/build-and-boot.sh
+ok "Reproducible build-and-boot script installed"
+
+step 13 "CREATE FINAL REPORT"
+
+{
+    echo "=============================================================="
+    echo "AIRA OCTAVE AUTONOMOUS DEVELOPMENT REPORT"
+    echo "=============================================================="
+    echo
+    echo "RUN_ID=$RUN_ID"
+    echo "DATE=$(date)"
+    echo
+    echo "GIT"
+    echo "--------------------------------------------------------------"
+    git log --oneline -5
+    echo
+    git status --short
+    echo
+    echo "ARTIFACTS"
+    echo "--------------------------------------------------------------"
+    ls -lh initramfs.cpio 2>/dev/null || true
+    ls -lh linux-7.2.2/arch/x86/boot/bzImage 2>/dev/null || true
+    echo
+    echo "RESULTS"
+    echo "--------------------------------------------------------------"
+    echo "PASS=$PASS"
+    echo "FAIL=$FAIL"
+    echo "WARN=$WARN"
+    echo
+    echo "QEMU LOG"
+    echo "--------------------------------------------------------------"
+    echo "$BOOTLOG"
+    echo
+    echo "INITRAMFS SHA256"
+    echo "--------------------------------------------------------------"
+    sha256sum initramfs.cpio 2>/dev/null || true
+    echo
+    echo "=============================================================="
+} | tee "$REPORT"
+
+step 14 "GIT SAFETY CHECK"
+
+echo "Files changed:"
+git status --short
+
+echo
+echo "Large files:"
+find . -maxdepth 2 -type f -size +50M \
+    -not -path './.git/*' \
+    -printf '%s %p\n' 2>/dev/null | sort -nr | head -20
+
+step 15 "COMMIT SAFE SOURCE + BUILD CHANGES"
+
+git add \
+    .gitignore \
+    initramfs \
+    scripts \
+    reports \
+    logs/initramfs.sha256 \
+    logs/initramfs-result.txt \
+    2>/dev/null || true
+
+git add -f initramfs.cpio 2>/dev/null || true
+
+if git diff --cached --quiet; then
+    echo "Nothing new to commit."
+else
+    git commit -m "fix: automate Aira Octave initramfs boot pipeline"
+    COMMIT_RESULT=$?
+
+    if [ "$COMMIT_RESULT" -eq 0 ]; then
+        ok "Changes committed"
+    else
+        warn "Commit failed"
+    fi
+fi
+
+step 16 "PUSH IF POSSIBLE"
+
+if git remote get-url origin >/dev/null 2>&1; then
+    git push origin main
+    PUSH_RESULT=$?
+
+[7m    if [ "$PUSH_RESULT" -eq 0 ]; then[27m
+[7m        ok "Changes pushed to origin/main"[27m
+[7m    else[27m
+[7m        warn "Push failed; local work preserved"[27m
+[7m    fi[27m
+[7melse[27m
+[7m    warn "No git origin configured"[27m
+[7mfi[27m
+
+[7mstep 17 "FINAL AUTONOMOUS SUMMARY"[27m
+
+[7mecho[27m
+[7mecho "=============================================================="[27m
+[7mecho " AIRA OCTAVE AUTONOMOUS SPRINT COMPLETE"[27m
+[7mecho "=============================================================="[27m
+[7mecho[27m
+[7mecho "PASS=$PASS"[27m
+[7mecho "FAIL=$FAIL"[27m
+[7mecho "WARN=$WARN"[27m
+[7mecho[27m
+[7mecho "REPORT:"[27m
+[7mecho "$REPORT"[27m
+[7mecho[27m
+[7mecho "LOG:"[27m
+[7mecho "$LOG"[27m
+[7mecho[27m
+[7mecho "QEMU LOG:"[27m
+[7mecho "$BOOTLOG"[27m
+[7mecho[27m
+[7mecho "GIT:"[27m
+[7mgit log --oneline -3[27m
+[7mecho[27m
+[7mgit status --short[27m
+[7mecho[27m
+[7mecho "=============================================================="[27m
+
+[7mexit 0[27m
+[7mAIRAEOF[27m
+
+[7mchmod +x /tmp/aira_autonomous_sprint.sh[27m
+
+[7m/tmp/aira_autonomous_sprint.sh[27m[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A    if [ "$PUSH_RESULT" -eq 0 ]; then
+        ok "Changes pushed to origin/main"
+    else
+        warn "Push failed; local work preserved"
+    fi
+else
+    warn "No git origin configured"
+fi
+
+step 17 "FINAL AUTONOMOUS SUMMARY"
+
+echo
+echo "=============================================================="
+echo " AIRA OCTAVE AUTONOMOUS SPRINT COMPLETE"
+echo "=============================================================="
+echo
+echo "PASS=$PASS"
+echo "FAIL=$FAIL"
+echo "WARN=$WARN"
+echo
+echo "REPORT:"
+echo "$REPORT"
+echo
+echo "LOG:"
+echo "$LOG"
+echo
+echo "QEMU LOG:"
+echo "$BOOTLOG"
+echo
+echo "GIT:"
+git log --oneline -3
+echo
+git status --short
+echo
+echo "=============================================================="
+
+exit 0
+AIRAEOF
+
+chmod +x /tmp/aira_autonomous_sprint.sh
+
+/tmp/aira_autonomous_sprint.sh
+[?2004l]3008;start=11454da2-6c14-44c7-aae7-18074d8e456d;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\]3008;start=11454da2-6c14-44c7-aae7-18074d8e456d;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\]3008;start=11454da2-6c14-44c7-aae7-18074d8e456d;machineid=2d236954e62b4bd9991cea01e2ca4c85;user=manan;hostname=IPAD-SERVER;bootid=929f66c4-ee84-4cc0-bc60-99c238e9c7a2;pid=00000000000000078713;type=command;cwd=/home/manan/Aira-Octave\
+==============================================================
+[1] INITIAL PROJECT SNAPSHOT
+==============================================================
+DATE=Sun Aug 30 07:09:26 UTC 2026
+HOST=IPAD-SERVER
+PWD=/home/manan/Aira-Octave
+GIT=83a73251c
+BRANCH=main
+ M initramfs.cpio
+?? logs/initramfs-result.txt
+?? logs/initramfs.sha256
+
+==============================================================
+[2] VERIFY TOOLCHAIN
+==============================================================
+OK: gcc -> /usr/bin/gcc
+OK: make -> /usr/bin/make
+OK: nasm -> /usr/bin/nasm
+OK: ld -> /usr/bin/ld
+OK: cpio -> /usr/bin/cpio
+OK: gzip -> /usr/bin/gzip
+OK: qemu-system-x86_64 -> /usr/bin/qemu-system-x86_64
+
+==============================================================
+[3] VERIFY INITRAMFS SOURCE
+==============================================================
+PASS: initramfs/init exists and is executable
+PASS: BusyBox exists and is executable
+PASS: BusyBox shell symlink exists
+
+==============================================================
+[4] REBUILD INITRAMFS
+==============================================================
+4288 blocks
+PASS: initramfs.cpio rebuilt
+-rw-r--r-- 1 manan manan 2.1M Aug 30 07:09 initramfs.cpio
+
+==============================================================
+[5] VERIFY INITRAMFS CONTENT
+==============================================================
+4288 blocks
+PASS: initramfs contains init
+PASS: initramfs contains bin/busybox
+PASS: initramfs contains bin/sh
+PASS: initramfs contains bin/mount
+PASS: initramfs contains bin/uname
+PASS: initramfs contains bin/dmesg
+
+==============================================================
+[6] VERIFY INIT SCRIPT
+==============================================================
+----- initramfs/init -----
+#!/bin/sh
+
+echo
+echo "========================================"
+echo "          AIRAOS LINUX"
+echo "========================================"
+echo
+
+mount -t devtmpfs devtmpfs /dev
+mount -t proc proc /proc
+mount -t sysfs sysfs /sys
+
+echo "AiraOS Linux kernel is alive."
+echo
+
+echo "Kernel:"
+uname -a
+echo
+
+echo "CPU:"
+grep -m1 "model name" /proc/cpuinfo
+echo
+
+echo "Memory:"
+grep MemTotal /proc/meminfo
+echo
+
+echo "========================================"
+echo "        AiraOS userspace ready"
+echo "========================================"
+echo
+
+echo "Available commands:"
+echo "  ls  cat  ps  free  mount  dmesg  uname"
+echo
+
+exec /bin/sh
+--------------------------
+PASS: /init has /bin/sh interpreter
+
+==============================================================
+[7] CHECK LINUX CONFIG
+==============================================================
+CONFIG_BLK_DEV_INITRD=y
+CONFIG_INITRAMFS_SOURCE=""
+CONFIG_64BIT=y
+CONFIG_X86_64=y
+CONFIG_DEVTMPFS=y
+CONFIG_DEVTMPFS_MOUNT=y
+CONFIG_PROC_FS=y
+CONFIG_SYSFS=y
+CONFIG_TMPFS=y
+PASS: Linux INITRD support enabled
+
+==============================================================
+[8] REBUILD LINUX KERNEL
+==============================================================
+make: Entering directory '/home/manan/Aira-Octave/linux-7.2.2'
+  DESCEND objtool
+Kernel: arch/x86/boot/bzImage is ready  (#3)
+make: Leaving directory '/home/manan/Aira-Octave/linux-7.2.2'
+PASS: Linux bzImage built
+-rw-r--r-- 1 manan manan 15M Aug 30 06:20 linux-7.2.2/arch/x86/boot/bzImage
+
+==============================================================
+[9] CREATE AUTONOMOUS BOOT SCRIPT
+==============================================================
+PASS: Autonomous QEMU boot script created
+
+==============================================================
+[10] BOOT TEST
+==============================================================
+Starting QEMU timeout test...

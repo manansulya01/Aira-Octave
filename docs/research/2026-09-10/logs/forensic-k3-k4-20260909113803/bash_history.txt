@@ -1,0 +1,2000 @@
+print("Patched main.c: STI disabled.")
+PY
+
+grep -n -A8 -B4 "Interrupt test\|sti\|shell_init" kernel/core/main.c
+clear
+make clean
+make
+grub-file --is-x86-multiboot2 build/airaos.bin
+echo "BUILD=$?"
+rm -f qemu.log
+timeout 5s qemu-system-x86_64   -cdrom build/AiraOS.iso   -m 256M   -display none   -serial stdio   -no-reboot   -no-shutdown   -d int,cpu_reset   -D qemu.log
+echo
+echo "===== INTERRUPT SUMMARY ====="
+grep "Servicing hardware INT=" qemu.log | sort | uniq -c
+echo
+echo "===== PAGE FAULT COUNT ====="
+grep -c "Servicing hardware INT=0x0e" qemu.log
+echo
+echo "===== PIC OUTPUT ====="
+grep "\[PIC\]" qemu.log
+clear
+cd /mnt/c/Users/manan/AiraOS
+echo "===== EVERY STI IN AiraOS ====="
+grep -Rni --exclude-dir=build --exclude='*.iso'   -E '(^|[^a-zA-Z_])(sti|STI)([^a-zA-Z_]|$)'   arch kernel include
+clear
+cd /mnt/c/Users/manan/AiraOS
+echo "===== EVERY STI IN AiraOS ====="
+grep -Rni --exclude-dir=build --exclude='*.iso'   -E '(^|[^a-zA-Z_])(sti|STI)([^a-zA-Z_]|$)'   arch kernel include
+echo
+echo "===== INTERRUPT CONTROL IN SOURCE ====="
+grep -Rni --exclude-dir=build   -E 'cli|sti|pushf|popf|interrupt'   arch kernel include
+sed -n '100,245p' kernel/core/main.c
+void kernel_main64(uint64_t multiboot_info)
+{     __asm__ volatile ("cli");
+}
+echo "===== FIRST PAGE FAULT ====="
+grep -n -B25 -A35 "Servicing hardware INT=0x0e" qemu.log | head -80
+echo
+echo "===== ALL PAGE FAULT LOCATIONS ====="
+grep -n "Servicing hardware INT=0x0e" qemu.log
+clear
+cd /mnt/c/Users/manan/AiraOS
+python3 - <<'PY'
+from pathlib import Path
+
+p = Path("kernel/core/main.c")
+s = p.read_text()
+
+needle = '''void kernel_main64(uint64_t magic, uint64_t multiboot_info)
+{
+    (void)magic;
+'''
+
+replacement = '''void kernel_main64(uint64_t magic, uint64_t multiboot_info)
+{
+    __asm__ volatile ("cli");
+
+    (void)magic;
+'''
+
+if needle not in s:
+    print("ERROR: kernel_main64 header not found")
+    raise SystemExit(1)
+
+p.write_text(s.replace(needle, replacement, 1))
+print("SUCCESS: CLI inserted at entry to kernel_main64().")
+PY
+
+sed -n '108,125p' kernel/core/main.c
+make clean
+make
+grub-file --is-x86-multiboot2 build/airaos.bin
+echo "BUILD=$?"
+rm -f qemu.log
+timeout 5s qemu-system-x86_64   -cdrom build/AiraOS.iso   -m 256M   -display none   -serial stdio   -no-reboot   -no-shutdown   -d int,cpu_reset   -D qemu.log
+echo
+echo "===== HARDWARE INTERRUPTS ====="
+grep "Servicing hardware INT=" qemu.log | sort | uniq -c
+echo
+echo "===== PAGE FAULTS ====="
+grep -c "Servicing hardware INT=0x0e" qemu.log
+echo
+echo "===== SERIAL OUTPUT ====="
+echo "===== FIRST 0x0E ====="
+grep -n -B5 -A5 "Servicing hardware INT=0x0e" qemu.log | head -40
+echo
+echo "===== FIRST 0x08 ====="
+grep -n -B5 -A5 "Servicing hardware INT=0x08" qemu.log | head -40
+clear
+cd /mnt/c/Users/manan/AiraOS
+echo "===== ENTRY.ASM ====="
+nl -ba arch/x86_64/boot/entry.asm | sed -n '1,180p'
+echo
+echo "===== LINKER ====="
+cat arch/x86_64/linker.ld
+echo
+echo "===== ISR ASM ====="
+nl -ba arch/x86_64/interrupts/isr.asm | sed -n '1,240p'
+echo
+echo "===== MULTIBOOT HEADER ====="
+grep -n -A30 -B10 -E "multiboot|MULTIBOOT|header" arch/x86_64/boot/entry.asm
+echo
+echo "===== CRITICAL SYMBOLS ====="
+nm -n build/airaos.bin | grep -E 'kernel_main64|long_mode|protected|page|pml|entry|gdt|idt|irq0|irq1'
+clear
+cd /mnt/c/Users/manan/AiraOS
+echo "===== INTERRUPTS.C ====="
+nl -ba kernel/core/interrupts.c | sed -n '1,260p'
+echo
+echo "===== SCHEDULER.C ====="
+nl -ba kernel/core/scheduler.c | sed -n '1,300p'
+echo
+echo "===== TASK.C ====="
+nl -ba kernel/task/task.c | sed -n '1,320p'
+echo
+echo "===== TASK.H ====="
+nl -ba include/task.h | sed -n '1,260p'
+echo
+echo "===== SCHEDULER.H ====="
+nl -ba include/scheduler.h | sed -n '1,200p'
+echo
+echo "===== TEST_TASKS.C ====="
+nl -ba kernel/task/test_tasks.c | sed -n '1,260p'
+clear
+cd /mnt/c/Users/manan/AiraOS
+echo "===== MAIN.C ====="
+nl -ba kernel/core/main.c | sed -n '1,260p'
+echo
+echo "===== TERMINAL.H ====="
+nl -ba include/terminal.h | sed -n '1,220p'
+echo
+echo "===== TERMINAL.C ====="
+nl -ba kernel/drivers/terminal.c | sed -n '1,300p'
+echo
+echo "===== TEST TASK REFERENCES ====="
+grep -RniE "task_a|task_b|task_tests_init|task_create"     kernel include --exclude-dir=build
+clear
+cd /mnt/c/Users/manan/AiraOS
+echo "===== BACKUP MAIN RELEVANT SECTION ====="
+nl -ba kernel/core/main.c.backup | sed -n '125,175p'
+echo
+echo "===== GIT HISTORY FOR TEST TASKS ====="
+git log --oneline --all -- kernel/task/test_tasks.c
+echo
+echo "===== GIT HISTORY FOR MAIN ====="
+git log --oneline --all -- kernel/core/main.c
+echo
+echo "===== ALL TEST TASK FILE VERSIONS ====="
+git log --all --oneline --follow -- kernel/task/test_tasks.c
+clear
+cd /mnt/c/Users/manan/AiraOS
+echo "===== TEST TASKS @ 6defc5a ====="
+git show 6defc5a:kernel/task/test_tasks.c
+clear
+cd /mnt/c/Users/manan/AiraOS
+git show 6defc5a:kernel/task/test_tasks.c > kernel/task/test_tasks.c
+make clean
+make
+echo
+echo "===== MULTIBOOT CHECK ====="
+grub-file --is-x86-multiboot2 build/airaos.bin
+echo "BUILD=$?"
+echo
+echo "===== TASK SYMBOLS ====="
+nm -n build/airaos.bin | grep -E 'task_a|task_b|task_tests_init|task_create|task_schedule|scheduler_tick|irq_handler|irq0|irq1'
+clear
+cd /mnt/c/Users/manan/AiraOS
+echo "===== CURRENT MAIN SCHEDULER SECTION ====="
+nl -ba kernel/core/main.c | sed -n '218,255p'
+echo
+echo "===== CURRENT TEST TASKS ====="
+cat kernel/task/test_tasks.c
+echo
+echo "===== GIT DIFF ====="
+git diff -- kernel/core/main.c kernel/task/test_tasks.c
+cd /mnt/c/Users/manan/AiraOS
+timeout 8s qemu-system-x86_64   -cdrom build/AiraOS.iso   -m 256M   -display none   -serial stdio   -no-reboot   -no-shutdown
+clear
+cd /mnt/c/Users/manan/AiraOS
+python3 - <<'PY'
+from pathlib import Path
+
+p = Path("kernel/core/main.c")
+s = p.read_text()
+
+old = '''    terminal_write("Initializing scheduler... ");
+    scheduler_init();
+    terminal_write("OK\\n");
+
+    terminal_write("Unmasking IRQ0 + IRQ1... ");
+    pic_unmask_irq(0);
+    pic_unmask_irq(1);
+    terminal_write("OK\\n");
+
+    terminal_write("Interrupt test: NOT enabling interrupts yet.\\n");
+    serial_write("Interrupt test: NOT enabling interrupts yet.\\n");
+
+    shell_init();
+    shell_task();
+
+    for (;;) {
+        __asm__ volatile ("hlt");
+    }
+'''
+
+new = '''    terminal_write("Initializing scheduler... ");
+    scheduler_init();
+    task_tests_init();
+    terminal_write("TASKS ONLINE\\n");
+
+    terminal_write("Initializing keyboard... ");
+    keyboard_init();
+    terminal_write("IRQ1 ONLINE\\n");
+
+    pic_unmask_irq(0);
+    pic_unmask_irq(1);
+
+    terminal_write("Hardware interrupts: ENABLED\\n\\n");
+
+    shell_init();
+
+    /*
+     * The shell is scheduler-managed.
+     * The first PIT interrupt will select the
+     * first READY task.
+     */
+    task_create(shell_task);
+
+    __asm__ volatile ("sti");
+
+    for (;;) {
+        __asm__ volatile ("hlt");
+    }
+'''
+
+if old not in s:
+    raise SystemExit("ERROR: expected main.c section was not found")
+
+p.write_text(s.replace(old, new))
+print("main.c updated successfully")
+PY
+
+nl -ba kernel/core/main.c | sed -n '218,260p'
+make clean
+make
+grub-file --is-x86-multiboot2 build/airaos.bin
+echo "BUILD=$?"
+nm -n build/airaos.bin | grep -E 'task_a|task_b|task_tests_init|task_create|task_schedule|scheduler_tick|irq_handler|irq0|irq1'
+timeout 8s qemu-system-x86_64   -cdrom build/AiraOS.iso   -m 256M   -display none   -serial stdio   -no-reboot   -no-shutdown
+clear
+cd /mnt/c/Users/manan/AiraOS
+echo "===== IRQ COMMON ====="
+grep -n -A80 -B20 "irq_common" arch/x86_64/interrupts/isr.asm
+echo
+echo "===== IRQ0 / IRQ1 ====="
+grep -n -A30 -B10 -E "^irq0:|^irq1:" arch/x86_64/interrupts/isr.asm
+echo
+echo "===== SERIAL INIT ====="
+nl -ba kernel/drivers/serial.c | sed -n '1,240p'
+echo
+echo "===== ENTRY ASM ====="
+nl -ba arch/x86_64/boot/entry.asm | sed -n '1,180p'
+clear
+cd /mnt/c/Users/manan/AiraOS
+python3 - <<'PY'
+from pathlib import Path
+
+p = Path("kernel/task/task.c")
+s = p.read_text()
+
+start = s.index("static uint64_t *build_initial_stack(")
+end = s.index("\nvoid task_init(void)", start)
+
+new = r'''static uint64_t *build_initial_stack(
+    uint8_t *stack,
+    void (*entry)(void)
+)
+{
+    /*
+     * irq_common expects this exact layout at RSP:
+     *
+     *   r15
+     *   r14
+     *   r13
+     *   r12
+     *   r11
+     *   r10
+     *   r9
+     *   r8
+     *   rbp
+     *   rdi
+     *   rsi
+     *   rdx
+     *   rcx
+     *   rbx
+     *   rax
+     *   vector
+     *   error
+     *   RIP
+     *   CS
+     *   RFLAGS
+     *
+     * Because the task runs in the same ring (ring 0) as the
+     * kernel, the CPU does NOT push RSP/SS for the interrupt.
+     *
+     * irq_common eventually executes:
+     *
+     *   pop rax ... pop r15
+     *   add rsp, 16
+     *   iretq
+     *
+     * Therefore the fake frame must exactly match that layout.
+     */
+
+    uint64_t *top =
+        (uint64_t *)(stack + TASK_STACK_SIZE);
+
+    uint64_t *sp = top;
+
+    /*
+     * Build backwards so the final memory layout is:
+     *
+     *   r15 ... rax
+     *   vector
+     *   error
+     *   RIP
+     *   CS
+     *   RFLAGS
+     */
+
+    /* CPU IRET frame */
+    *--sp = 0x202;             /* RFLAGS */
+    *--sp = 0x08;              /* CS */
+    *--sp = (uint64_t)entry;   /* RIP */
+
+    /* Software-added interrupt metadata */
+    *--sp = 0;                 /* error */
+    *--sp = 0;                 /* vector */
+
+    /* Saved general-purpose registers */
+    *--sp = 0;                 /* rax */
+    *--sp = 0;                 /* rbx */
+    *--sp = 0;                 /* rcx */
+    *--sp = 0;                 /* rdx */
+    *--sp = 0;                 /* rsi */
+    *--sp = 0;                 /* rdi */
+    *--sp = 0;                 /* rbp */
+    *--sp = 0;                 /* r8 */
+    *--sp = 0;                 /* r9 */
+    *--sp = 0;                 /* r10 */
+    *--sp = 0;                 /* r11 */
+    *--sp = 0;                 /* r12 */
+    *--sp = 0;                 /* r13 */
+    *--sp = 0;                 /* r14 */
+    *--sp = 0;                 /* r15 */
+
+    return sp;
+}
+'''
+
+p.write_text(s[:start] + new + s[end:])
+
+print("task.c build_initial_stack() fixed successfully")
+PY
+
+nl -ba kernel/task/task.c | sed -n '1,135p'
+make clean
+make
+echo
+echo "===== MULTIBOOT CHECK ====="
+grub-file --is-x86-multiboot2 build/airaos.bin
+echo "BUILD=$?"
+echo
+echo "===== TASK SYMBOLS ====="
+nm -n build/airaos.bin | grep -E 'task_a|task_b|task_tests_init|task_create|task_schedule|scheduler_tick|irq_handler|irq0|irq1'
+qemu-system-x86_64   -cdrom build/AiraOS.iso   -m 256M   -no-reboot   -no-shutdown
+clear
+make run
+clear
+cd /mnt/c/Users/manan/AiraOS
+qemu-system-x86_64   -cdrom build/AiraOS.iso   -boot d   -m 256M   -display none   -serial stdio   -no-reboot   -no-shutdown
+node --version
+npm --version
+npm install -g @google/gemini-cli@latest
+clear
+gemini --version
+clear
+which npm
+which node
+which gemini
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
+source ~/.bashrc
+nvm install --lts
+nvm use --lts
+node --version
+npm --version
+npm install -g @google/gemini-cli@latest
+which gemini
+gemini --version
+clear
+cd /mnt/c/Users/manan/AiraOS
+gemini
+npm uninstall -g @google/gemini-cli
+which gemini
+gemini --version
+clar
+clear
+"/mnt/c/Program Files/nodejs/npm.cmd" uninstall -g @google/gemini-cli
+hash -r
+which gemini
+gemini --version
+clear
+cmd.exe /c "npm uninstall -g @google/gemini-cli"
+hash -r
+which gemini
+gemini --version
+clar
+clear
+curl -fsSL https://antigravity.google/cli/install.sh | bash
+clear
+set -e
+cd /mnt/c/Users/manan
+echo "===== Installing AiraOS Linux build dependencies ====="
+sudo apt update
+sudo apt install -y     build-essential     bc     bison     flex     libssl-dev     libelf-dev     libdw-dev     dwarves     cpio     rsync     kmod     xz-utils     git     grub-pc-bin     grub-efi-amd64-bin     grub2-common     xorriso     qemu-system-x86     qemu-utils
+echo "===== Creating Linux-based AiraOS workspace ====="
+mkdir -p AiraOS-Linux
+cd AiraOS-Linux
+echo "===== Downloading Linux 7.2.2 ====="
+if [ ! -d linux-7.2.2 ]; then     wget https://cdn.kernel.org/pub/linux/kernel/v7.x/linux-7.2.2.tar.xz;     tar -xf linux-7.2.2.tar.xz;     rm linux-7.2.2.tar.xz; fi
+clear
+cd /mnt/c/Users/manan/AiraOS-Linux
+echo "===== Extracting Linux 7.2.2 ====="
+if [ ! -d linux-7.2.2 ]; then     tar -xf linux-7.2.2.tar.xz; fi
+cd linux-7.2.2
+echo
+echo "===== Creating minimal Linux configuration ====="
+make tinyconfig
+echo
+echo "===== Kernel version ====="
+make -s kernelversion
+echo
+echo "===== Important configuration ====="
+grep -E '^(CONFIG_X86_64|CONFIG_SMP|CONFIG_PREEMPT|CONFIG_MODULES|CONFIG_BLK_DEV|CONFIG_EXT4_FS|CONFIG_BTRFS_FS|CONFIG_NET|CONFIG_E1000|CONFIG_VIRTIO)=' .config || true
+echo
+echo "========================================"
+echo " AiraOS Linux foundation is configured"
+echo "========================================"
+echo
+echo "Kernel source: $(pwd)"
+echo
+echo "DO NOT run make menuconfig yet."
+clear
+cd /mnt/c/Users/manan/AiraOS-Linux
+echo "===== Linux archive ====="
+ls -lh linux-7.2.2.tar.xz
+echo
+echo "===== Linux directory ====="
+ls -ld linux-7.2.2
+echo
+echo "===== Top-level source files ====="
+ls -la linux-7.2.2 | head -40
+echo
+echo "===== Makefile check ====="
+if [ -f linux-7.2.2/Makefile ]; then     echo "Makefile FOUND";     head -20 linux-7.2.2/Makefile; else     echo "ERROR: Linux Makefile NOT FOUND"; fi
+echo
+echo "===== Kernel build targets ====="
+if [ -f linux-7.2.2/Makefile ]; then     grep -nE 'tinyconfig|kernelversion|menuconfig' linux-7.2.2/Makefile | head -20; fi
+echo
+echo "===== Directory structure ====="
+find linux-7.2.2 -maxdepth 2 -type f | head -50
+clear
+cd /mnt/c/Users/manan/AiraOS-Linux
+echo "===== Removing incomplete extraction ====="
+rm -rf linux-7.2.2
+echo "===== Verifying archive ====="
+tar -tf linux-7.2.2.tar.xz >/dev/null
+echo "Archive OK"
+echo "===== Extracting Linux 7.2.2 ====="
+tar -xf linux-7.2.2.tar.xz
+echo "===== Verifying kernel source ====="
+cd linux-7.2.2
+test -f Makefile
+test -f Kconfig
+test -d arch
+test -d drivers
+test -d fs
+test -d kernel
+echo
+echo "===== Linux source verified ====="
+echo "Path: $(pwd)"
+echo "Makefile: FOUND"
+echo "Kconfig: FOUND"
+echo "arch/: FOUND"
+echo "drivers/: FOUND"
+echo "fs/: FOUND"
+echo "kernel/: FOUND"
+echo
+echo "===== Available configuration targets ====="
+make help | grep -E 'tinyconfig|menuconfig|defconfig' | head -20
+# Stop the current extraction first with:
+# Ctrl+C
+rm -rf ~/AiraOS-Linux
+mkdir -p ~/AiraOS-Linux
+echo "===== Copying Linux archive into WSL filesystem ====="
+cp /mnt/c/Users/manan/AiraOS-Linux/linux-7.2.2.tar.xz ~/AiraOS-Linux/
+cd ~/AiraOS-Linux
+echo "===== Verifying archive ====="
+tar -tf linux-7.2.2.tar.xz >/dev/null
+echo "Archive OK"
+echo "===== Extracting Linux 7.2.2 ====="
+tar -xf linux-7.2.2.tar.xz
+echo "===== Verifying source tree ====="
+cd linux-7.2.2
+test -f Makefile
+test -f Kconfig
+test -d arch
+test -d drivers
+test -d fs
+test -d kernel
+echo
+echo "===== LINUX SOURCE VERIFIED ====="
+echo "Path: $(pwd)"
+echo "Makefile: FOUND"
+echo "Kconfig: FOUND"
+echo "arch/: FOUND"
+echo "drivers/: FOUND"
+echo "fs/: FOUND"
+echo "kernel/: FOUND"
+echo
+echo "===== Configuration targets ====="
+make help | grep -E 'tinyconfig|menuconfig|defconfig' | head -20
+clear
+cd ~/AiraOS-Linux/linux-7.2.2
+echo "===== Creating AiraOS base configuration ====="
+make tinyconfig
+echo
+echo "===== Setting x86_64 architecture ====="
+scripts/config --enable 64BIT
+scripts/config --enable X86_64
+echo
+echo "===== Refreshing configuration ====="
+make olddefconfig
+echo
+echo "===== Verifying configuration ====="
+echo "Architecture:"
+grep -E '^CONFIG_(64BIT|X86_64)=' .config
+echo
+echo "Kernel version:"
+make -s kernelversion
+echo
+echo "Configuration size:"
+wc -l .config
+echo
+echo "===== AIRAOS BASE KERNEL READY ====="
+clear
+cd ~/AiraOS-Linux/linux-7.2.2
+echo "===== AIRAOS TINY KERNEL CONFIG AUDIT ====="
+echo
+echo "--- CPU / Architecture ---"
+grep -E '^CONFIG_(X86|X86_64|64BIT|SMP|NR_CPUS|HYPERVISOR|KVM)=' .config || true
+echo
+echo "--- Memory / Virtual Memory ---"
+grep -E '^CONFIG_(MMU|VMAP|SPARSEMEM|SLUB|SLUB_TINY|SWAP|MEMORY)=' .config || true
+echo
+echo "--- Scheduler ---"
+grep -E '^CONFIG_(PREEMPT|PREEMPTION|PREEMPT_VOLUNTARY|SCHED|HZ)=' .config || true
+echo
+echo "--- Interrupts / Timers ---"
+grep -E '^CONFIG_(IRQ|GENERIC_IRQ|X86_LOCAL_APIC|X86_IO_APIC|HIGH_RES_TIMERS|HZ)=' .config || true
+echo
+echo "--- PCI / Hardware ---"
+grep -E '^CONFIG_(PCI|PCI_MSI|PCI_MSI_IRQ|HOTPLUG_PCI)=' .config || true
+echo
+echo "--- Storage ---"
+grep -E '^CONFIG_(BLK|BLOCK|SCSI|ATA|NVME|VIRTIO_BLK)=' .config || true
+echo
+echo "--- Networking ---"
+grep -E '^CONFIG_(NET|INET|ETHERNET|E1000|E1000E|VIRTIO_NET)=' .config || true
+echo
+echo "--- Filesystems ---"
+grep -E '^CONFIG_(EXT4|BTRFS|TMPFS|PROC_FS|SYSFS|DEVPTS_FS)=' .config || true
+echo
+echo "--- Modules ---"
+grep -E '^CONFIG_(MODULES|MODULE_UNLOAD|MODVERSIONS)=' .config || true
+echo
+echo "--- Firmware / ACPI ---"
+grep -E '^CONFIG_(ACPI|EFI|EFI_STUB)=' .config || true
+echo
+echo "===== CONFIGURATION STATISTICS ====="
+echo -n "Enabled options: "
+grep -cE '^CONFIG_[A-Za-z0-9_]+=([ym])$' .config || true
+echo -n "Disabled options: "
+grep -cE '^# CONFIG_[A-Za-z0-9_]+ is not set$' .config || true
+echo
+echo "===== END AUDIT ====="
+clear
+cd ~/AiraOS-Linux/linux-7.2.2
+echo "===== AIRAOS PC BASE CONFIGURATION ====="
+# x86_64 / CPU
+scripts/config --enable 64BIT
+scripts/config --enable X86_64
+scripts/config --enable SMP
+scripts/config --set-val NR_CPUS 8
+# Scheduler / timers
+scripts/config --enable PREEMPT
+scripts/config --set-val HZ 250
+# ACPI / firmware
+scripts/config --enable ACPI
+scripts/config --enable ACPI_APEI
+scripts/config --enable EFI
+scripts/config --enable EFI_STUB
+# PCI / MSI
+scripts/config --enable PCI
+scripts/config --enable PCI_MSI
+# Virtualization-friendly hardware
+scripts/config --enable VIRTIO
+scripts/config --enable VIRTIO_PCI
+scripts/config --enable VIRTIO_BLK
+scripts/config --enable VIRTIO_NET
+# Block layer
+scripts/config --enable BLK_DEV
+scripts/config --enable BLOCK
+# NVMe
+scripts/config --enable BLK_DEV_NVME
+# Networking
+scripts/config --enable NET
+scripts/config --enable INET
+scripts/config --enable ETHERNET
+# Intel/AMD common virtual/physical network drivers
+scripts/config --enable E1000
+scripts/config --enable E1000E
+scripts/config --enable AMD8111E
+# Filesystems required by the first userspace
+scripts/config --enable TMPFS
+scripts/config --enable PROC_FS
+scripts/config --enable SYSFS
+scripts/config --enable DEVTMPFS
+scripts/config --enable DEVTMPFS_MOUNT
+scripts/config --enable DEVPTS_FS
+# ext4 for the initial AiraOS filesystem
+scripts/config --enable EXT4_FS
+# Kernel modules
+scripts/config --enable MODULES
+scripts/config --enable MODULE_UNLOAD
+# Kernel compression
+scripts/config --enable KERNEL_GZIP
+echo
+echo "===== Resolving dependencies ====="
+make olddefconfig
+echo
+echo "===== AIRAOS BASE CONFIGURATION ====="
+echo "--- CPU ---"
+grep -E '^CONFIG_(64BIT|X86_64|SMP|NR_CPUS)=' .config
+echo
+echo "--- PCI ---"
+grep -E '^CONFIG_(PCI|PCI_MSI)=' .config || true
+echo
+echo "--- Virtual I/O ---"
+grep -E '^CONFIG_(VIRTIO|VIRTIO_PCI|VIRTIO_BLK|VIRTIO_NET)=' .config || true
+echo
+echo "--- Storage ---"
+grep -E '^CONFIG_(BLK_DEV_NVME|EXT4_FS)=' .config || true
+echo
+echo "--- Networking ---"
+grep -E '^CONFIG_(NET|INET|ETHERNET|E1000|E1000E)=' .config || true
+echo
+echo "--- Filesystem infrastructure ---"
+grep -E '^CONFIG_(TMPFS|PROC_FS|SYSFS|DEVTMPFS|DEVTMPFS_MOUNT|DEVPTS_FS)=' .config || true
+echo
+echo "--- Modules ---"
+grep -E '^CONFIG_(MODULES|MODULE_UNLOAD)=' .config || true
+echo
+echo "===== AIRAOS CONFIG READY ====="
+clear
+cd ~/AiraOS-Linux/linux-7.2.2
+echo "===== ENABLING QEMU VIRTIO HARDWARE ====="
+scripts/config --enable VIRTIO
+scripts/config --enable VIRTIO_PCI
+scripts/config --enable VIRTIO_BLK
+scripts/config --enable VIRTIO_NET
+echo
+echo "===== ENABLING SERIAL CONSOLE ====="
+scripts/config --enable TTY
+scripts/config --enable SERIAL_8250
+scripts/config --enable SERIAL_8250_CONSOLE
+echo
+echo "===== ENABLING FRAMEBUFFER ====="
+scripts/config --enable FB
+scripts/config --enable FRAMEBUFFER_CONSOLE
+echo
+echo "===== ENABLING RAM DISK / INITRAMFS ====="
+scripts/config --enable BLK_DEV_RAM
+scripts/config --enable BLK_DEV_INITRD
+echo
+echo "===== RESOLVING DEPENDENCIES ====="
+make olddefconfig
+echo
+echo "===== VERIFYING QEMU CONFIGURATION ====="
+echo "--- VirtIO ---"
+grep -E '^CONFIG_(VIRTIO|VIRTIO_PCI|VIRTIO_BLK|VIRTIO_NET)=' .config || true
+echo
+echo "--- Serial ---"
+grep -E '^CONFIG_(TTY|SERIAL_8250|SERIAL_8250_CONSOLE)=' .config || true
+echo
+echo "--- Framebuffer ---"
+grep -E '^CONFIG_(FB|FRAMEBUFFER_CONSOLE)=' .config || true
+echo
+echo "--- Initramfs ---"
+grep -E '^CONFIG_(BLK_DEV_RAM|BLK_DEV_INITRD)=' .config || true
+echo
+echo "===== AIRAOS QEMU BASE READY ====="
+clear
+cd ~/AiraOS-Linux/linux-7.2.2
+echo "===== VIRTIO KCONFIG DIAGNOSTIC ====="
+echo
+echo "--- VIRTIO symbols in final config ---"
+grep -E '^CONFIG_(VIRTIO|VIRTIO_PCI|VIRTIO_BLK|VIRTIO_NET|PCI|NET|BLOCK|BLK_DEV)=' .config || true
+echo
+echo "--- VIRTIO definitions ---"
+grep -R -nE 'config VIRTIO$|config VIRTIO_PCI$|config VIRTIO_BLK$|config VIRTIO_NET$'     drivers/virtio drivers/block drivers/net 2>/dev/null | head -30
+echo
+echo "--- VIRTIO dependencies ---"
+grep -R -n -A12 -E '^config VIRTIO(_PCI|_BLK|_NET)?$'     drivers/virtio drivers/block drivers/net 2>/dev/null | head -100
+echo
+echo "--- Architecture / virtualization ---"
+grep -E '^CONFIG_(X86_64|64BIT|X86|MMU|PCI|SMP)=' .config || true
+echo
+echo "===== CURRENT CONFIG SUMMARY ====="
+echo -n "Enabled options: "
+grep -cE '^CONFIG_[A-Za-z0-9_]+=([ym])$' .config
+echo -n "Disabled options: "
+grep -cE '^# CONFIG_[A-Za-z0-9_]+ is not set$' .config
+echo
+echo "===== END DIAGNOSTIC ====="
+clear
+cd ~/AiraOS-Linux/linux-7.2.2
+make menuconfig
+clear
+sudo apt update
+sudo apt install -y libncurses-dev pkg-config
+cd ~/AiraOS-Linux/linux-7.2.2
+make menuconfig
+clear
+cd ~/AiraOS-Linux/linux-7.2.2
+make menuconfig
+clear
+cd ~/AiraOS-Linux/linux-7.2.2
+echo "===== TERMINAL SIZE ====="
+stty size
+echo
+echo "===== CONFIG TOOLS ====="
+ls -l scripts/config scripts/kconfig/mconf
+echo
+echo "===== CURRENT KERNEL CONFIG ====="
+grep -E '^CONFIG_(64BIT|X86_64|SMP|PCI|BLK_DEV_NVME|EXT4_FS|NET|INET|TTY|SERIAL_8250_CONSOLE|FB|FRAMEBUFFER_CONSOLE|BLK_DEV_INITRD)=' .config
+cd ~/AiraOS-Linux/linux-7.2.2
+make menuconfig
+cd ~/AiraOS-Linux/linux-7.2.2
+echo "===== VIRTIO AVAILABILITY ====="
+echo
+echo "--- VIRTIO ---"
+scripts/config --state VIRTIO 2>/dev/null || true
+echo
+echo "--- VIRTIO_PCI ---"
+scripts/config --state VIRTIO_PCI 2>/dev/null || true
+echo
+echo "--- VIRTIO_BLK ---"
+scripts/config --state VIRTIO_BLK 2>/dev/null || true
+echo
+echo "--- VIRTIO_NET ---"
+scripts/config --state VIRTIO_NET 2>/dev/null || true
+echo
+echo "--- PCI ---"
+scripts/config --state PCI
+echo
+echo "--- BLOCK ---"
+scripts/config --state BLOCK
+echo
+echo "--- NET ---"
+scripts/config --state NET
+echo
+echo "===== KCONFIG DEFINITIONS ====="
+sed -n '1,80p' drivers/virtio/Kconfig
+echo
+sed -n '295,320p' drivers/block/Kconfig
+echo
+sed -n '435,455p' drivers/net/Kconfig
+clear
+cd ~/AiraOS-Linux/linux-7.2.2
+echo "===== ENABLING VIRTIO SUBSYSTEM ====="
+scripts/config --enable VIRTIO_MENU
+echo
+echo "===== ENABLING VIRTIO CORE ====="
+scripts/config --enable VIRTIO
+echo
+echo "===== ENABLING VIRTIO PCI ====="
+scripts/config --enable VIRTIO_PCI
+scripts/config --enable VIRTIO_PCI_LEGACY
+echo
+echo "===== ENABLING VIRTIO BLOCK ====="
+scripts/config --enable VIRTIO_BLK
+echo
+echo "===== ENABLING VIRTIO NETWORK ====="
+scripts/config --enable VIRTIO_NET
+echo
+echo "===== RESOLVING KCONFIG DEPENDENCIES ====="
+make olddefconfig
+echo
+echo "===== VIRTIO FINAL CONFIG ====="
+grep -E '^CONFIG_(VIRTIO_MENU|VIRTIO|VIRTIO_PCI|VIRTIO_PCI_LIB|VIRTIO_PCI_LEGACY|VIRTIO_BLK|VIRTIO_NET)=' .config || true
+echo
+echo "===== AIRAOS HARDWARE SUMMARY ====="
+grep -E '^CONFIG_(64BIT|X86_64|SMP|NR_CPUS|PCI|PCI_MSI|BLK_DEV_NVME|NET|INET|EXT4_FS|DEVTMPFS|DEVTMPFS_MOUNT|PROC_FS|SYSFS|TTY|SERIAL_8250|SERIAL_8250_CONSOLE|FB|FRAMEBUFFER_CONSOLE|BLK_DEV_INITRD)=' .config || true
+echo
+echo "===== VIRTIO CONFIG COMPLETE ====="
+clear
+cd ~/AiraOS-Linux/linux-7.2.2
+echo "===== SAVING AIRAOS KERNEL CONFIG ====="
+mkdir -p ~/AiraOS-Linux/configs
+cp .config ~/AiraOS-Linux/configs/airaos-x86_64.config
+echo
+echo "===== CONFIG SAVED ====="
+ls -lh ~/AiraOS-Linux/configs/airaos-x86_64.config
+echo
+echo "===== FINAL CONFIG STATISTICS ====="
+echo -n "Enabled: "
+grep -cE '^CONFIG_[A-Za-z0-9_]+=([ym])$' .config
+echo -n "Disabled: "
+grep -cE '^# CONFIG_[A-Za-z0-9_]+ is not set$' .config
+echo
+echo "===== KERNEL BUILD INFORMATION ====="
+make -s kernelversion
+echo "Architecture: x86_64"
+echo
+echo "===== AIRAOS KERNEL CONFIG SNAPSHOT ====="
+grep -E '^CONFIG_(64BIT|X86_64|SMP|NR_CPUS|PCI|PCI_MSI|VIRTIO|VIRTIO_PCI|VIRTIO_PCI_LEGACY|VIRTIO_BLK|BLK_DEV_NVME|NET|INET|EXT4_FS|DEVTMPFS|DEVTMPFS_MOUNT|PROC_FS|SYSFS|TTY|SERIAL_8250_CONSOLE|FB|FRAMEBUFFER_CONSOLE|BLK_DEV_INITRD)=' .config || true
+echo
+echo "===== READY FOR KERNEL BUILD ====="
+cd ~/AiraOS-Linux/linux-7.2.2
+echo "===== BUILD TOOLCHAIN ====="
+gcc --version | head -1
+make --version | head -1
+ld --version | head -1
+nasm -v 2>/dev/null || true
+echo
+echo "===== STARTING AIRAOS KERNEL BUILD ====="
+make -j"$(nproc)"
+clear
+cd ~/AiraOS-Linux/linux-7.2.2
+echo "===== BUILDING AIRAOS KERNEL ====="
+echo "CPU threads: $(nproc)"
+echo "Kernel version: $(make -s kernelversion)"
+echo
+make -j"$(nproc)"
+echo
+echo "===== KERNEL BUILD RESULT ====="
+if [ -f arch/x86/boot/bzImage ]; then     echo "SUCCESS: bzImage created";     ls -lh arch/x86/boot/bzImage;     file arch/x86/boot/bzImage; else     echo "ERROR: bzImage was NOT created"; fi
+clear
+cd ~/AiraOS-Linux
+echo "===== PREPARING AIRAOS KERNEL TEST ====="
+mkdir -p test
+cp linux-7.2.2/arch/x86/boot/bzImage test/airaos-bzImage
+echo
+echo "Kernel:"
+ls -lh test/airaos-bzImage
+echo
+echo "===== BOOTING AIRAOS LINUX FOUNDATION ====="
+qemu-system-x86_64     -machine q35     -cpu max     -smp 4     -m 2048     -kernel test/airaos-bzImage     -append "console=ttyS0 earlyprintk=serial"     -nographic     -no-reboot
+cd ~/AiraOS-Linux
+echo "===== PREPARING AIRAOS KERNEL TEST ====="
+mkdir -p test
+cp linux-7.2.2/arch/x86/boot/bzImage test/airaos-bzImage
+echo
+echo "Kernel:"
+ls -lh test/airaos-bzImage
+echo
+echo "===== BOOTING AIRAOS LINUX FOUNDATION ====="
+qemu-system-x86_64     -machine q35     -cpu max     -smp 4     -m 2048     -kernel test/airaos-bzImage     -append "console=ttyS0 earlyprintk=serial"     -nographic     -no-reboot
+clear
+cd "$(git rev-parse --show-toplevel 2>/dev/null || printf '%s\n' "$HOME/Aira-Octave")" && cat > /tmp/octave_full_audit.sh <<'BASH'
+#!/usr/bin/env bash
+
+ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+cd "$ROOT"
+
+STAMP="$(date '+%Y%m%d-%H%M%S')"
+REPORT="$ROOT/OCTAVE_KERNEL_AUDIT_${STAMP}.md"
+LOGDIR="$ROOT/logs/octave-audit-${STAMP}"
+mkdir -p "$LOGDIR"
+
+exec > >(tee "$LOGDIR/audit.log") 2>&1
+
+START_EPOCH="$(date +%s)"
+
+echo "======================================================================"
+echo "                 AIRAOS-OCTAVE KERNEL AUDIT"
+echo "======================================================================"
+echo "Repository : $ROOT"
+echo "Timestamp  : $(date -Is)"
+echo "Host       : $(uname -a)"
+echo "======================================================================"
+
+run_step() {
+    local NAME="$1"
+    shift
+    local OUT="$LOGDIR/${NAME}.log"
+
+    echo
+    echo "------------------------------------------------------------------"
+    echo "STEP: $NAME"
+    echo "------------------------------------------------------------------"
+
+    set +e
+    "$@" >"$OUT" 2>&1
+    local RC=$?
+    set -e
+
+    cat "$OUT"
+
+    if [ "$RC" -eq 0 ]; then
+        echo "[PASS] $NAME"
+    else
+        echo "[FAIL] $NAME (exit $RC)"
+    fi
+
+    return 0
+}
+
+run_shell() {
+    local NAME="$1"
+    shift
+    local OUT="$LOGDIR/${NAME}.log"
+
+    echo
+    echo "------------------------------------------------------------------"
+    echo "STEP: $NAME"
+    echo "------------------------------------------------------------------"
+
+    set +e
+    bash -lc "$*" >"$OUT" 2>&1
+    local RC=$?
+    set -e
+
+    cat "$OUT"
+
+    if [ "$RC" -eq 0 ]; then
+        echo "[PASS] $NAME"
+    else
+        echo "[FAIL] $NAME (exit $RC)"
+    fi
+
+    return 0
+}
+
+echo
+echo "[1/15] Checking repository structure..."
+
+for p in linux-7.2.2 initramfs initramfs.cpio configs; do
+    if [ -e "$ROOT/$p" ]; then
+        echo "[FOUND] $p"
+    else
+        echo "[MISSING] $p"
+    fi
+done
+
+KERNEL="$ROOT/linux-7.2.2"
+
+if [ ! -d "$KERNEL" ]; then
+    echo "ERROR: linux-7.2.2 directory not found."
+    exit 1
+fi
+
+echo
+echo "[2/15] Collecting repository metadata..."
+
+{
+    echo "Git root:"
+    git rev-parse --show-toplevel 2>/dev/null || true
+
+    echo
+    echo "Current branch:"
+    git branch --show-current 2>/dev/null || true
+
+    echo
+    echo "HEAD:"
+    git rev-parse HEAD 2>/dev/null || true
+
+    echo
+    echo "Last commits:"
+    git log -8 --oneline --decorate 2>/dev/null || true
+
+    echo
+    echo "Repository status:"
+    git status --short 2>/dev/null || true
+
+    echo
+    echo "Top-level files:"
+    find . -maxdepth 2 -type f \
+        ! -path './.git/*' \
+        ! -path './linux-7.2.2/*' \
+        | sort | head -300
+} | tee "$LOGDIR/repository.txt"
+
+echo
+echo "[3/15] Inspecting kernel source identity..."
+
+{
+    echo "Kernel Makefile identity:"
+    grep -E '^(VERSION|PATCHLEVEL|SUBLEVEL|EXTRAVERSION)[[:space:]]*=' \
+        "$KERNEL/Makefile" 2>/dev/null || true
+
+    echo
+    echo "Kernel version:"
+    make -s -C "$KERNEL" kernelversion 2>/dev/null || true
+
+    echo
+    echo "Kernel directory:"
+    du -sh "$KERNEL"
+
+    echo
+    echo "Kernel source file count:"
+    find "$KERNEL" -type f | wc -l
+
+    echo
+    echo "Kernel git status, if this is a git tree:"
+    git -C "$KERNEL" status --short 2>/dev/null || true
+
+    echo
+    echo "Kernel git revision, if available:"
+    git -C "$KERNEL" rev-parse HEAD 2>/dev/null || true
+
+    echo
+    echo "Kernel git remote, if available:"
+    git -C "$KERNEL" remote -v 2>/dev/null || true
+} | tee "$LOGDIR/kernel-identity.txt"
+
+echo
+echo "[4/15] Locating Octave/Aira-specific configuration..."
+
+{
+    echo "Configuration files:"
+    find "$ROOT/configs" -maxdepth 2 -type f -print 2>/dev/null | sort
+
+    echo
+    echo "Kernel config files:"
+    find "$KERNEL" -maxdepth 2 \
+        \( -name '.config' -o -name '*config*' \) \
+        -type f -print 2>/dev/null | sort | head -200
+
+    echo
+    echo "Candidate Octave config contents:"
+    for CFG in "$ROOT"/configs/*; do
+        if [ -f "$CFG" ]; then
+            echo
+            echo "===== $CFG ====="
+            grep -E '^(CONFIG_(64BIT|X86_64|SMP|PREEMPT|HZ|ACPI|EFI|PCI|PCI_MSI|VIRTIO|EXT4|INITRAMFS|BLK_DEV|NET|INET|IPV6|MODULES|DEBUG|KASAN|KCSAN|LOCKDEP|STACKPROTECTOR|RANDOMIZE|SECCOMP|NAMESPACES|CGROUPS)|# CONFIG_)' \
+                "$CFG" 2>/dev/null | head -500 || true
+        fi
+    done
+} | tee "$LOGDIR/config-audit.txt"
+
+echo
+echo "[5/15] Selecting the existing Octave kernel configuration..."
+
+CFG=""
+
+if [ -f "$ROOT/configs/airaos-x86_64-working.config" ]; then
+    CFG="$ROOT/configs/airaos-x86_64-working.config"
+elif [ -f "$ROOT/configs/airaos-x86_64.config" ]; then
+    CFG="$ROOT/configs/airaos-x86_64.config"
+elif [ -f "$KERNEL/.config" ]; then
+    CFG="$KERNEL/.config"
+fi
+
+if [ -n "$CFG" ]; then
+    echo "Using config: $CFG"
+    cp "$CFG" "$KERNEL/.config"
+    run_shell "kernel-olddefconfig" "cd '$KERNEL' && make olddefconfig"
+else
+    echo "[WARNING] No known Octave config found."
+fi
+
+echo
+echo "[6/15] Recording final kernel configuration..."
+
+if [ -f "$KERNEL/.config" ]; then
+    cp "$KERNEL/.config" "$LOGDIR/final.config"
+
+    {
+        echo "CONFIG SUMMARY"
+        echo "==============="
+        grep -E \
+        '^(CONFIG_(64BIT|X86_64|SMP|NR_CPUS|PREEMPT|PREEMPT_DYNAMIC|HZ|HIGH_RES_TIMERS|X86_LOCAL_APIC|X86_IO_APIC|X86_MPPARSE|ACPI|EFI|PCI|PCI_MSI|VIRTIO|VIRTIO_PCI|VIRTIO_BLK|VIRTIO_NET|EXT4_FS|TMPFS|DEVTMPFS|DEVTMPFS_MOUNT|BLK_DEV_INITRD|RD_GZIP|RD_XZ|RD_LZ4|RD_ZSTD|MODULES|NET|INET|IPV6|UNIX|BPF|SECCOMP|NAMESPACES|CGROUPS|PID_NS|USER_NS|DEBUG_INFO|DEBUG_KERNEL|KALLSYMS|KGDB|MAGIC_SYSRQ|STACKPROTECTOR|RANDOMIZE_BASE|RANDOMIZE_MEMORY|KASAN|KCSAN|LOCKDEP|PROVE_LOCKING)|# CONFIG_)' \
+        "$KERNEL/.config" 2>/dev/null | head -1000
+    } | tee "$LOGDIR/config-summary.txt"
+
+    echo
+    echo "Kernel config checksum:"
+    sha256sum "$KERNEL/.config" | tee "$LOGDIR/config.sha256"
+fi
+
+echo
+echo "[7/15] Auditing initramfs..."
+
+{
+    echo "Initramfs directory:"
+    if [ -d "$ROOT/initramfs" ]; then
+        find "$ROOT/initramfs" -maxdepth 3 -printf '%M %s %p\n' | sort | head -1000
+    fi
+
+    echo
+    echo "initramfs/init:"
+    if [ -f "$ROOT/initramfs/init" ]; then
+        sed -n '1,300p' "$ROOT/initramfs/init"
+    fi
+
+    echo
+    echo "BusyBox:"
+    if [ -f "$ROOT/initramfs/bin/busybox" ]; then
+        file "$ROOT/initramfs/bin/busybox"
+        "$ROOT/initramfs/bin/busybox" --help 2>&1 | head -30 || true
+    fi
+
+    echo
+    echo "Packed initramfs:"
+    if [ -f "$ROOT/initramfs.cpio" ]; then
+        ls -lh "$ROOT/initramfs.cpio"
+        file "$ROOT/initramfs.cpio"
+        sha256sum "$ROOT/initramfs.cpio"
+        echo
+        echo "Archive contents:"
+        cpio -it < "$ROOT/initramfs.cpio" 2>/dev/null | head -1000 || true
+    fi
+} | tee "$LOGDIR/initramfs.txt"
+
+echo
+echo "[8/15] Searching for Octave/Aira-specific source..."
+
+{
+    echo "================ OCTAVE/AIRA SOURCE REFERENCES ================"
+    grep -RniE \
+        --exclude-dir=.git \
+        --exclude-dir=Documentation \
+        --exclude-dir=tools \
+        --exclude-dir=scripts \
+        --exclude='*.bin' \
+        --exclude='*.o' \
+        --exclude='*.a' \
+        --exclude='*.ko' \
+        '(AiraOS|AiraOS-Octave|Aira-Octave|Octave|AIRA_OS|AIRAOS)' \
+        "$ROOT" 2>/dev/null | head -5000 || true
+
+    echo
+    echo "================ CUSTOM KERNEL FILE NAMES ================"
+    find "$KERNEL" -type f \
+        \( -iname '*aira*' -o -iname '*octave*' \) \
+        -print 2>/dev/null | sort
+
+    echo
+    echo "================ RECENTLY MODIFIED KERNEL FILES ================"
+    find "$KERNEL" -type f -printf '%T@ %TY-%Tm-%Td %TH:%TM:%TS %p\n' \
+        2>/dev/null | sort -nr | head -500
+} | tee "$LOGDIR/octave-source-scan.txt"
+
+echo
+echo "[9/15] Auditing major kernel subsystems..."
+
+{
+    for D in \
+        arch/x86 \
+        kernel \
+        mm \
+        fs \
+        ipc \
+        net \
+        drivers \
+        security \
+        block \
+        init \
+        lib; do
+
+        if [ -d "$KERNEL/$D" ]; then
+            echo
+            echo "===== $D ====="
+            echo "Files: $(find "$KERNEL/$D" -type f | wc -l)"
+            echo "C files: $(find "$KERNEL/$D" -type f -name '*.c' | wc -l)"
+            echo "Header files: $(find "$KERNEL/$D" -type f \( -name '*.h' -o -name '*.S' \) | wc -l)"
+        fi
+    done
+
+    echo
+    echo "Scheduler-related symbols/files:"
+    find "$KERNEL/kernel/sched" -maxdepth 2 -type f -print 2>/dev/null | sort | head -300
+
+    echo
+    echo "Memory-management areas:"
+    find "$KERNEL/mm" -maxdepth 2 -type f -print 2>/dev/null | sort | head -300
+
+    echo
+    echo "x86 interrupt/APIC areas:"
+    find "$KERNEL/arch/x86" -type f \
+        \( -iname '*apic*' -o -iname '*irq*' -o -iname '*idt*' -o -iname '*entry*' -o -iname '*trap*' \) \
+        -print 2>/dev/null | sort | head -500
+
+    echo
+    echo "VirtIO areas:"
+    find "$KERNEL/drivers/virtio" -maxdepth 3 -type f -print 2>/dev/null | sort | head -500
+} | tee "$LOGDIR/subsystems.txt"
+
+echo
+echo "[10/15] Checking build dependencies..."
+
+MISSING=()
+
+for CMD in \
+    gcc g++ make ld as objcopy objcopy nm ar \
+    bc bison flex perl python3 \
+    cpio gzip xz \
+    git qemu-system-x86_64 \
+    pahole; do
+    if command -v "$CMD" >/dev/null 2>&1; then
+        echo "[OK] $CMD -> $(command -v "$CMD")"
+    else
+        echo "[MISSING] $CMD"
+        MISSING+=("$CMD")
+    fi
+done
+
+if [ "${#MISSING[@]}" -gt 0 ]; then
+    echo
+    echo "Attempting to install common Linux-kernel/QEMU dependencies..."
+
+    if command -v apt-get >/dev/null 2>&1; then
+        if command -v sudo >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo DEBIAN_FRONTEND=noninteractive apt-get install -y \
+                build-essential \
+                bc \
+                bison \
+                flex \
+                libssl-dev \
+                libelf-dev \
+                libdw-dev \
+                libncurses-dev \
+                dwarves \
+                cpio \
+                gzip \
+                xz-utils \
+                git \
+                python3 \
+                perl \
+                rsync \
+                qemu-system-x86 \
+                qemu-utils
+        else
+            echo "[WARNING] sudo unavailable; dependencies may remain missing."
+        fi
+    else
+        echo "[WARNING] apt-get unavailable; skipping automatic dependency installation."
+    fi
+fi
+
+echo
+echo "[11/15] Building AiraOS-Octave kernel..."
+
+BUILD_START="$(date +%s)"
+
+if [ -f "$KERNEL/.config" ]; then
+    run_shell "kernel-build" \
+        "cd '$KERNEL' && make -j\$(nproc) bzImage modules"
+else
+    echo "[SKIP] Cannot build: kernel .config missing."
+fi
+
+BUILD_END="$(date +%s)"
+
+echo
+echo "Build duration: $((BUILD_END-BUILD_START)) seconds"
+
+echo
+echo "[12/15] Inspecting build artifacts..."
+
+{
+    echo "Kernel image:"
+    if [ -f "$KERNEL/arch/x86/boot/bzImage" ]; then
+        ls -lh "$KERNEL/arch/x86/boot/bzImage"
+        file "$KERNEL/arch/x86/boot/bzImage"
+        sha256sum "$KERNEL/arch/x86/boot/bzImage"
+    else
+        echo "bzImage NOT FOUND"
+    fi
+
+    echo
+    echo "Kernel System.map:"
+    if [ -f "$KERNEL/System.map" ]; then
+        ls -lh "$KERNEL/System.map"
+        sha256sum "$KERNEL/System.map"
+    fi
+
+    echo
+    echo "Kernel modules:"
+    find "$KERNEL" -type f -name '*.ko' 2>/dev/null | wc -l
+
+    echo
+    echo "VMLINUX:"
+    if [ -f "$KERNEL/vmlinux" ]; then
+        ls -lh "$KERNEL/vmlinux"
+        file "$KERNEL/vmlinux"
+    else
+        echo "vmlinux NOT FOUND"
+    fi
+} | tee "$LOGDIR/build-artifacts.txt"
+
+echo
+echo "[13/15] Static kernel sanity checks..."
+
+{
+    echo "Undefined symbols in vmlinux, if available:"
+    if [ -f "$KERNEL/vmlinux" ]; then
+        nm -u "$KERNEL/vmlinux" 2>/dev/null | head -200 || true
+    fi
+
+    echo
+    echo "Kernel warnings from build log:"
+    grep -Ei \
+        'warning:|error:|undefined reference|relocation|deprecated|implicit declaration|format=' \
+        "$LOGDIR/kernel-build.log" 2>/dev/null | tail -500 || true
+
+    echo
+    echo "Suspicious TODO/FIXME/HACK markers in custom/root files:"
+    grep -RniE \
+        --exclude-dir=.git \
+        --exclude-dir=Documentation \
+        --exclude='*.bin' \
+        --exclude='*.o' \
+        --exclude='*.a' \
+        --exclude='*.ko' \
+        '(TODO|FIXME|HACK|XXX)' \
+        "$ROOT" 2>/dev/null | head -1000 || true
+} | tee "$LOGDIR/sanity.txt"
+
+echo
+echo "[14/15] Attempting QEMU boot test..."
+
+QEMU_LOG="$LOGDIR/qemu-boot.log"
+
+if [ -f "$KERNEL/arch/x86/boot/bzImage" ] && \
+   command -v qemu-system-x86_64 >/dev/null 2>&1; then
+
+    INITRD="$ROOT/initramfs.cpio"
+
+    if [ ! -f "$INITRD" ] && [ -d "$ROOT/initramfs" ]; then
+        echo "Building initramfs.cpio from initramfs directory..."
+        (
+            cd "$ROOT/initramfs"
+            find . -print0 | cpio --null -ov --format=newc > "$INITRD"
+        ) || true
+    fi
+
+    if [ -f "$INITRD" ]; then
+
+        echo "Starting QEMU for 20 seconds maximum..."
+
+        set +e
+        timeout 20s qemu-system-x86_64 \
+            -machine q35 \
+            -cpu max \
+            -m 1024M \
+            -smp 2 \
+            -kernel "$KERNEL/arch/x86/boot/bzImage" \
+            -initrd "$INITRD" \
+            -append "console=ttyS0 earlyprintk=serial,ttyS0,115200 rdinit=/init loglevel=7" \
+            -nographic \
+            -no-reboot \
+            -no-shutdown \
+            >"$QEMU_LOG" 2>&1
+        QRC=$?
+        set -e
+
+        echo
+        echo "QEMU exit code: $QRC"
+
+        if [ "$QRC" -eq 124 ]; then
+            echo "[PASS] QEMU remained alive for the full test window."
+        else
+            echo "[INFO] QEMU exited before timeout."
+        fi
+
+        echo
+        echo "QEMU output:"
+        cat "$QEMU_LOG"
+
+        echo
+        echo "Boot milestones detected:"
+        grep -Ei \
+            'Linux version|Command line:|Memory:|smp|Booting|Freeing|Run /init|Starting|login|panic|Oops|BUG:|Call Trace|Kernel panic|VFS:|EXT4|virtio|NET|CPU' \
+            "$QEMU_LOG" | tail -500 || true
+
+    else
+        echo "[FAIL] No initramfs available for QEMU."
+    fi
+else
+    echo "[SKIP] QEMU boot skipped because kernel image or QEMU is unavailable."
+fi
+
+echo
+echo "[15/15] Generating final engineering report..."
+
+END_EPOCH="$(date +%s)"
+DURATION="$((END_EPOCH-START_EPOCH))"
+
+{
+cat <<EOF
+# AiraOS-Octave Kernel Audit
+
+**Generated:** $(date -Is)
+
+**Repository:** $ROOT
+
+**Audit duration:** ${DURATION}s
+
+---
+
+## 1. Repository Identity
+
+EOF
+
+git remote -v 2>/dev/null || true
+echo
+git log -5 --oneline --decorate 2>/dev/null || true
+
+cat <<EOF
+
+---
+
+## 2. Kernel Identity
+
+EOF
+
+grep -E '^(VERSION|PATCHLEVEL|SUBLEVEL|EXTRAVERSION)[[:space:]]*=' \
+    "$KERNEL/Makefile" 2>/dev/null || true
+
+echo
+make -s -C "$KERNEL" kernelversion 2>/dev/null || true
+
+cat <<EOF
+
+---
+
+## 3. Repository Layout
+
+\`\`\`
+EOF
+
+find "$ROOT" -maxdepth 2 -type f \
+    ! -path '*/.git/*' \
+    ! -path '*/linux-7.2.2/*' \
+    | sort | head -500
+
+cat <<EOF
+\`\`\`
+
+---
+
+## 4. Kernel Configuration
+
+Selected configuration:
+
+\`\`\`
+EOF
+
+if [ -f "$KERNEL/.config" ]; then
+    grep -E \
+    '^(CONFIG_(64BIT|X86_64|SMP|NR_CPUS|PREEMPT|PREEMPT_DYNAMIC|HZ|HIGH_RES_TIMERS|X86_LOCAL_APIC|X86_IO_APIC|ACPI|EFI|PCI|PCI_MSI|VIRTIO|VIRTIO_PCI|VIRTIO_BLK|VIRTIO_NET|EXT4_FS|TMPFS|DEVTMPFS|DEVTMPFS_MOUNT|BLK_DEV_INITRD|MODULES|NET|INET|IPV6|UNIX|BPF|SECCOMP|NAMESPACES|CGROUPS|PID_NS|USER_NS|DEBUG_INFO|DEBUG_KERNEL|KALLSYMS|KGDB|MAGIC_SYSRQ|STACKPROTECTOR|RANDOMIZE_BASE|KASAN|KCSAN|LOCKDEP|PROVE_LOCKING)|# CONFIG_)' \
+    "$KERNEL/.config" 2>/dev/null | head -1000
+fi
+
+cat <<EOF
+\`\`\`
+
+---
+
+## 5. Initramfs
+
+EOF
+
+if [ -f "$ROOT/initramfs/init" ]; then
+    echo '### init'
+    echo
+    echo '```sh'
+    sed -n '1,250p' "$ROOT/initramfs/init"
+    echo '```'
+fi
+
+echo
+echo "Packed initramfs:"
+ls -lh "$ROOT/initramfs.cpio" 2>/dev/null || true
+
+cat <<EOF
+
+---
+
+## 6. Aira/Octave-Specific Code
+
+\`\`\`
+EOF
+
+grep -RniE \
+    --exclude-dir=.git \
+    --exclude-dir=Documentation \
+    --exclude-dir=tools \
+    --exclude-dir=scripts \
+    --exclude='*.bin' \
+    --exclude='*.o' \
+    --exclude='*.a' \
+    --exclude='*.ko' \
+    '(AiraOS|AiraOS-Octave|Aira-Octave|Octave|AIRA_OS|AIRAOS)' \
+    "$ROOT" 2>/dev/null | head -3000 || true
+
+cat <<EOF
+\`\`\`
+
+---
+
+## 7. Kernel Subsystem Inventory
+
+EOF
+
+for D in arch/x86 kernel mm fs ipc net drivers security block init lib; do
+    if [ -d "$KERNEL/$D" ]; then
+        echo "- **$D:** $(find "$KERNEL/$D" -type f | wc -l) files"
+    fi
+done
+
+cat <<EOF
+
+---
+
+## 8. Build Status
+
+EOF
+
+if [ -f "$KERNEL/arch/x86/boot/bzImage" ]; then
+    echo "**Kernel build: PASS**"
+    ls -lh "$KERNEL/arch/x86/boot/bzImage"
+else
+    echo "**Kernel build: FAIL or incomplete**"
+fi
+
+echo
+echo "Build warnings/errors:"
+echo '```text'
+grep -Ei \
+    'warning:|error:|undefined reference|relocation|implicit declaration' \
+    "$LOGDIR/kernel-build.log" 2>/dev/null | tail -300 || true
+echo '```'
+
+cat <<EOF
+
+---
+
+## 9. QEMU Boot Status
+
+EOF
+
+if [ -f "$QEMU_LOG" ]; then
+    echo "QEMU boot log captured."
+    echo
+    echo "Important boot events:"
+    echo '```text'
+    grep -Ei \
+        'Linux version|Command line:|Memory:|smp|Booting|Freeing|Run /init|Starting|login|panic|Oops|BUG:|Call Trace|Kernel panic|VFS:|EXT4|virtio|NET|CPU' \
+        "$QEMU_LOG" | tail -500 || true
+    echo '```'
+else
+    echo "QEMU boot test was not executed."
+fi
+
+cat <<EOF
+
+---
+
+## 10. Artifact Hashes
+
+EOF
+
+sha256sum \
+    "$KERNEL/.config" \
+    "$KERNEL/arch/x86/boot/bzImage" \
+    "$ROOT/initramfs.cpio" \
+    2>/dev/null || true
+
+cat <<EOF
+
+---
+
+## 11. Full Logs
+
+Audit logs are stored in:
+
+\`$LOGDIR\`
+
+Important files:
+
+- \`audit.log\`
+- \`repository.txt\`
+- \`kernel-identity.txt\`
+- \`config-audit.txt\`
+- \`final.config\`
+- \`config-summary.txt\`
+- \`initramfs.txt\`
+- \`octave-source-scan.txt\`
+- \`subsystems.txt\`
+- \`kernel-build.log\`
+- \`build-artifacts.txt\`
+- \`sanity.txt\`
+- \`qemu-boot.log\`
+
+---
+
+## 12. Preliminary Engineering Assessment
+
+The next implementation phase should be based on the evidence above rather than assumptions.
+
+Priority should be assigned to:
+
+1. Build/boot blockers
+2. Aira/Octave-specific kernel modifications
+3. Memory-management gaps
+4. Scheduler/process gaps
+5. Interrupt/APIC/SMP gaps
+6. Syscall/user-kernel boundary
+7. VFS/storage
+8. Drivers
+9. Networking
+10. Security/hardening
+11. Kernel testing/CI
+12. Documentation and release engineering
+
+**Do not blindly modify upstream Linux.**
+
+EOF
+} > "$REPORT"
+
+echo
+echo "======================================================================"
+echo "                       AUDIT COMPLETE"
+echo "======================================================================"
+echo "Report : $REPORT"
+echo "Logs   : $LOGDIR"
+echo
+echo "Quick result:"
+if [ -f "$KERNEL/arch/x86/boot/bzImage" ]; then
+    echo "  [PASS] Kernel bzImage exists"
+else
+    echo "  [FAIL] Kernel bzImage missing"
+fi
+
+if [ -f "$QEMU_LOG" ]; then
+    if grep -qEi 'Kernel panic|Oops:|BUG:' "$QEMU_LOG"; then
+        echo "  [FAIL] Kernel/QEMU log contains crash indicators"
+    elif grep -qEi 'Run /init|Starting init|Freeing unused kernel memory|Linux version' "$QEMU_LOG"; then
+        echo "  [PASS] Kernel produced normal boot milestones"
+    else
+        echo "  [WARN] QEMU ran but boot success is inconclusive"
+    fi
+else
+    echo "  [WARN] QEMU boot log unavailable"
+fi
+
+echo
+echo "Open the report with:"
+echo "  less '$REPORT'"
+echo
+echo "======================================================================"
+BASH
+
+chmod +x /tmp/octave_full_audit.sh && /tmp/octave_full_audit.sh
+clear
+cd ~/Aira-Octave && pkill -9 qemu-system-x86_64 2>/dev/null || true && echo "=== AUDIT LOGS ===" && ls -lah logs/octave-audit-* 2>/dev/null | tail -30 && echo && echo "=== QEMU LOG ===" && LATEST="$(find logs -maxdepth 1 -type d -name 'octave-audit-*' | sort | tail -1)" && if [ -n "$LATEST" ]; then   tail -200 "$LATEST/qemu-boot.log" 2>/dev/null || true;   echo;   echo "=== BUILD RESULT ===";   tail -100 "$LATEST/kernel-build.log" 2>/dev/null || true; fi
+clear
+cd ~/Aira-Octave && K=linux-7.2.2 && echo "============================================================" && echo " AIRAOS-OCTAVE — FOCUSED POST-BUILD AUDIT" && echo "============================================================" && echo && echo "=== KERNEL ARTIFACT ===" && ls -lh "$K/arch/x86/boot/bzImage" "$K/vmlinux" "$K/System.map" 2>/dev/null && echo && echo "=== KERNEL VERSION ===" && make -s -C "$K" kernelversion && echo && echo "=== GIT STATE ===" && git status --short && echo && echo "=== OCTAVE CONFIG ===" && grep -E '^(CONFIG_(64BIT|X86_64|SMP|NR_CPUS|PREEMPT|PREEMPT_DYNAMIC|HZ|HIGH_RES_TIMERS|X86_LOCAL_APIC|X86_IO_APIC|ACPI|EFI|PCI|PCI_MSI|VIRTIO|VIRTIO_PCI|VIRTIO_BLK|VIRTIO_NET|BLK_DEV_INITRD|DEVTMPFS|DEVTMPFS_MOUNT|EXT4_FS|TMPFS|NET|INET|IPV6|UNIX|MODULES|BPF|SECCOMP|NAMESPACES|CGROUPS|DEBUG_KERNEL|KALLSYMS|STACKPROTECTOR|RANDOMIZE_BASE|KASAN|KCSAN|LOCKDEP|PROVE_LOCKING)|# CONFIG_)' "$K/.config" | tee /tmp/octave-config-summary.txt && echo && echo "=== INITRAMFS ===" && ls -lh initramfs.cpio && file initramfs.cpio && echo && echo "=== INIT SCRIPT ===" && sed -n '1,240p' initramfs/init && echo && echo "=== AIRA/OCTAVE FILE NAMES ONLY ===" && find .   -path './.git' -prune -o   -path './linux-7.2.2/Documentation' -prune -o   -path './linux-7.2.2/tools' -prune -o   -path './linux-7.2.2/scripts' -prune -o   -type f \( -iname '*aira*' -o -iname '*octave*' \) -print   | sort | head -500 && echo && echo "=== KERNEL SOURCE MODIFICATION CHECK ===" && if git -C "$K" rev-parse --is-inside-work-tree >/dev/null 2>&1; then   git -C "$K" status --short;   echo "--- COMMITS ---";   git -C "$K" log -10 --oneline --decorate; else   echo "linux-7.2.2 is not a git checkout";   echo "Using source timestamps instead.";   find "$K" -type f -printf '%T@ %p\n' 2>/dev/null | sort -nr | head -100; fi && echo && echo "=== QEMU BOOT TEST ===" && mkdir -p logs/focused-audit && rm -f logs/focused-audit/qemu.log && timeout -k 3s 15s qemu-system-x86_64   -machine q35   -cpu max   -m 1024M   -smp 2   -kernel "$K/arch/x86/boot/bzImage"   -initrd initramfs.cpio   -append 'console=ttyS0 earlyprintk=serial,ttyS0,115200 rdinit=/init loglevel=7'   -nographic   -monitor none   -serial stdio   > logs/focused-audit/qemu.log 2>&1; QRC=$?; echo "QEMU_EXIT=$QRC"; echo && echo "=== QEMU OUTPUT ==="; cat logs/focused-audit/qemu.log; echo && echo "=== BOOT DIAGNOSTICS ==="; grep -Ei 'Linux version|Command line|BIOS-provided|Memory:|smp|CPU|APIC|IOAPIC|PCI|virtio|VFS|EXT4|initramfs|Run /init|Freeing|Mount|login|panic|Oops|BUG:|Call Trace|WARNING|failed|error' logs/focused-audit/qemu.log | tail -500 || true; echo && echo "=== BUILD ERROR/WARNING SCAN ==="; grep -Ei 'warning:|error:|undefined reference|relocation|implicit declaration' logs/octave-audit-*/kernel-build.log 2>/dev/null | tail -300 || true; echo && echo "============================================================"; echo " FOCUSED AUDIT FINISHED"; echo " QEMU LOG: ~/Aira-Octave/logs/focused-audit/qemu.log"; echo "============================================================"
+make run
+clear
+cd ~/Aira-Octave && echo "================ OCTAVE BOOT DIAGNOSTIC ================" && echo && echo "=== 1. KERNEL ===" && file linux-7.2.2/arch/x86/boot/bzImage && ls -lh linux-7.2.2/arch/x86/boot/bzImage && echo && echo "=== 2. KERNEL HEADER ===" && od -Ax -tx1 -N64 linux-7.2.2/arch/x86/boot/bzImage && echo && echo "=== 3. QEMU VERSION ===" && qemu-system-x86_64 --version | head -2 && echo && echo "=== 4. INITRAMFS ===" && file initramfs.cpio && ls -lh initramfs.cpio && echo && echo "=== 5. INITRAMFS CONTENTS ===" && cpio -it < initramfs.cpio 2>/dev/null | head -80 && echo && echo "=== 6. INIT SCRIPT ===" && sed -n '1,200p' initramfs/init && echo && echo "=== 7. KERNEL CONFIG BOOT OPTIONS ===" && grep -E '^(CONFIG_(CMDLINE|CMDLINE_BOOL|CMDLINE_OVERRIDE|EARLY_PRINTK|SERIAL_8250|SERIAL_8250_CONSOLE|HAVE_EARLY_PRINTK|EFI|EFI_STUB|X86_X2APIC)|# CONFIG_)' linux-7.2.2/.config 2>/dev/null | head -100 && echo && echo "=== 8. DIRECT KERNEL BOOT — NO INITRAMFS ===" && timeout -k 2s 8s qemu-system-x86_64   -machine q35   -cpu max   -m 512M   -smp 2   -kernel linux-7.2.2/arch/x86/boot/bzImage   -append 'console=ttyS0 earlycon=uart8250,io,0x3f8,115200 loglevel=8'   -nographic   -monitor none   -serial stdio   -no-reboot   -no-shutdown   2>&1 | tee /tmp/octave-direct-kernel.log; echo && echo "DIRECT_BOOT_EXIT=${PIPESTATUS[0]}"; echo && echo "=== DIRECT BOOT RESULT ==="; grep -Ei 'Linux version|Kernel command line|Booting|BIOS|Memory|CPU|Decompress|earlycon|console|panic|Oops|BUG|Call Trace|error|failed' /tmp/octave-direct-kernel.log | tail -200 || true; echo && echo "========================================================="
+clear
+cd ~/Aira-Octave && echo "=== KERNEL IMAGE ===" && file linux-7.2.2/arch/x86/boot/bzImage && echo && echo "=== QEMU DIRECT KERNEL TEST ===" && qemu-system-x86_64   -machine pc   -m 512M   -smp 1   -kernel "$PWD/linux-7.2.2/arch/x86/boot/bzImage"   -append "console=ttyS0 earlycon=ttyS0,115200 loglevel=8"   -nographic   -monitor none   -serial stdio   -no-reboot   -no-shutdown
+make run
+clear
+cd ~/Aira-Octave && echo "================ OCTAVE SILENT-BOOT DIAGNOSTIC ================" && echo && echo "=== KERNEL IMAGE ===" && file linux-7.2.2/arch/x86/boot/bzImage && ls -lh linux-7.2.2/arch/x86/boot/bzImage && echo && echo "=== SERIAL/CONSOLE CONFIG ===" && grep -E '^(CONFIG_(TTY|VT|VT_CONSOLE|SERIAL_8250|SERIAL_8250_CONSOLE|SERIAL_CORE|HAVE_EARLY_PRINTK|EARLY_PRINTK|PRINTK|EFI|EFI_STUB|CMDLINE|CMDLINE_BOOL|CMDLINE_OVERRIDE)|# CONFIG_)' linux-7.2.2/.config | grep -E 'TTY|VT|SERIAL|PRINTK|EFI|CMDLINE|EARLY' | head -150 && echo && echo "=== CONSOLE SYMBOLS IN VMLINUX ===" && nm linux-7.2.2/vmlinux 2>/dev/null | grep -E 'serial8250|early_serial|console_init|register_console|printk' | head -100 || true && echo && echo "=== BOOT PROTOCOL HEADER ===" && python3 - <<'PY'
+from pathlib import Path
+p=Path("linux-7.2.2/arch/x86/boot/bzImage")
+b=p.read_bytes()
+print("size:", len(b))
+print("offset 0x1fe:", b[0x1fe:0x200].hex())
+print("boot_flag @0x1fe:", hex(int.from_bytes(b[0x1fe:0x200],"little")))
+print("header @0x202:", b[0x202:0x20e])
+print("version @0x20e:", hex(int.from_bytes(b[0x20e:0x210],"little")))
+print("loadflags @0x211:", hex(b[0x211]))
+print("kernel_alignment @0x230:", hex(int.from_bytes(b[0x230:0x234],"little")))
+PY
+
+echo && echo "=== QEMU DEBUG BOOT ===" && timeout -k 2s 10s qemu-system-x86_64   -machine pc   -m 512M   -smp 1   -kernel "$PWD/linux-7.2.2/arch/x86/boot/bzImage"   -append "console=ttyS0,115200 earlyprintk=serial,ttyS0,115200 ignore_loglevel loglevel=8"   -nographic   -monitor none   -serial stdio   -no-reboot   -no-shutdown   -d guest_errors,cpu_reset   2>&1 | tee /tmp/octave-silent-boot.log; RC=${PIPESTATUS[0]}; echo && echo "QEMU_EXIT=$RC" && echo && echo "=== DEBUG LOG ===" && cat /tmp/octave-silent-boot.log && echo && echo "=============================================================="
+clear
+cd ~/Aira-Octave && echo "================ OCTAVE BOOT ROOT-CAUSE CHECK ================" && echo && echo "=== 1. CONFIG: SERIAL CONSOLE ===" && grep -E '^CONFIG_(SERIAL_8250|SERIAL_8250_CONSOLE|SERIAL_CORE|TTY|VT|VT_CONSOLE|PRINTK|EARLY_PRINTK|HAVE_EARLY_PRINTK)=' linux-7.2.2/.config || true && echo && echo "=== 2. CONFIG: EFI/BOOT ===" && grep -E '^CONFIG_(EFI|EFI_STUB|EFI_MIXED|X86_64|X86|CMDLINE|CMDLINE_BOOL|CMDLINE_OVERRIDE)=' linux-7.2.2/.config || true && echo && echo "=== 3. KERNEL IMAGE ===" && file linux-7.2.2/arch/x86/boot/bzImage && ls -lh linux-7.2.2/arch/x86/boot/bzImage linux-7.2.2/vmlinux && echo && echo "=== 4. BOOT HEADER ===" && python3 - <<'PY'
+from pathlib import Path
+p=Path("linux-7.2.2/arch/x86/boot/bzImage")
+b=p.read_bytes()
+for off,n,name in [
+    (0x1fe,2,"boot_flag"),
+    (0x202,4,"header"),
+    (0x20e,2,"version"),
+    (0x211,1,"loadflags"),
+    (0x224,4,"kernel_version"),
+    (0x230,4,"kernel_alignment"),
+    (0x234,1,"relocatable_kernel"),
+]:
+    print(f"{name:22}  offset=0x{off:x} value={b[off:off+n].hex()}")
+print("size                    ",len(b))
+PY
+
+echo && echo "=== 5. VMLINUX CONSOLE SYMBOLS ===" && nm linux-7.2.2/vmlinux 2>/dev/null | grep -Ei '8250|serial8250|early_serial|uart|console_init|register_console|printk' | head -150 || true && echo && echo "=== 6. KERNEL COMMAND-LINE SUPPORT ===" && grep -E 'CONFIG_CMDLINE|CONFIG_CMDLINE_BOOL|CONFIG_CMDLINE_OVERRIDE|CONFIG_CMDLINE_FROM_BOOTLOADER' linux-7.2.2/.config || true && echo && echo "=== 7. ARCH BOOT SUPPORT ===" && grep -E 'CONFIG_(X86|BOOT|RANDOMIZE_BASE|RELOCATABLE|KERNEL_GZIP|KERNEL_XZ|KERNEL_LZ4|KERNEL_ZSTD)=' linux-7.2.2/.config | head -150 && echo && echo "=== 8. BUILD TIMESTAMP ===" && stat linux-7.2.2/arch/x86/boot/bzImage linux-7.2.2/vmlinux && echo && echo "=============================================================="
+clear
+cd ~/Aira-Octave && set -e && rm -rf /tmp/octave-boot-test && mkdir -p /tmp/octave-boot-test/boot/grub && cp linux-7.2.2/arch/x86/boot/bzImage /tmp/octave-boot-test/boot/bzImage && cp initramfs.cpio /tmp/octave-boot-test/boot/initramfs.cpio && cat > /tmp/octave-boot-test/boot/grub/grub.cfg <<'EOF'
+set timeout=0
+set default=0
+
+serial --unit=0 --speed=115200
+terminal_input serial
+terminal_output serial
+
+menuentry "AiraOS-Octave Linux" {
+    linux /boot/bzImage console=ttyS0,115200 earlycon=uart8250,io,0x3f8,115200 loglevel=7
+    initrd /boot/initramfs.cpio
+}
+EOF
+
+grub-mkrescue -o /tmp/aira-octave-test.iso /tmp/octave-boot-test >/tmp/octave-grub-build.log 2>&1 && echo "ISO CREATED:" && ls -lh /tmp/aira-octave-test.iso && echo && echo "STARTING GRUB/QEMU TEST — 15 SECOND LIMIT" && timeout -k 3s 15s qemu-system-x86_64     -machine pc     -m 512M     -smp 1     -cdrom /tmp/aira-octave-test.iso     -boot d     -nographic     -monitor none     -serial stdio     -no-reboot     -no-shutdown     2>&1 | tee /tmp/octave-grub-boot.log; RC=${PIPESTATUS[0]}; echo && echo "QEMU_EXIT=$RC" && echo && echo "=== LINUX BOOT MARKERS ===" && grep -Ei 'Linux version|Kernel command line|Booting|Memory|CPU|smp|APIC|VFS|initramfs|Run /init|Freeing|panic|Oops|BUG:|Call Trace|failed|error' /tmp/octave-grub-boot.log | tail -300 || true
+cd ~/Aira-Octave && echo "=== 1. ISO ===" && ls -lh /tmp/aira-octave-test.iso 2>/dev/null || echo "ISO MISSING" && echo && echo "=== 2. GRUB CONFIG ===" && cat /tmp/octave-boot-test/boot/grub/grub.cfg 2>/dev/null || true && echo && echo "=== 3. QEMU ===" && qemu-system-x86_64 --version | head -1 && echo && echo "=== 4. GRUB ISO CONTENTS ===" && xorriso -indev /tmp/aira-octave-test.iso -find / -type f 2>/dev/null | head -50 && echo && echo "=== 5. BOOT TEST ===" && rm -f /tmp/octave-grub-boot2.log && timeout -k 2s 8s qemu-system-x86_64   -machine pc   -m 512M   -smp 1   -cdrom /tmp/aira-octave-test.iso   -boot order=d   -display none   -serial file:/tmp/octave-grub-boot2.log   -monitor none   -no-reboot   -no-shutdown   2>/tmp/octave-qemu-error.log || true && echo && echo "=== QEMU STDERR ===" && cat /tmp/octave-qemu-error.log && echo && echo "=== SERIAL OUTPUT ===" && cat /tmp/octave-grub-boot2.log && echo && echo "=== RESULT ===" && if grep -qi "Linux version" /tmp/octave-grub-boot2.log; then   echo "SUCCESS: Linux kernel started."; elif grep -qi "GRUB" /tmp/octave-grub-boot2.log; then   echo "GRUB started but Linux did not reach serial."; else   echo "NO LINUX OUTPUT: boot path still failing before kernel console."; fi
+clear
+cd ~/Aira-Octave && set -e && echo "============================================================" && echo "        AIRAOS-OCTAVE GRUB BOOT TEST" && echo "============================================================" && rm -rf /tmp/octave-boot-test /tmp/aira-octave-test.iso /tmp/octave-grub-build.log /tmp/octave-grub-boot.log && mkdir -p /tmp/octave-boot-test/boot/grub && cp linux-7.2.2/arch/x86/boot/bzImage /tmp/octave-boot-test/boot/bzImage && cp initramfs.cpio /tmp/octave-boot-test/boot/initramfs.cpio && cat > /tmp/octave-boot-test/boot/grub/grub.cfg <<'EOF'
+set timeout=0
+set default=0
+
+serial --unit=0 --speed=115200
+terminal_input serial
+terminal_output serial
+
+menuentry "AiraOS-Octave Linux 7.2.2" {
+    linux /boot/bzImage console=ttyS0,115200 earlycon=uart8250,io,0x3f8,115200 loglevel=7
+    initrd /boot/initramfs.cpio
+}
+EOF
+
+echo "[1/5] Kernel:" && ls -lh /tmp/octave-boot-test/boot/bzImage && echo "[2/5] Initramfs:" && ls -lh /tmp/octave-boot-test/boot/initramfs.cpio && echo "[3/5] GRUB config:" && cat /tmp/octave-boot-test/boot/grub/grub.cfg && echo "[4/5] Building ISO..." && grub-mkrescue -o /tmp/aira-octave-test.iso /tmp/octave-boot-test > /tmp/octave-grub-build.log 2>&1 && echo "ISO BUILD SUCCESS" && ls -lh /tmp/aira-octave-test.iso && echo "[5/5] Inspecting ISO..." && xorriso -indev /tmp/aira-octave-test.iso -find / -type f 2>/dev/null | head -50 && echo && echo "============================================================" && echo "             STARTING QEMU FOR 10 SECONDS" && echo "============================================================" && timeout -k 2s 10s qemu-system-x86_64     -machine pc     -m 512M     -smp 1     -cdrom /tmp/aira-octave-test.iso     -boot order=d     -display none     -monitor none     -serial file:/tmp/octave-grub-boot.log     -no-reboot     -no-shutdown     2>/tmp/octave-qemu-error.log || true
+echo
+echo "============================================================"
+echo "                    QEMU STDERR"
+echo "============================================================"
+cat /tmp/octave-qemu-error.log 2>/dev/null || true
+echo
+echo "============================================================"
+echo "                    SERIAL OUTPUT"
+echo "============================================================"
+if [ -f /tmp/octave-grub-boot.log ]; then     cat /tmp/octave-grub-boot.log; else     echo "NO SERIAL LOG CREATED"; fi
+echo
+echo "============================================================"
+echo "                       DIAGNOSIS"
+echo "============================================================"
+if grep -qi "Linux version" /tmp/octave-grub-boot.log 2>/dev/null; then     echo "SUCCESS: Linux 7.2.2 reached the kernel."; elif grep -qiE "GRUB|Welcome|GNU GRUB" /tmp/octave-grub-boot.log 2>/dev/null; then     echo "GRUB reached the serial console, but Linux did not start."; else     echo "NO SERIAL OUTPUT.";     echo "ISO exists, but kernel boot still needs investigation."; fi
+echo
+echo "ISO: /tmp/aira-octave-test.iso"
+echo "BOOT LOG: /tmp/octave-grub-boot.log"
+echo "GRUB BUILD LOG: /tmp/octave-grub-build.log"
+clear
+cd ~/Aira-Octave && echo "============================================================" && echo "        AIRAOS-OCTAVE BOOT CHAIN DIAGNOSTIC" && echo "============================================================" && echo && echo "=== ISO BOOT RECORD ===" && xorriso -indev /tmp/aira-octave-test.iso -report_el_torito plain 2>&1 && echo && echo "=== ISO VOLUME ===" && xorriso -indev /tmp/aira-octave-test.iso -pvd_info 2>&1 | grep -Ei 'Volume id|Boot record|Application' || true && echo && echo "=== GRUB MODULES ===" && find /tmp/octave-boot-test/boot/grub/i386-pc -maxdepth 1 -type f | wc -l && ls -lh /tmp/octave-boot-test/boot/grub/i386-pc/normal.mod         /tmp/octave-boot-test/boot/grub/i386-pc/linux.mod         /tmp/octave-boot-test/boot/grub/i386-pc/serial.mod         2>&1 || true && echo && echo "=== GRUB CONFIG HASH ===" && sha256sum /tmp/octave-boot-test/boot/grub/grub.cfg && echo && echo "=== BIOS BOOT TEST ===" && rm -f /tmp/octave-bios.log /tmp/octave-bios-debug.log && timeout -k 2s 6s qemu-system-x86_64     -machine pc     -m 512M     -smp 1     -cdrom /tmp/aira-octave-test.iso     -boot order=d     -display none     -monitor none     -serial file:/tmp/octave-bios.log     -d guest_errors,cpu_reset     -D /tmp/octave-bios-debug.log     -no-reboot     -no-shutdown     2>/tmp/octave-bios-stderr.log || true && echo && echo "=== QEMU STDERR ===" && cat /tmp/octave-bios-stderr.log 2>/dev/null || true && echo && echo "=== SERIAL BYTES ===" && if [ -f /tmp/octave-bios.log ]; then     wc -c /tmp/octave-bios.log;     xxd -l 512 /tmp/octave-bios.log; else     echo "NO SERIAL FILE"; fi && echo && echo "=== CPU RESET/BOOT DEBUG ===" && grep -Ei 'reset|triple|shutdown|guest_errors' /tmp/octave-bios-debug.log 2>/dev/null | head -100 || true && echo && echo "============================================================" && echo "                  DIAGNOSTIC COMPLETE" && echo "============================================================"
+aclear
+cd ~/Aira-Octave && echo "=== 1. ISO ===" && ls -lh /tmp/aira-octave-test.iso 2>/dev/null || echo "ISO MISSING" && echo && echo "=== 2. GRUB CONFIG ===" && cat /tmp/octave-boot-test/boot/grub/grub.cfg 2>/dev/null || true && echo && echo "=== 3. QEMU ===" && qemu-system-x86_64 --version | head -1 && echo && echo "=== 4. GRUB ISO CONTENTS ===" && xorriso -indev /tmp/aira-octave-test.iso -find / -type f 2>/dev/null | head -50 && echo && echo "=== 5. BOOT TEST ===" && rm -f /tmp/octave-grub-boot2.log && timeout -k 2s 8s qemu-system-x86_64   -machine pc   -m 512M   -smp 1   -cdrom /tmp/aira-octave-test.iso   -boot order=d   -display none   -serial file:/tmp/octave-grub-boot2.log   -monitor none   -no-reboot   -no-shutdown   2>/tmp/octave-qemu-error.log || true && echo && echo "=== QEMU STDERR ===" && cat /tmp/octave-qemu-error.log && echo && echo "=== SERIAL OUTPUT ===" && cat /tmp/octave-grub-boot2.log && echo && echo "=== RESULT ===" && if grep -qi "Linux version" /tmp/octave-grub-boot2.log; then   echo "SUCCESS: Linux kernel started."; elif grep -qi "GRUB" /tmp/octave-grub-boot2.log; then   echo "GRUB started but Linux did not reach serial."; else   echo "NO LINUX OUTPUT: boot path still failing before kernel console."; fi
+clear
+cd ~/Aira-Octave && set -e && echo "============================================================" && echo "        AIRAOS-OCTAVE GRUB BOOT TEST" && echo "============================================================" && rm -rf /tmp/octave-boot-test /tmp/aira-octave-test.iso /tmp/octave-grub-build.log /tmp/octave-grub-boot.log && mkdir -p /tmp/octave-boot-test/boot/grub && cp linux-7.2.2/arch/x86/boot/bzImage /tmp/octave-boot-test/boot/bzImage && cp initramfs.cpio /tmp/octave-boot-test/boot/initramfs.cpio && cat > /tmp/octave-boot-test/boot/grub/grub.cfg <<'EOF'
+set timeout=0
+set default=0
+
+serial --unit=0 --speed=115200
+terminal_input serial
+terminal_output serial
+
+menuentry "AiraOS-Octave Linux 7.2.2" {
+    linux /boot/bzImage console=ttyS0,115200 earlycon=uart8250,io,0x3f8,115200 loglevel=7
+    initrd /boot/initramfs.cpio
+}
+EOF
+
+echo "[1/5] Kernel:" && ls -lh /tmp/octave-boot-test/boot/bzImage && echo "[2/5] Initramfs:" && ls -lh /tmp/octave-boot-test/boot/initramfs.cpio && echo "[3/5] GRUB config:" && cat /tmp/octave-boot-test/boot/grub/grub.cfg && echo "[4/5] Building ISO..." && grub-mkrescue -o /tmp/aira-octave-test.iso /tmp/octave-boot-test > /tmp/octave-grub-build.log 2>&1 && echo "ISO BUILD SUCCESS" && ls -lh /tmp/aira-octave-test.iso && echo "[5/5] Inspecting ISO..." && xorriso -indev /tmp/aira-octave-test.iso -find / -type f 2>/dev/null | head -50 && echo && echo "============================================================" && echo "             STARTING QEMU FOR 10 SECONDS" && echo "============================================================" && timeout -k 2s 10s qemu-system-x86_64     -machine pc     -m 512M     -smp 1     -cdrom /tmp/aira-octave-test.iso     -boot order=d     -display none     -monitor none     -serial file:/tmp/octave-grub-boot.log     -no-reboot     -no-shutdown     2>/tmp/octave-qemu-error.log || true
+echo
+echo "============================================================"
+echo "                    QEMU STDERR"
+echo "============================================================"
+cat /tmp/octave-qemu-error.log 2>/dev/null || true
+echo
+echo "============================================================"
+echo "                    SERIAL OUTPUT"
+echo "============================================================"
+if [ -f /tmp/octave-grub-boot.log ]; then     cat /tmp/octave-grub-boot.log; else     echo "NO SERIAL LOG CREATED"; fi
+echo
+echo "============================================================"
+echo "                       DIAGNOSIS"
+echo "============================================================"
+if grep -qi "Linux version" /tmp/octave-grub-boot.log 2>/dev/null; then     echo "SUCCESS: Linux 7.2.2 reached the kernel."; elif grep -qiE "GRUB|Welcome|GNU GRUB" /tmp/octave-grub-boot.log 2>/dev/null; then     echo "GRUB reached the serial console, but Linux did not start."; else     echo "NO SERIAL OUTPUT.";     echo "ISO exists, but kernel boot still needs investigation."; fi
+echo
+echo "ISO: /tmp/aira-octave-test.iso"
+echo "BOOT LOG: /tmp/octave-grub-boot.log"
+echo "GRUB BUILD LOG: /tmp/octave-grub-build.log"
+clear
+cd ~/Aira-Octave && echo "============================================================" && echo "        AIRAOS-OCTAVE BOOT CHAIN DIAGNOSTIC" && echo "============================================================" && echo && echo "=== ISO BOOT RECORD ===" && xorriso -indev /tmp/aira-octave-test.iso -report_el_torito plain 2>&1 && echo && echo "=== ISO VOLUME ===" && xorriso -indev /tmp/aira-octave-test.iso -pvd_info 2>&1 | grep -Ei 'Volume id|Boot record|Application' || true && echo && echo "=== GRUB MODULES ===" && find /tmp/octave-boot-test/boot/grub/i386-pc -maxdepth 1 -type f | wc -l && ls -lh /tmp/octave-boot-test/boot/grub/i386-pc/normal.mod         /tmp/octave-boot-test/boot/grub/i386-pc/linux.mod         /tmp/octave-boot-test/boot/grub/i386-pc/serial.mod         2>&1 || true && echo && echo "=== GRUB CONFIG HASH ===" && sha256sum /tmp/octave-boot-test/boot/grub/grub.cfg && echo && echo "=== BIOS BOOT TEST ===" && rm -f /tmp/octave-bios.log /tmp/octave-bios-debug.log && timeout -k 2s 6s qemu-system-x86_64     -machine pc     -m 512M     -smp 1     -cdrom /tmp/aira-octave-test.iso     -boot order=d     -display none     -monitor none     -serial file:/tmp/octave-bios.log     -d guest_errors,cpu_reset     -D /tmp/octave-bios-debug.log     -no-reboot     -no-shutdown     2>/tmp/octave-bios-stderr.log || true && echo && echo "=== QEMU STDERR ===" && cat /tmp/octave-bios-stderr.log 2>/dev/null || true && echo && echo "=== SERIAL BYTES ===" && if [ -f /tmp/octave-bios.log ]; then     wc -c /tmp/octave-bios.log;     xxd -l 512 /tmp/octave-bios.log; else     echo "NO SERIAL FILE"; fi && echo && echo "=== CPU RESET/BOOT DEBUG ===" && grep -Ei 'reset|triple|shutdown|guest_errors' /tmp/octave-bios-debug.log 2>/dev/null | head -100 || true && echo && echo "============================================================" && echo "                  DIAGNOSTIC COMPLETE" && echo "============================================================"
+aclear
+cd ~/Aira-Octave && echo "============================================================" && echo "        AIRAOS-OCTAVE VISIBLE BOOT TEST" && echo "============================================================" && echo "ISO:" && ls -lh /tmp/aira-octave-test.iso && echo && echo "Launching QEMU..." && echo "If a QEMU window appears, WATCH THE SCREEN." && echo "Let it run for 10 seconds, then close the QEMU window." && qemu-system-x86_64   -machine pc   -m 512M   -smp 1   -cdrom /tmp/aira-octave-test.iso   -boot order=d   -serial stdio   -monitor none   -no-reboot   -no-shutdown
+clear
+cd ~/Aira-Octave && set -e && rm -rf octave-boot-test aira-octave-test.iso octave-grub-build.log && mkdir -p octave-boot-test/boot/grub && cp linux-7.2.2/arch/x86/boot/bzImage octave-boot-test/boot/bzImage && cp initramfs.cpio octave-boot-test/boot/initramfs.cpio && cat > octave-boot-test/boot/grub/grub.cfg <<'EOF'
+set timeout=0
+set default=0
+
+serial --unit=0 --speed=115200
+terminal_input serial
+terminal_output serial
+
+menuentry "AiraOS-Octave Linux 7.2.2" {
+    linux /boot/bzImage console=ttyS0,115200 earlycon=uart8250,io,0x3f8,115200 loglevel=7
+    initrd /boot/initramfs.cpio
+}
+EOF
+
+echo "=== BUILDING ISO ===" && grub-mkrescue -o aira-octave-test.iso octave-boot-test > octave-grub-build.log 2>&1 && echo "=== ISO CREATED ===" && ls -lh aira-octave-test.iso && echo "=== BOOT FILES ===" && xorriso -indev aira-octave-test.iso -find /boot -type f 2>/dev/null | head -30 && echo && echo "============================================================" && echo "              STARTING VISIBLE QEMU TEST" && echo "============================================================" && echo "A QEMU WINDOW SHOULD APPEAR." && echo "WATCH THE SCREEN FOR GRUB OR LINUX OUTPUT." && echo && qemu-system-x86_64   -machine pc   -m 512M   -smp 1   -cdrom "$PWD/aira-octave-test.iso"   -boot order=d   -serial stdio   -monitor none   -no-reboot   -no-shutdown
+cd ~/Aira-Octave && set -e && echo "============================================================" && echo "       REBUILDING AIRAOS-OCTAVE BIOS BOOT ISO" && echo "============================================================" && rm -rf octave-boot-test aira-octave-test.iso octave-grub-build.log && mkdir -p octave-boot-test/boot/grub && cp linux-7.2.2/arch/x86/boot/bzImage octave-boot-test/boot/bzImage && cp initramfs.cpio octave-boot-test/boot/initramfs.cpio && cat > octave-boot-test/boot/grub/grub.cfg <<'EOF'
+set timeout=0
+set default=0
+
+menuentry "AiraOS-Octave Linux 7.2.2" {
+    linux /boot/bzImage console=tty0 console=ttyS0,115200 earlycon=uart8250,io,0x3f8,115200 loglevel=7
+    initrd /boot/initramfs.cpio
+}
+EOF
+
+echo "[1] Checking GRUB BIOS installation..." && command -v grub-mkrescue && command -v grub-install && command -v grub-file && echo "[2] GRUB version:" && grub-install --version && echo "[3] Rebuilding ISO..." && grub-mkrescue     --modules="biosdisk iso9660 normal linux multiboot serial terminal echo"     -o aira-octave-test.iso     octave-boot-test     > octave-grub-build.log 2>&1 && echo "[4] ISO created:" && ls -lh aira-octave-test.iso && echo "[5] Boot structure:" && xorriso -indev aira-octave-test.iso -report_el_torito plain 2>&1 && echo && echo "[6] Testing BIOS boot..." && qemu-system-x86_64     -machine pc     -m 512M     -smp 1     -drive file="$PWD/aira-octave-test.iso",media=cdrom,if=ide,readonly=on     -boot order=d     -display gtk     -serial stdio     -monitor none     -no-reboot     -no-shutdown
+clear
+cd ~/Aira-Octave && echo "============================================================" && echo "             GRUB BUILD FAILURE" && echo "============================================================" && echo && echo "=== GRUB LOG ===" && cat octave-grub-build.log && echo && echo "=== GRUB MODULE DIRECTORIES ===" && find /usr/lib/grub -maxdepth 3 -type f \( -name 'normal.mod' -o -name 'linux.mod' -o -name 'biosdisk.mod' \) 2>/dev/null | head -30 && echo && echo "=== GRUB TARGETS ===" && grub-install --target=i386-pc --print-modules 2>&1 | head -100 && echo && echo "=== GRUB-MKRESCUE HELP ===" && grub-mkrescue --help 2>&1 | head -80
+clear
+cd ~/Aira-Octave && set -e && echo "============================================================" && echo "      AIRAOS-OCTAVE BIOS GRUB ISO — CORRECT BUILD" && echo "============================================================" && rm -rf octave-boot-test aira-octave-test.iso && mkdir -p octave-boot-test/boot/grub && cp linux-7.2.2/arch/x86/boot/bzImage octave-boot-test/boot/bzImage && cp initramfs.cpio octave-boot-test/boot/initramfs.cpio && cat > octave-boot-test/boot/grub/grub.cfg <<'EOF'
+set timeout=0
+set default=0
+
+menuentry "AiraOS-Octave Linux 7.2.2" {
+    linux /boot/bzImage console=tty0 console=ttyS0,115200 earlycon=uart8250,io,0x3f8,115200 loglevel=7
+    initrd /boot/initramfs.cpio
+}
+EOF
+
+echo "[1] Building BIOS GRUB ISO..." && grub-mkrescue     -d /usr/lib/grub/i386-pc     -o aira-octave-test.iso     octave-boot-test     2>&1 && echo && echo "[2] ISO CREATED:" && ls -lh aira-octave-test.iso && echo && echo "[3] VERIFYING EL TORITO:" && xorriso -indev aira-octave-test.iso -report_el_torito plain 2>&1 && echo && echo "[4] VERIFYING KERNEL:" && grub-file --is-x86-linux linux-7.2.2/arch/x86/boot/bzImage && echo "bzImage: VALID x86 Linux kernel" && echo && echo "============================================================" && echo "                 STARTING QEMU" && echo "============================================================" && echo "Watch the QEMU window." && echo && qemu-system-x86_64     -machine pc     -m 512M     -smp 1     -drive file="$PWD/aira-octave-test.iso",media=cdrom,if=ide,readonly=on     -boot order=d     -serial stdio     -monitor none     -no-reboot     -no-shutdown
+clear
+cd ~/Aira-Octave && echo "============================================================" && echo "       AIRAOS-OCTAVE DIRECT KERNEL BOOT TEST" && echo "============================================================" && echo "Bypassing BIOS CD boot + GRUB entirely." && echo && ls -lh linux-7.2.2/arch/x86/boot/bzImage initramfs.cpio && echo && echo "Starting Linux directly..." && qemu-system-x86_64   -machine pc   -cpu max   -m 1024M   -smp 1   -kernel "$PWD/linux-7.2.2/arch/x86/boot/bzImage"   -initrd "$PWD/initramfs.cpio"   -append "console=tty0 loglevel=7 rdinit=/init"   -display gtk   -monitor none   -no-reboot   -no-shutdown
+clear
+cd ~/Aira-Octave && echo "============================================================" && echo "       AIRAOS-OCTAVE KERNEL HANDOFF DIAGNOSTIC" && echo "============================================================" && rm -f octave-direct.log octave-direct-debug.log octave-direct-err.log && echo "Kernel:" && file linux-7.2.2/arch/x86/boot/bzImage && echo "Size:" && ls -lh linux-7.2.2/arch/x86/boot/bzImage && echo && echo "Testing QEMU direct bzImage loader..." && timeout -k 2s 12s qemu-system-x86_64     -machine pc     -cpu max     -m 1024M     -smp 1     -kernel "$PWD/linux-7.2.2/arch/x86/boot/bzImage"     -initrd "$PWD/initramfs.cpio"     -append "console=ttyS0,115200 earlycon=uart8250,io,0x3f8,115200 loglevel=8 rdinit=/init"     -nographic     -monitor none     -serial file:"$PWD/octave-direct.log"     -d guest_errors,cpu_reset     -D "$PWD/octave-direct-debug.log"     -no-reboot     -no-shutdown     2>"$PWD/octave-direct-err.log" || true
+echo
+echo "============================================================"
+echo "                    QEMU ERRORS"
+echo "============================================================"
+cat octave-direct-err.log 2>/dev/null || true
+echo
+echo "============================================================"
+echo "                    SERIAL OUTPUT"
+echo "============================================================"
+if [ -f octave-direct.log ]; then     wc -c octave-direct.log;     cat octave-direct.log; else     echo "NO SERIAL OUTPUT FILE"; fi
+echo
+echo "============================================================"
+echo "                    QEMU DEBUG"
+echo "============================================================"
+grep -Ei "reset|guest_errors|triple|shutdown|exception|error"     octave-direct-debug.log 2>/dev/null | head -100 || true
+echo
+echo "============================================================"
+echo "                      VERDICT"
+echo "============================================================"
+if grep -q "Linux version" octave-direct.log 2>/dev/null; then     echo "🔥 KERNEL STARTED SUCCESSFULLY"; elif [ -s octave-direct.log ]; then     echo "KERNEL/BOOTLOADER PRODUCED OUTPUT — inspect above"; else     echo "❌ ZERO KERNEL SERIAL OUTPUT";     echo "The bzImage handoff is failing before printk reaches the serial console."; fi
+clea
+cd ~/Aira-Octave && echo "============================================================" && echo "        AIRAOS-OCTAVE VISIBLE BOOT TEST" && echo "============================================================" && echo "ISO:" && ls -lh /tmp/aira-octave-test.iso && echo && echo "Launching QEMU..." && echo "If a QEMU window appears, WATCH THE SCREEN." && echo "Let it run for 10 seconds, then close the QEMU window." && qemu-system-x86_64   -machine pc   -m 512M   -smp 1   -cdrom /tmp/aira-octave-test.iso   -boot order=d   -serial stdio   -monitor none   -no-reboot   -no-shutdown
+clear
+cd ~/Aira-Octave && set -e && rm -rf octave-boot-test aira-octave-test.iso octave-grub-build.log && mkdir -p octave-boot-test/boot/grub && cp linux-7.2.2/arch/x86/boot/bzImage octave-boot-test/boot/bzImage && cp initramfs.cpio octave-boot-test/boot/initramfs.cpio && cat > octave-boot-test/boot/grub/grub.cfg <<'EOF'
+set timeout=0
+set default=0
+
+serial --unit=0 --speed=115200
+terminal_input serial
+terminal_output serial
+
+menuentry "AiraOS-Octave Linux 7.2.2" {
+    linux /boot/bzImage console=ttyS0,115200 earlycon=uart8250,io,0x3f8,115200 loglevel=7
+    initrd /boot/initramfs.cpio
+}
+EOF
+
+echo "=== BUILDING ISO ===" && grub-mkrescue -o aira-octave-test.iso octave-boot-test > octave-grub-build.log 2>&1 && echo "=== ISO CREATED ===" && ls -lh aira-octave-test.iso && echo "=== BOOT FILES ===" && xorriso -indev aira-octave-test.iso -find /boot -type f 2>/dev/null | head -30 && echo && echo "============================================================" && echo "              STARTING VISIBLE QEMU TEST" && echo "============================================================" && echo "A QEMU WINDOW SHOULD APPEAR." && echo "WATCH THE SCREEN FOR GRUB OR LINUX OUTPUT." && echo && qemu-system-x86_64   -machine pc   -m 512M   -smp 1   -cdrom "$PWD/aira-octave-test.iso"   -boot order=d   -serial stdio   -monitor none   -no-reboot   -no-shutdown
+cd ~/Aira-Octave && set -e && echo "============================================================" && echo "       REBUILDING AIRAOS-OCTAVE BIOS BOOT ISO" && echo "============================================================" && rm -rf octave-boot-test aira-octave-test.iso octave-grub-build.log && mkdir -p octave-boot-test/boot/grub && cp linux-7.2.2/arch/x86/boot/bzImage octave-boot-test/boot/bzImage && cp initramfs.cpio octave-boot-test/boot/initramfs.cpio && cat > octave-boot-test/boot/grub/grub.cfg <<'EOF'
+set timeout=0
+set default=0
+
+menuentry "AiraOS-Octave Linux 7.2.2" {
+    linux /boot/bzImage console=tty0 console=ttyS0,115200 earlycon=uart8250,io,0x3f8,115200 loglevel=7
+    initrd /boot/initramfs.cpio
+}
+EOF
+
+echo "[1] Checking GRUB BIOS installation..." && command -v grub-mkrescue && command -v grub-install && command -v grub-file && echo "[2] GRUB version:" && grub-install --version && echo "[3] Rebuilding ISO..." && grub-mkrescue     --modules="biosdisk iso9660 normal linux multiboot serial terminal echo"     -o aira-octave-test.iso     octave-boot-test     > octave-grub-build.log 2>&1 && echo "[4] ISO created:" && ls -lh aira-octave-test.iso && echo "[5] Boot structure:" && xorriso -indev aira-octave-test.iso -report_el_torito plain 2>&1 && echo && echo "[6] Testing BIOS boot..." && qemu-system-x86_64     -machine pc     -m 512M     -smp 1     -drive file="$PWD/aira-octave-test.iso",media=cdrom,if=ide,readonly=on     -boot order=d     -display gtk     -serial stdio     -monitor none     -no-reboot     -no-shutdown
+clear
+cd ~/Aira-Octave && echo "============================================================" && echo "             GRUB BUILD FAILURE" && echo "============================================================" && echo && echo "=== GRUB LOG ===" && cat octave-grub-build.log && echo && echo "=== GRUB MODULE DIRECTORIES ===" && find /usr/lib/grub -maxdepth 3 -type f \( -name 'normal.mod' -o -name 'linux.mod' -o -name 'biosdisk.mod' \) 2>/dev/null | head -30 && echo && echo "=== GRUB TARGETS ===" && grub-install --target=i386-pc --print-modules 2>&1 | head -100 && echo && echo "=== GRUB-MKRESCUE HELP ===" && grub-mkrescue --help 2>&1 | head -80
+clear
+cd ~/Aira-Octave && set -e && echo "============================================================" && echo "      AIRAOS-OCTAVE BIOS GRUB ISO — CORRECT BUILD" && echo "============================================================" && rm -rf octave-boot-test aira-octave-test.iso && mkdir -p octave-boot-test/boot/grub && cp linux-7.2.2/arch/x86/boot/bzImage octave-boot-test/boot/bzImage && cp initramfs.cpio octave-boot-test/boot/initramfs.cpio && cat > octave-boot-test/boot/grub/grub.cfg <<'EOF'
+set timeout=0
+set default=0
+
+menuentry "AiraOS-Octave Linux 7.2.2" {
+    linux /boot/bzImage console=tty0 console=ttyS0,115200 earlycon=uart8250,io,0x3f8,115200 loglevel=7
+    initrd /boot/initramfs.cpio
+}
+EOF
+
+echo "[1] Building BIOS GRUB ISO..." && grub-mkrescue     -d /usr/lib/grub/i386-pc     -o aira-octave-test.iso     octave-boot-test     2>&1 && echo && echo "[2] ISO CREATED:" && ls -lh aira-octave-test.iso && echo && echo "[3] VERIFYING EL TORITO:" && xorriso -indev aira-octave-test.iso -report_el_torito plain 2>&1 && echo && echo "[4] VERIFYING KERNEL:" && grub-file --is-x86-linux linux-7.2.2/arch/x86/boot/bzImage && echo "bzImage: VALID x86 Linux kernel" && echo && echo "============================================================" && echo "                 STARTING QEMU" && echo "============================================================" && echo "Watch the QEMU window." && echo && qemu-system-x86_64     -machine pc     -m 512M     -smp 1     -drive file="$PWD/aira-octave-test.iso",media=cdrom,if=ide,readonly=on     -boot order=d     -serial stdio     -monitor none     -no-reboot     -no-shutdown
+clear
+cd ~/Aira-Octave && echo "============================================================" && echo "       AIRAOS-OCTAVE DIRECT KERNEL BOOT TEST" && echo "============================================================" && echo "Bypassing BIOS CD boot + GRUB entirely." && echo && ls -lh linux-7.2.2/arch/x86/boot/bzImage initramfs.cpio && echo && echo "Starting Linux directly..." && qemu-system-x86_64   -machine pc   -cpu max   -m 1024M   -smp 1   -kernel "$PWD/linux-7.2.2/arch/x86/boot/bzImage"   -initrd "$PWD/initramfs.cpio"   -append "console=tty0 loglevel=7 rdinit=/init"   -display gtk   -monitor none   -no-reboot   -no-shutdown
+clear
+cd ~/Aira-Octave && echo "============================================================" && echo "       AIRAOS-OCTAVE KERNEL HANDOFF DIAGNOSTIC" && echo "============================================================" && rm -f octave-direct.log octave-direct-debug.log octave-direct-err.log && echo "Kernel:" && file linux-7.2.2/arch/x86/boot/bzImage && echo "Size:" && ls -lh linux-7.2.2/arch/x86/boot/bzImage && echo && echo "Testing QEMU direct bzImage loader..." && timeout -k 2s 12s qemu-system-x86_64     -machine pc     -cpu max     -m 1024M     -smp 1     -kernel "$PWD/linux-7.2.2/arch/x86/boot/bzImage"     -initrd "$PWD/initramfs.cpio"     -append "console=ttyS0,115200 earlycon=uart8250,io,0x3f8,115200 loglevel=8 rdinit=/init"     -nographic     -monitor none     -serial file:"$PWD/octave-direct.log"     -d guest_errors,cpu_reset     -D "$PWD/octave-direct-debug.log"     -no-reboot     -no-shutdown     2>"$PWD/octave-direct-err.log" || true
+echo
+echo "============================================================"
+echo "                    QEMU ERRORS"
+echo "============================================================"
+cat octave-direct-err.log 2>/dev/null || true
+echo
+echo "============================================================"
+echo "                    SERIAL OUTPUT"
+echo "============================================================"
+if [ -f octave-direct.log ]; then     wc -c octave-direct.log;     cat octave-direct.log; else     echo "NO SERIAL OUTPUT FILE"; fi
+echo
+echo "============================================================"
+echo "                    QEMU DEBUG"
+echo "============================================================"
+grep -Ei "reset|guest_errors|triple|shutdown|exception|error"     octave-direct-debug.log 2>/dev/null | head -100 || true
+echo
+echo "============================================================"
+echo "                      VERDICT"
+echo "============================================================"
+if grep -q "Linux version" octave-direct.log 2>/dev/null; then     echo "🔥 KERNEL STARTED SUCCESSFULLY"; elif [ -s octave-direct.log ]; then     echo "KERNEL/BOOTLOADER PRODUCED OUTPUT — inspect above"; else     echo "❌ ZERO KERNEL SERIAL OUTPUT";     echo "The bzImage handoff is failing before printk reaches the serial console."; fi
+clea
+clear
+ollama
+clear
+echo "=== WSL DISTRO ==="
+cat /etc/os-release | grep -E '^(NAME|VERSION)='
+echo
+echo "=== OCTAVE ==="
+pwd
+ls -ld ~/Aira-Octave
+git -C ~/Aira-Octave rev-parse --show-toplevel
+clear
+curl -fsSL https://ollama.com/install.sh | sh
+ollama
+systemctl status ollama --no-pager
+c;ear
+clear
+cd ~/Aira-Octave
+ollama run gemma4:31b-cloud
+clear
+kiro
+clear
+irm 'https://cli.kiro.dev/install.ps1' | iex
+clear
+curl -fsSL https://kilo.ai/cli/install | bash
+run kilo
+kilo
+clear
+cd ~/Aira-Octave && set -e && echo "=== CURRENT KILO ===" && command -v kilo || true && kilo --version || true && echo && echo "=== NODE/NPM ===" && node --version || true && npm --version || true && echo && echo "=== CPU ===" && uname -m && echo && echo "=== REINSTALL KILO CLI ===" && npm uninstall -g @kilocode/cli 2>/dev/null || true && npm cache verify && npm install -g @kilocode/cli && echo && echo "=== VERIFY ===" && which kilo && kilo --version
+clear
+cd ~/Aira-Octave && echo "============================================================" && echo "             DIRECT BOOT EVIDENCE" && echo "============================================================" && echo && echo "=== SERIAL FILE ===" && if [ -f octave-direct.log ]; then     echo "SIZE=$(wc -c < octave-direct.log) bytes";     echo "--- HEX ---";     xxd -g1 -l 1024 octave-direct.log;     echo "--- TEXT ---";     cat -v octave-direct.log; else     echo "SERIAL FILE MISSING"; fi && echo && echo "=== QEMU STDERR ===" && cat octave-direct-err.log 2>/dev/null || true && echo && echo "=== KERNEL MARKERS ===" && grep -aEio 'Linux version|Kernel command line|BIOS-provided|Memory:|Command line:|Booting|Decompressing|Loading|initramfs|Freeing|Run /init|panic|Oops|BUG:|Call Trace|Unknown|failed|error' octave-direct.log 2>/dev/null | head -100 || true && echo && echo "=== VERDICT ===" && if grep -aq "Linux version" octave-direct.log 2>/dev/null; then     echo "🔥 LINUX KERNEL HAS STARTED"; else     echo "❌ NO LINUX BANNER — kernel has NOT reached normal printk output"; fi
+clear
+cd ~/Aira-Octave && echo "============================================================" && echo "      AIRAOS-OCTAVE PURE KERNEL HANDOFF TEST" && echo "============================================================" && rm -f octave-pure.log octave-pure.err && echo "QEMU:" && qemu-system-x86_64 --version | head -1 && echo "Kernel:" && file linux-7.2.2/arch/x86/boot/bzImage && echo "Kernel size:" && ls -lh linux-7.2.2/arch/x86/boot/bzImage && echo && echo "Starting with BIOS DISABLED..." && timeout -k 2s 10s qemu-system-x86_64     -machine pc     -cpu max     -m 1024M     -smp 1     -bios none     -kernel "$PWD/linux-7.2.2/arch/x86/boot/bzImage"     -initrd "$PWD/initramfs.cpio"     -append "console=ttyS0,115200 earlycon=uart8250,io,0x3f8,115200 loglevel=8 rdinit=/init"     -nographic     -monitor none     -serial file:"$PWD/octave-pure.log"     -no-reboot     -no-shutdown     2>"$PWD/octave-pure.err" || true
+echo
+echo "============================================================"
+echo "                    QEMU STDERR"
+echo "============================================================"
+cat octave-pure.err 2>/dev/null || true
+echo
+echo "============================================================"
+echo "                    KERNEL OUTPUT"
+echo "============================================================"
+if [ -f octave-pure.log ]; then     echo "SIZE=$(wc -c < octave-pure.log) bytes";     cat -v octave-pure.log; else     echo "NO OUTPUT FILE"; fi
+echo
+echo "============================================================"
+echo "                       RESULT"
+echo "============================================================"
+if grep -aq "Linux version" octave-pure.log 2>/dev/null; then     echo "🔥 SUCCESS — LINUX KERNEL RECEIVED CONTROL";     grep -a "Linux version" octave-pure.log | head -1; elif grep -aqE "Kernel command line|Memory:|Booting Linux|Freeing|initramfs|Run /init|panic|Oops|BUG:" octave-pure.log 2>/dev/null; then     echo "⚠️ KERNEL STARTED — EARLY BOOT ERROR/OUTPUT DETECTED"; else     echo "❌ NO LINUX OUTPUT";     echo "Firmware has been eliminated from this test."; fi
+clear
+cd ~/Aira-Octave && echo "============================================================" && echo "       AIRAOS-OCTAVE KERNEL BUILD VALIDATION" && echo "============================================================" && echo && echo "=== CURRENT KERNEL ===" && file linux-7.2.2/arch/x86/boot/bzImage && echo && echo "=== BUILD CONFIG ===" && grep -E '^(CONFIG_X86_64|CONFIG_X86|CONFIG_RELOCATABLE|CONFIG_RANDOMIZE_BASE|CONFIG_KERNEL_XZ|CONFIG_BLK_DEV_INITRD|CONFIG_INITRAMFS_SOURCE|CONFIG_RD_|CONFIG_DECOMPRESS|CONFIG_SERIAL_8250|CONFIG_SERIAL_8250_CONSOLE|CONFIG_EARLY_PRINTK|CONFIG_EARLY_PRINTK_DBGP|CONFIG_CMDLINE)' configs/airaos-x86_64-working.config 2>/dev/null | sort && echo && echo "=== ACTUAL .config ===" && grep -E '^(CONFIG_X86_64|CONFIG_X86|CONFIG_RELOCATABLE|CONFIG_RANDOMIZE_BASE|CONFIG_KERNEL_XZ|CONFIG_BLK_DEV_INITRD|CONFIG_INITRAMFS_SOURCE|CONFIG_RD_|CONFIG_DECOMPRESS|CONFIG_SERIAL_8250|CONFIG_SERIAL_8250_CONSOLE|CONFIG_EARLY_PRINTK|CONFIG_CMDLINE)' linux-7.2.2/.config 2>/dev/null | sort && echo && echo "=== INITRAMFS ===" && ls -lh initramfs.cpio && echo "Entries:" && cpio -it < initramfs.cpio 2>/dev/null | head -40 || true && echo && echo "=== KERNEL ENTRY SYMBOLS ===" && nm linux-7.2.2/vmlinux 2>/dev/null | grep -E ' (startup_64|x86_64_start_reservations|x86_64_start_kernel)$' || true && echo && echo "=== KERNEL BUILD ARTIFACTS ===" && ls -lh linux-7.2.2/vmlinux linux-7.2.2/arch/x86/boot/bzImage && echo && echo "=== BUILD STATUS ===" && grep -E 'Kernel:|ready|error:|Error|FAILED|warning:' logs/*/kernel-build.log logs/*/audit.log 2>/dev/null | tail -80 || true

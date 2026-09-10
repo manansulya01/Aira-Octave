@@ -1,0 +1,2 @@
+-rw-r--r-- 1 manan manan  2199892 Sep  9 11:33 /home/manan/Aira-Octave/linux-7.2.2/System.map
+-rwxr-xr-x 1 manan manan 16825168 Sep  9 11:33 /home/manan/Aira-Octave/linux-7.2.2/vmlinux

@@ -1,0 +1,4 @@
+Protocol 2.04	(Kernel 2.6.14) Extend the syssize field to four bytes.
+01F4/4		2.04+(2)	syssize			The size of the 32-bit code in 16-byte paras
+     (2) For boot protocol prior to 2.04, the upper two bytes of the syssize
+Field name:	syssize

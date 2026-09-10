@@ -1,0 +1,641 @@
+logs/octave-audit-20260908-103825/config-audit.txt:/home/manan/Aira-Octave/linux-7.2.2/scripts/config
+logs/octave-audit-20260908-103825/octave-source-scan.txt:/home/manan/Aira-Octave/logs/octave-audit-20260908-103825/config-audit.txt:49:/home/manan/Aira-Octave/linux-7.2.2/scripts/config
+logs/octave-audit-20260908-103825/octave-source-scan.txt:/home/manan/Aira-Octave/logs/octave-audit-20260908-103825/audit.log:154:/home/manan/Aira-Octave/linux-7.2.2/scripts/config
+logs/octave-audit-20260908-103825/audit.log:/home/manan/Aira-Octave/linux-7.2.2/scripts/config
+logs/octave-audit-20260908-103825/audit.log:/home/manan/Aira-Octave/logs/octave-audit-20260908-103825/config-audit.txt:49:/home/manan/Aira-Octave/linux-7.2.2/scripts/config
+logs/octave-audit-20260908-103825/audit.log:/home/manan/Aira-Octave/logs/octave-audit-20260908-103825/audit.log:154:/home/manan/Aira-Octave/linux-7.2.2/scripts/config
+logs/forensic-k3-k4-20260909113803/K3_BUILD_STATE_RECOVERY.md:- **Build Commands**: The exact shell commands used to generate the K3 `.config` (e.g., specific `scripts/config` calls) are not captured in the recovered logs.
+logs/forensic-k3-k4-20260909113803/root_commit_files.txt:100755 blob ea475c07de283ef8adde9796e5a0556c55efd5f1	linux-7.2.2/scripts/config
+logs/forensic-k3-k4-20260909113803/bash_history.txt:echo "DO NOT run make menuconfig yet."
+logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable 64BIT
+logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable X86_64
+logs/forensic-k3-k4-20260909113803/bash_history.txt:make olddefconfig
+logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable 64BIT
+logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable X86_64
+logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable SMP
+logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --set-val NR_CPUS 8
+logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable PREEMPT
+logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --set-val HZ 250
+logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable ACPI
+logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable ACPI_APEI
+logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable EFI
+logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable EFI_STUB
+logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable PCI
+logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable PCI_MSI
+logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable VIRTIO
+logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable VIRTIO_PCI
+logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable VIRTIO_BLK
+logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable VIRTIO_NET
+logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable BLK_DEV
+logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable BLOCK
+logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable BLK_DEV_NVME
+logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable NET
+logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable INET
+logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable ETHERNET
+logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable E1000
+logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable E1000E
+logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable AMD8111E
+logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable TMPFS
+logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable PROC_FS
+logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable SYSFS
+logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable DEVTMPFS
+logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable DEVTMPFS_MOUNT
+logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable DEVPTS_FS
+logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable EXT4_FS
+logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable MODULES
+logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable MODULE_UNLOAD
+logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable KERNEL_GZIP
+logs/forensic-k3-k4-20260909113803/bash_history.txt:make olddefconfig
+logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable VIRTIO
+logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable VIRTIO_PCI
+logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable VIRTIO_BLK
+logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable VIRTIO_NET
+logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable TTY
+logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable SERIAL_8250
+logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable SERIAL_8250_CONSOLE
+logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable FB
+logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable FRAMEBUFFER_CONSOLE
+logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable BLK_DEV_RAM
+logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable BLK_DEV_INITRD
+logs/forensic-k3-k4-20260909113803/bash_history.txt:make olddefconfig
+logs/forensic-k3-k4-20260909113803/bash_history.txt:make menuconfig
+logs/forensic-k3-k4-20260909113803/bash_history.txt:make menuconfig
+logs/forensic-k3-k4-20260909113803/bash_history.txt:make menuconfig
+logs/forensic-k3-k4-20260909113803/bash_history.txt:ls -l scripts/config scripts/kconfig/mconf
+logs/forensic-k3-k4-20260909113803/bash_history.txt:make menuconfig
+logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --state VIRTIO 2>/dev/null || true
+logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --state VIRTIO_PCI 2>/dev/null || true
+logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --state VIRTIO_BLK 2>/dev/null || true
+logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --state VIRTIO_NET 2>/dev/null || true
+logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --state PCI
+logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --state BLOCK
+logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --state NET
+logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable VIRTIO_MENU
+logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable VIRTIO
+logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable VIRTIO_PCI
+logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable VIRTIO_PCI_LEGACY
+logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable VIRTIO_BLK
+logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable VIRTIO_NET
+logs/forensic-k3-k4-20260909113803/bash_history.txt:make olddefconfig
+logs/forensic-k3-k4-20260909113803/bash_history.txt:cp .config ~/AiraOS-Linux/configs/airaos-x86_64.config
+logs/forensic-k3-k4-20260909113803/bash_history.txt:    cp "$CFG" "$KERNEL/.config"
+logs/forensic-k3-k4-20260909113803/bash_history.txt:    run_shell "kernel-olddefconfig" "cd '$KERNEL' && make olddefconfig"
+logs/forensic-k3-k4-20260909113803/bash_history.txt:    cp "$KERNEL/.config" "$LOGDIR/final.config"
+logs/forensic-k3-k4-20260909113803/historical_configs_found.txt:-rwxr-xr-x 1 manan manan   4899 Aug 28 06:25 ./linux-7.2.2/scripts/config
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+D: is the predecessor of 'make menuconfig' and 'make xconfig'.
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+     "make menuconfig"  Text based color menus, radiolists & dialogs.
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+     "make olddefconfig"
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+     "make defconfig"   Create a ./.config file by using the default
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+     cp ~/prepared_kernel_.config .config
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+     make olddefconfig
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+     cp .config ~/bisection-config-culprit
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+  $ ./scripts/config -d COMPILE_TEST -e DEBUG_KERNEL -e DEBUG_INFO
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+  $ ./scripts/config -d COMPILE_TEST -e DEBUG_KERNEL -e DEBUG_INFO
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+2) make menuconfig (or make xconfig)
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+make menuconfig. Client support for extended attributes (user xattr) can be
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -e PCI
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -e INPUT
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -m I2C
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -m MEDIA_SUPPORT
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -e MEDIA_PCI_SUPPORT
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -e MEDIA_ANALOG_TV_SUPPORT
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -e MEDIA_DIGITAL_TV_SUPPORT
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -e MEDIA_RADIO_SUPPORT
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -e RC_CORE
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -m VIDEO_BT848
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -m DVB_BT8XX
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -e MEDIA_SUBDRV_AUTOSELECT
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -e PCI
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -m I2C
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -m INPUT
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -m MEDIA_SUPPORT
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -e MEDIA_PCI_SUPPORT
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -e MEDIA_ANALOG_TV_SUPPORT
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -e MEDIA_DIGITAL_TV_SUPPORT
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -e MEDIA_RADIO_SUPPORT
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -e RC_CORE
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -m VIDEO_BT848
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -m DVB_BT8XX
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    $ make menuconfig
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	$ scripts/config -m RC_CORE
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	$ scripts/config -m MEDIA_SUPPORT
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -m I2C
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -m INPUT
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	$ scripts/config -e INPUT
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	$ scripts/config -e ACPI
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	$ scripts/config -e MODULES
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	$ scripts/config -m RC_CORE
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	$ scripts/config -e RC_DEVICES
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	$ scripts/config -e RC_DECODERS
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	$ scripts/config -m IR_RC5_DECODER
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	$ scripts/config -m IR_ITE_CIR
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    $ make menuconfig
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -e PCI
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -e INPUT
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -m I2C
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -m MEDIA_SUPPORT
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -e MEDIA_PCI_SUPPORT
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -e MEDIA_ANALOG_TV_SUPPORT
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -e MEDIA_DIGITAL_TV_SUPPORT
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -e MEDIA_RADIO_SUPPORT
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -e RC_CORE
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -e MEDIA_SUBDRV_AUTOSELECT
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -m VIDEO_SAA7134
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -e SAA7134_ALSA
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -e VIDEO_SAA7134_RC
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -e VIDEO_SAA7134_DVB
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -e VIDEO_SAA7134_GO7007
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    make olddefconfig
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+   ~/linux/ and run ``make olddefconfig``.
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+     make olddefconfig
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config --file .config -d DEBUG_INFO \
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    make olddefconfig
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config --file .config -d DEBUG_INFO_NONE -e DEBUG_KERNEL
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    make olddefconfig
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config --file .config --set-str SYSTEM_TRUSTED_KEYS ''
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+You at this point can use a command like ``make menuconfig`` to enable or
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+achieved by using ``make olddefconfig``, as explained in more detail by
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+using ``make olddefconfig``, as explained in more detail below.
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+version with ``make olddefconfig``. This makes the kernel's build scripts pick
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    make olddefconfig
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config --set-str CONFIG_LOCALVERSION '-local'
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -e CONFIG_LOCALVERSION_AUTO
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -d DEBUG_INFO_NONE -e KALLSYMS_ALL -e DEBUG_KERNEL \
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    make olddefconfig
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    cp .config ~/kernel-config-working
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+       cp ~/kernel-config-working .config
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+       make olddefconfig
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+       cp .config ~/bisection-config-culprit
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+       cp ~/kernel-config-working .config
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+       ./scripts/config --set-str CONFIG_LOCALVERSION '-local-cafec0cacaca0-reverted'
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    cp ~/kernel-config-working .config
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config --set-str CONFIG_LOCALVERSION '-local-foobars-fix-v1'
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    make olddefconfig
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+  'make olddefconfig' again and check if it now picked up the right config file
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config --set-str CONFIG_LOCALVERSION '-local'
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -e CONFIG_LOCALVERSION_AUTO
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -d DEBUG_INFO_NONE -e KALLSYMS_ALL -e DEBUG_KERNEL \
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -d DEBUG_INFO -d DEBUG_INFO_DWARF_TOOLCHAIN_DEFAULT \
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+     make olddefconfig
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+     cp .config ~/kernel-config-working
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    cp ~/kernel-config-working .config
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    make olddefconfig
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    cp ~/kernel-config-working .config
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    make olddefconfig
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    cp ~/kernel-config-working .config
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    make olddefconfig
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    cp ~/kernel-config-working .config
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    make olddefconfig
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    cp .config ~/bisection-config-culprit
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    cp ~/kernel-config-working .config
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config --set-str CONFIG_LOCALVERSION '-local-cafec0cacaca0-reverted'
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    make olddefconfig &&
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    cp ~/kernel-config-working .config
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+      ./scripts/config --set-str CONFIG_LOCALVERSION '-local-cafec0cacaca0-reverted'
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config --set-str CONFIG_LOCALVERSION '-local-foobars-fix-v1'
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    make olddefconfig &&
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+have to point other commands there as well -- among them the ``./scripts/config
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+  Once you put it there, run ``make olddefconfig`` again to adjust it to the
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+``make olddefconfig`` to adjust it.
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+   ./scripts/config --set-str SYSTEM_TRUSTED_KEYS ''
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+At this point you can use a command like ``make menuconfig`` or ``make nconfig``
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+  <oldconfig_bissbs>`': before running ``make olddefconfig`` for the first time,
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    cp ~/test-machine-config-working ~/linux/.config
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    cp ~/kernel-config-working .config
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    make olddefconfig &&
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+in the kernel's configuration utility (AKA "make menuconfig").
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+and then as usual ``make defconfig && make``.
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+   If using make menuconfig select the following to build the vfio_ap module::
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+      $ make menuconfig LLVM=1
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+      $ scripts/config -e AUTOFDO_CLANG
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+  If not, it will combine the two and run ``make olddefconfig`` to regenerate
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+  Kconfigs. The code which runs ``make olddefconfig`` is part of the
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	cp tools/testing/kunit/configs/default.config .kunit/.kunitconfig
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+   (For example: ``make menuconfig``) to adjust other config options.
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+   The build dir needs to be set for ``make menuconfig`` to
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+   tools like ``make menuconfig O=.kunit``. As long as its a superset of
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+      make menuconfig
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	   make menuconfig/xconfig/config
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	make menuconfig (or xconfig)
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+   - Set ksmbd in menuconfig(e.g. $ make menuconfig)
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    cp user/some/old.config .config
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+``KCONFIG_CONFIG``
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+``make menuconfig`` or ``make``.  They usually do not read or edit
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+Configure kernel with "make menuconfig" (or "make xconfig" or
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+Under kernel configuration tools (make menuconfig, for example), it is
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+#) Run 'make menuconfig' and select the new CONFIG_TCM_NAB5000 item::
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    $ make defconfig O=kernel_build
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+When configuring the kernel using make menuconfig/xconfig/oldconfig,
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+     "make menuconfig"  基于文本的彩色菜单、选项列表和对话框。
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+     "make olddefconfig"
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+     "make defconfig"   根据体系架构，使用arch/$arch/defconfig或
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+  $ ./scripts/config -d COMPILE_TEST -e DEBUG_KERNEL -e DEBUG_INFO
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+  $ ./scripts/config -d COMPILE_TEST -e DEBUG_KERNEL -e DEBUG_INFO
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+通过 ``make olddefconfig`` 来实现，详细解释参见
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+配置构建。这可以用 ``make olddefconfig`` 实现，详细解释见下。
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+用一个已知良好的内核启动机器，并用 ``make olddefconfig`` 配置新版的Linux。这
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    cp user/some/old.config .config
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+``KCONFIG_CONFIG``
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+     "make menuconfig"  基於文本的彩色菜單、選項列表和對話框。
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+     "make olddefconfig"
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+     "make defconfig"   根據體系架構，使用arch/$arch/defconfig或
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+  $ ./scripts/config -d COMPILE_TEST -e DEBUG_KERNEL -e DEBUG_INFO
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+  $ ./scripts/config -d COMPILE_TEST -e DEBUG_KERNEL -e DEBUG_INFO
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+通過 ``make olddefconfig`` 來實現，詳細解釋參見
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+配置構建。這可以用 ``make olddefconfig`` 實現，詳細解釋見下。
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+用一個已知良好的內核啓動機器，並用 ``make olddefconfig`` 配置新版的Linux。這
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+KCONFIG_CONFIG	?= .config
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+export KCONFIG_CONFIG
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+# used for 'make defconfig'
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+$(KCONFIG_CONFIG):
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	@echo >&2 '*** "make menuconfig" or "make xconfig").'
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+%/config/auto.conf %/config/auto.conf.cmd %/generated/autoconf.h %/generated/rustc_cfg: $(KCONFIG_CONFIG)
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+# make menuconfig etc.
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+cp .config $4/config-$1
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	$(Q)cp $(KCONFIG_CONFIG) $(objtree)/.config.$@
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+		KCONFIG_CONFIG=$(objtree)/.config.$@ >/dev/null
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+		$(srctree) $(objtree) $(objtree)/.config.$@ $(KCONFIG_CONFIG) \
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	grep -q "^CONFIG_KASAN=y$" "${KCONFIG_CONFIG}" && \
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+		! grep -q "^CONFIG_CC_HAS_KASAN_MEMINTRINSIC_PREFIX=y" "${KCONFIG_CONFIG}"
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+      filechk_gen_featuremasks = $(AWK) -f $(cpufeaturemasks.awk) $(cpufeatures_hdr) $(KCONFIG_CONFIG)
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+$(cpufeaturemasks.hdr): $(cpufeaturemasks.awk) $(cpufeatures_hdr) $(KCONFIG_CONFIG) FORCE
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config --enable CONFIG_$opt
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config --disable CONFIG_$opt
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+cp .config artifacts/${CI_JOB_NAME}_config
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+$(obj)/config_data: $(KCONFIG_CONFIG) FORCE
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+ make defconfig
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	$(Q)cp $(KCONFIG_CONFIG) rpmbuild/SOURCES/config
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	KBUILD_EXTRA_SYMBOL | KBUILD_KCONFIG | KCONFIG_CONFIG)
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:diff --git a/linux-7.2.2/scripts/config b/linux-7.2.2/scripts/config
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+++ b/linux-7.2.2/scripts/config
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+		yes "" | make oldconfig KCONFIG_CONFIG=$FN
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+cmd_merge_fragments = $(srctree)/scripts/kconfig/merge_config.sh -m $(KCONFIG_CONFIG) $(config-fragments)
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	char *name = getenv("KCONFIG_CONFIG");
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+#define SYMBOL_WRITE      0x0200  /* write symbol to file (KCONFIG_CONFIG) */
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	echo "  -O    dir to put generated output files.  Consider setting \$KCONFIG_CONFIG instead."
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+if [ -z "$KCONFIG_CONFIG" ]; then
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+		KCONFIG_CONFIG=$(readlink -m -- "$OUTPUT/.config")
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+		KCONFIG_CONFIG=.config
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	cp -T -- "$TMP_FILE" "$KCONFIG_CONFIG"
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	echo "# merged configuration written to $KCONFIG_CONFIG (needs make)"
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+"$KCONFIG_CONFIG" "$TMP_FILE"; then
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+#    cp /boot/config-2.6.10-1-686-smp .config
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+		die ".config mismatch, check your .config or run 'make olddefconfig'"
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	cp .config "${builddir}/.config"
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+		cp ${KCONFIG_CONFIG} "${pdir}/usr/share/doc/${pname}/config"
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+		cp ${KCONFIG_CONFIG} "${pdir}/boot/config-${KERNELRELEASE}"
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+cp -v -- "${KCONFIG_CONFIG}" "${tmpdir}/boot/config-${KERNELRELEASE}"
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+cp %{SOURCE1} .config
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+cp .config %{buildroot}/lib/modules/%{KERNELRELEASE}/config
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+		diff -u /dev/null "${KCONFIG_CONFIG}" | tail -n +3
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    "KCONFIG_CONFIG",
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    if (!run_command "$make olddefconfig") {
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    if (!run_command "$make olddefconfig") {
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    # do a make olddefconfig and then read the resulting
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+#   the config that comes with "make defconfig".
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+#  It will build a config with "make defconfig"
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+			    -j ${NUM_COMPILE_JOBS} KCONFIG_CONFIG=${kconfig_file}"
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+scripts/config "${FLAGS[@]}" --enable CONFIG_RDS
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+scripts/config "${FLAGS[@]}" --enable CONFIG_RDS_TCP
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	scripts/config "${FLAGS[@]}" --enable CONFIG_GCOV_KERNEL
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	scripts/config "${FLAGS[@]}" --disable GCOV_PROFILE_ALL
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	scripts/config "${FLAGS[@]}" --enable GCOV_PROFILE_RDS
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	scripts/config "${FLAGS[@]}" --disable CONFIG_GCOV_KERNEL
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	scripts/config "${FLAGS[@]}" --disable GCOV_PROFILE_ALL
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	scripts/config "${FLAGS[@]}" --disable GCOV_PROFILE_RDS
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+scripts/config "${FLAGS[@]}" --enable CONFIG_NET_NS
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+scripts/config "${FLAGS[@]}" --enable CONFIG_VETH
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+scripts/config "${FLAGS[@]}" --enable CONFIG_NET_SCH_NETEM
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	scripts/config "${FLAGS[@]}" --enable CONFIG_INFINIBAND
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	scripts/config "${FLAGS[@]}" --enable CONFIG_INFINIBAND_ADDR_TRANS
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	scripts/config "${FLAGS[@]}" --enable CONFIG_RDMA_RXE
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	scripts/config "${FLAGS[@]}" --enable CONFIG_RDS_RDMA
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+		$(srctree)/scripts/config --file $(objtree)/.config $(EXTRACONFIG); \
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+cp .config .config.new
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	cp .config $resdir
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	cp .config $resdir || :
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+		cp .config $amcdir
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	cp kernel.config $(KERNEL_BUILD_PATH)/minimal.config
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	$(if $(findstring yes,$(DEBUG_KERNEL)),cp debug.config $(KERNEL_BUILD_PATH) && cd $(KERNEL_BUILD_PATH) && ARCH=$(KERNEL_ARCH) $(KERNEL_PATH)/scripts/kconfig/merge_config.sh -n $(KERNEL_BUILD_PATH)/.config debug.config,)
+logs/forensic-k3-k4-20260909113803/all_configs.txt:./linux-7.2.2/scripts/config
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/octave-audit-20260908-103825/config-audit.txt:/home/manan/Aira-Octave/linux-7.2.2/scripts/config
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/octave-audit-20260908-103825/octave-source-scan.txt:/home/manan/Aira-Octave/logs/octave-audit-20260908-103825/config-audit.txt:49:/home/manan/Aira-Octave/linux-7.2.2/scripts/config
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/octave-audit-20260908-103825/octave-source-scan.txt:/home/manan/Aira-Octave/logs/octave-audit-20260908-103825/audit.log:154:/home/manan/Aira-Octave/linux-7.2.2/scripts/config
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/octave-audit-20260908-103825/audit.log:/home/manan/Aira-Octave/linux-7.2.2/scripts/config
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/octave-audit-20260908-103825/audit.log:/home/manan/Aira-Octave/logs/octave-audit-20260908-103825/config-audit.txt:49:/home/manan/Aira-Octave/linux-7.2.2/scripts/config
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/octave-audit-20260908-103825/audit.log:/home/manan/Aira-Octave/logs/octave-audit-20260908-103825/audit.log:154:/home/manan/Aira-Octave/linux-7.2.2/scripts/config
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/root_commit_files.txt:100755 blob ea475c07de283ef8adde9796e5a0556c55efd5f1	linux-7.2.2/scripts/config
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:echo "DO NOT run make menuconfig yet."
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable 64BIT
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable X86_64
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:make olddefconfig
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable 64BIT
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable X86_64
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable SMP
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --set-val NR_CPUS 8
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable PREEMPT
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --set-val HZ 250
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable ACPI
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable ACPI_APEI
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable EFI
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable EFI_STUB
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable PCI
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable PCI_MSI
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable VIRTIO
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable VIRTIO_PCI
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable VIRTIO_BLK
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable VIRTIO_NET
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable BLK_DEV
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable BLOCK
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable BLK_DEV_NVME
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable NET
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable INET
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable ETHERNET
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable E1000
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable E1000E
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable AMD8111E
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable TMPFS
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable PROC_FS
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable SYSFS
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable DEVTMPFS
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable DEVTMPFS_MOUNT
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable DEVPTS_FS
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable EXT4_FS
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable MODULES
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable MODULE_UNLOAD
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable KERNEL_GZIP
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:make olddefconfig
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable VIRTIO
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable VIRTIO_PCI
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable VIRTIO_BLK
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable VIRTIO_NET
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable TTY
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable SERIAL_8250
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable SERIAL_8250_CONSOLE
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable FB
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable FRAMEBUFFER_CONSOLE
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable BLK_DEV_RAM
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable BLK_DEV_INITRD
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:make olddefconfig
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:make menuconfig
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:make menuconfig
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:make menuconfig
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:ls -l scripts/config scripts/kconfig/mconf
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:make menuconfig
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --state VIRTIO 2>/dev/null || true
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --state VIRTIO_PCI 2>/dev/null || true
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --state VIRTIO_BLK 2>/dev/null || true
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --state VIRTIO_NET 2>/dev/null || true
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --state PCI
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --state BLOCK
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --state NET
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable VIRTIO_MENU
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable VIRTIO
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable VIRTIO_PCI
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable VIRTIO_PCI_LEGACY
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable VIRTIO_BLK
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:scripts/config --enable VIRTIO_NET
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:make olddefconfig
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:cp .config ~/AiraOS-Linux/configs/airaos-x86_64.config
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:    cp "$CFG" "$KERNEL/.config"
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:    run_shell "kernel-olddefconfig" "cd '$KERNEL' && make olddefconfig"
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:    cp "$KERNEL/.config" "$LOGDIR/final.config"
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/historical_configs_found.txt:-rwxr-xr-x 1 manan manan   4899 Aug 28 06:25 ./linux-7.2.2/scripts/config
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+D: is the predecessor of 'make menuconfig' and 'make xconfig'.
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+     "make menuconfig"  Text based color menus, radiolists & dialogs.
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+     "make olddefconfig"
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+     "make defconfig"   Create a ./.config file by using the default
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+     cp ~/prepared_kernel_.config .config
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+     make olddefconfig
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+     cp .config ~/bisection-config-culprit
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+  $ ./scripts/config -d COMPILE_TEST -e DEBUG_KERNEL -e DEBUG_INFO
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+  $ ./scripts/config -d COMPILE_TEST -e DEBUG_KERNEL -e DEBUG_INFO
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+2) make menuconfig (or make xconfig)
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+make menuconfig. Client support for extended attributes (user xattr) can be
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -e PCI
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -e INPUT
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -m I2C
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -m MEDIA_SUPPORT
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -e MEDIA_PCI_SUPPORT
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -e MEDIA_ANALOG_TV_SUPPORT
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -e MEDIA_DIGITAL_TV_SUPPORT
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -e MEDIA_RADIO_SUPPORT
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -e RC_CORE
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -m VIDEO_BT848
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -m DVB_BT8XX
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -e MEDIA_SUBDRV_AUTOSELECT
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -e PCI
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -m I2C
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -m INPUT
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -m MEDIA_SUPPORT
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -e MEDIA_PCI_SUPPORT
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -e MEDIA_ANALOG_TV_SUPPORT
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -e MEDIA_DIGITAL_TV_SUPPORT
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -e MEDIA_RADIO_SUPPORT
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -e RC_CORE
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -m VIDEO_BT848
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -m DVB_BT8XX
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    $ make menuconfig
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	$ scripts/config -m RC_CORE
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	$ scripts/config -m MEDIA_SUPPORT
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -m I2C
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -m INPUT
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	$ scripts/config -e INPUT
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	$ scripts/config -e ACPI
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	$ scripts/config -e MODULES
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	$ scripts/config -m RC_CORE
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	$ scripts/config -e RC_DEVICES
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	$ scripts/config -e RC_DECODERS
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	$ scripts/config -m IR_RC5_DECODER
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	$ scripts/config -m IR_ITE_CIR
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    $ make menuconfig
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -e PCI
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -e INPUT
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -m I2C
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -m MEDIA_SUPPORT
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -e MEDIA_PCI_SUPPORT
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -e MEDIA_ANALOG_TV_SUPPORT
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -e MEDIA_DIGITAL_TV_SUPPORT
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -e MEDIA_RADIO_SUPPORT
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -e RC_CORE
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -e MEDIA_SUBDRV_AUTOSELECT
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -m VIDEO_SAA7134
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -e SAA7134_ALSA
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -e VIDEO_SAA7134_RC
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -e VIDEO_SAA7134_DVB
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -e VIDEO_SAA7134_GO7007
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    make olddefconfig
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+   ~/linux/ and run ``make olddefconfig``.
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+     make olddefconfig
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config --file .config -d DEBUG_INFO \
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    make olddefconfig
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config --file .config -d DEBUG_INFO_NONE -e DEBUG_KERNEL
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    make olddefconfig
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config --file .config --set-str SYSTEM_TRUSTED_KEYS ''
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+You at this point can use a command like ``make menuconfig`` to enable or
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+achieved by using ``make olddefconfig``, as explained in more detail by
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+using ``make olddefconfig``, as explained in more detail below.
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+version with ``make olddefconfig``. This makes the kernel's build scripts pick
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    make olddefconfig
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config --set-str CONFIG_LOCALVERSION '-local'
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -e CONFIG_LOCALVERSION_AUTO
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -d DEBUG_INFO_NONE -e KALLSYMS_ALL -e DEBUG_KERNEL \
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    make olddefconfig
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    cp .config ~/kernel-config-working
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+       cp ~/kernel-config-working .config
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+       make olddefconfig
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+       cp .config ~/bisection-config-culprit
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+       cp ~/kernel-config-working .config
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+       ./scripts/config --set-str CONFIG_LOCALVERSION '-local-cafec0cacaca0-reverted'
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    cp ~/kernel-config-working .config
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config --set-str CONFIG_LOCALVERSION '-local-foobars-fix-v1'
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    make olddefconfig
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+  'make olddefconfig' again and check if it now picked up the right config file
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config --set-str CONFIG_LOCALVERSION '-local'
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -e CONFIG_LOCALVERSION_AUTO
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -d DEBUG_INFO_NONE -e KALLSYMS_ALL -e DEBUG_KERNEL \
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config -d DEBUG_INFO -d DEBUG_INFO_DWARF_TOOLCHAIN_DEFAULT \
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+     make olddefconfig
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+     cp .config ~/kernel-config-working
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    cp ~/kernel-config-working .config
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    make olddefconfig
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    cp ~/kernel-config-working .config
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    make olddefconfig
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    cp ~/kernel-config-working .config
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    make olddefconfig
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    cp ~/kernel-config-working .config
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    make olddefconfig
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    cp .config ~/bisection-config-culprit
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    cp ~/kernel-config-working .config
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config --set-str CONFIG_LOCALVERSION '-local-cafec0cacaca0-reverted'
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    make olddefconfig &&
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    cp ~/kernel-config-working .config
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+      ./scripts/config --set-str CONFIG_LOCALVERSION '-local-cafec0cacaca0-reverted'
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config --set-str CONFIG_LOCALVERSION '-local-foobars-fix-v1'
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    make olddefconfig &&
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+have to point other commands there as well -- among them the ``./scripts/config
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+  Once you put it there, run ``make olddefconfig`` again to adjust it to the
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+``make olddefconfig`` to adjust it.
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+   ./scripts/config --set-str SYSTEM_TRUSTED_KEYS ''
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+At this point you can use a command like ``make menuconfig`` or ``make nconfig``
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+  <oldconfig_bissbs>`': before running ``make olddefconfig`` for the first time,
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    cp ~/test-machine-config-working ~/linux/.config
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    cp ~/kernel-config-working .config
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    make olddefconfig &&
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+in the kernel's configuration utility (AKA "make menuconfig").
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+and then as usual ``make defconfig && make``.
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+   If using make menuconfig select the following to build the vfio_ap module::
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+      $ make menuconfig LLVM=1
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+      $ scripts/config -e AUTOFDO_CLANG
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+  If not, it will combine the two and run ``make olddefconfig`` to regenerate
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+  Kconfigs. The code which runs ``make olddefconfig`` is part of the
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	cp tools/testing/kunit/configs/default.config .kunit/.kunitconfig
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+   (For example: ``make menuconfig``) to adjust other config options.
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+   The build dir needs to be set for ``make menuconfig`` to
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+   tools like ``make menuconfig O=.kunit``. As long as its a superset of
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+      make menuconfig
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	   make menuconfig/xconfig/config
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	make menuconfig (or xconfig)
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+   - Set ksmbd in menuconfig(e.g. $ make menuconfig)
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    cp user/some/old.config .config
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+``KCONFIG_CONFIG``
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+``make menuconfig`` or ``make``.  They usually do not read or edit
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+Configure kernel with "make menuconfig" (or "make xconfig" or
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+Under kernel configuration tools (make menuconfig, for example), it is
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+#) Run 'make menuconfig' and select the new CONFIG_TCM_NAB5000 item::
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    $ make defconfig O=kernel_build
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+When configuring the kernel using make menuconfig/xconfig/oldconfig,
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+     "make menuconfig"  基于文本的彩色菜单、选项列表和对话框。
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+     "make olddefconfig"
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+     "make defconfig"   根据体系架构，使用arch/$arch/defconfig或
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+  $ ./scripts/config -d COMPILE_TEST -e DEBUG_KERNEL -e DEBUG_INFO
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+  $ ./scripts/config -d COMPILE_TEST -e DEBUG_KERNEL -e DEBUG_INFO
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+通过 ``make olddefconfig`` 来实现，详细解释参见
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+配置构建。这可以用 ``make olddefconfig`` 实现，详细解释见下。
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+用一个已知良好的内核启动机器，并用 ``make olddefconfig`` 配置新版的Linux。这
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    cp user/some/old.config .config
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+``KCONFIG_CONFIG``
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+     "make menuconfig"  基於文本的彩色菜單、選項列表和對話框。
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+     "make olddefconfig"
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+     "make defconfig"   根據體系架構，使用arch/$arch/defconfig或
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+  $ ./scripts/config -d COMPILE_TEST -e DEBUG_KERNEL -e DEBUG_INFO
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+  $ ./scripts/config -d COMPILE_TEST -e DEBUG_KERNEL -e DEBUG_INFO
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+通過 ``make olddefconfig`` 來實現，詳細解釋參見
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+配置構建。這可以用 ``make olddefconfig`` 實現，詳細解釋見下。
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+用一個已知良好的內核啓動機器，並用 ``make olddefconfig`` 配置新版的Linux。這
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+KCONFIG_CONFIG	?= .config
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+export KCONFIG_CONFIG
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+# used for 'make defconfig'
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+$(KCONFIG_CONFIG):
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	@echo >&2 '*** "make menuconfig" or "make xconfig").'
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+%/config/auto.conf %/config/auto.conf.cmd %/generated/autoconf.h %/generated/rustc_cfg: $(KCONFIG_CONFIG)
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+# make menuconfig etc.
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+cp .config $4/config-$1
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	$(Q)cp $(KCONFIG_CONFIG) $(objtree)/.config.$@
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+		KCONFIG_CONFIG=$(objtree)/.config.$@ >/dev/null
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+		$(srctree) $(objtree) $(objtree)/.config.$@ $(KCONFIG_CONFIG) \
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	grep -q "^CONFIG_KASAN=y$" "${KCONFIG_CONFIG}" && \
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+		! grep -q "^CONFIG_CC_HAS_KASAN_MEMINTRINSIC_PREFIX=y" "${KCONFIG_CONFIG}"
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+      filechk_gen_featuremasks = $(AWK) -f $(cpufeaturemasks.awk) $(cpufeatures_hdr) $(KCONFIG_CONFIG)
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+$(cpufeaturemasks.hdr): $(cpufeaturemasks.awk) $(cpufeatures_hdr) $(KCONFIG_CONFIG) FORCE
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config --enable CONFIG_$opt
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    ./scripts/config --disable CONFIG_$opt
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+cp .config artifacts/${CI_JOB_NAME}_config
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+$(obj)/config_data: $(KCONFIG_CONFIG) FORCE
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+ make defconfig
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	$(Q)cp $(KCONFIG_CONFIG) rpmbuild/SOURCES/config
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	KBUILD_EXTRA_SYMBOL | KBUILD_KCONFIG | KCONFIG_CONFIG)
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:diff --git a/linux-7.2.2/scripts/config b/linux-7.2.2/scripts/config
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+++ b/linux-7.2.2/scripts/config
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+		yes "" | make oldconfig KCONFIG_CONFIG=$FN
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+cmd_merge_fragments = $(srctree)/scripts/kconfig/merge_config.sh -m $(KCONFIG_CONFIG) $(config-fragments)
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	char *name = getenv("KCONFIG_CONFIG");
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+#define SYMBOL_WRITE      0x0200  /* write symbol to file (KCONFIG_CONFIG) */
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	echo "  -O    dir to put generated output files.  Consider setting \$KCONFIG_CONFIG instead."
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+if [ -z "$KCONFIG_CONFIG" ]; then
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+		KCONFIG_CONFIG=$(readlink -m -- "$OUTPUT/.config")
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+		KCONFIG_CONFIG=.config
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	cp -T -- "$TMP_FILE" "$KCONFIG_CONFIG"
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	echo "# merged configuration written to $KCONFIG_CONFIG (needs make)"
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+"$KCONFIG_CONFIG" "$TMP_FILE"; then
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+#    cp /boot/config-2.6.10-1-686-smp .config
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+		die ".config mismatch, check your .config or run 'make olddefconfig'"
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	cp .config "${builddir}/.config"
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+		cp ${KCONFIG_CONFIG} "${pdir}/usr/share/doc/${pname}/config"
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+		cp ${KCONFIG_CONFIG} "${pdir}/boot/config-${KERNELRELEASE}"
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+cp -v -- "${KCONFIG_CONFIG}" "${tmpdir}/boot/config-${KERNELRELEASE}"
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+cp %{SOURCE1} .config
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+cp .config %{buildroot}/lib/modules/%{KERNELRELEASE}/config
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+		diff -u /dev/null "${KCONFIG_CONFIG}" | tail -n +3
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    "KCONFIG_CONFIG",
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    if (!run_command "$make olddefconfig") {
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    if (!run_command "$make olddefconfig") {
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+    # do a make olddefconfig and then read the resulting
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+#   the config that comes with "make defconfig".
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+#  It will build a config with "make defconfig"
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+			    -j ${NUM_COMPILE_JOBS} KCONFIG_CONFIG=${kconfig_file}"
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+scripts/config "${FLAGS[@]}" --enable CONFIG_RDS
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+scripts/config "${FLAGS[@]}" --enable CONFIG_RDS_TCP
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	scripts/config "${FLAGS[@]}" --enable CONFIG_GCOV_KERNEL
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	scripts/config "${FLAGS[@]}" --disable GCOV_PROFILE_ALL
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	scripts/config "${FLAGS[@]}" --enable GCOV_PROFILE_RDS
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	scripts/config "${FLAGS[@]}" --disable CONFIG_GCOV_KERNEL
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	scripts/config "${FLAGS[@]}" --disable GCOV_PROFILE_ALL
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	scripts/config "${FLAGS[@]}" --disable GCOV_PROFILE_RDS
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+scripts/config "${FLAGS[@]}" --enable CONFIG_NET_NS
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+scripts/config "${FLAGS[@]}" --enable CONFIG_VETH
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+scripts/config "${FLAGS[@]}" --enable CONFIG_NET_SCH_NETEM
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	scripts/config "${FLAGS[@]}" --enable CONFIG_INFINIBAND
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	scripts/config "${FLAGS[@]}" --enable CONFIG_INFINIBAND_ADDR_TRANS
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	scripts/config "${FLAGS[@]}" --enable CONFIG_RDMA_RXE
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	scripts/config "${FLAGS[@]}" --enable CONFIG_RDS_RDMA
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+		$(srctree)/scripts/config --file $(objtree)/.config $(EXTRACONFIG); \
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+cp .config .config.new
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	cp .config $resdir
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	cp .config $resdir || :
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+		cp .config $amcdir
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	cp kernel.config $(KERNEL_BUILD_PATH)/minimal.config
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	$(if $(findstring yes,$(DEBUG_KERNEL)),cp debug.config $(KERNEL_BUILD_PATH) && cd $(KERNEL_BUILD_PATH) && ARCH=$(KERNEL_ARCH) $(KERNEL_PATH)/scripts/kconfig/merge_config.sh -n $(KERNEL_BUILD_PATH)/.config debug.config,)
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/all_configs.txt:./linux-7.2.2/scripts/config
+logs/forensic-k3-k4-20260909113803/config_command_evidence.txt:logs/forensic-k3-k4-20260909113803/config_tracked.txt:100755 blob ea475c07de283ef8adde9796e5a0556c55efd5f1	linux-7.2.2/scripts/config
+logs/forensic-k3-k4-20260909113803/config_tracked.txt:100755 blob ea475c07de283ef8adde9796e5a0556c55efd5f1	linux-7.2.2/scripts/config

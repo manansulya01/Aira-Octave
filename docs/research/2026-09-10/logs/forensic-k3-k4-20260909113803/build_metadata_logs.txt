@@ -1,0 +1,6 @@
+logs/autonomous-20260830-063845.log:[7mecho "OK: initramfs.cpio exists ($(du -h initramfs.cpio | cut -f1))" && \[27m
+logs/autonomous-20260830-063845.log:echo "OK: initramfs.cpio exists ($(du -h initramfs.cpio | cut -f1))" && \
+logs/forensic-k3-k4-20260909113803/bash_build_history.txt:if [ -f arch/x86/boot/bzImage ]; then     echo "SUCCESS: bzImage created";     ls -lh arch/x86/boot/bzImage;     file arch/x86/boot/bzImage; else     echo "ERROR: bzImage was NOT created"; fi
+logs/forensic-k3-k4-20260909113803/bash_history.txt:if [ -f arch/x86/boot/bzImage ]; then     echo "SUCCESS: bzImage created";     ls -lh arch/x86/boot/bzImage;     file arch/x86/boot/bzImage; else     echo "ERROR: bzImage was NOT created"; fi
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+echo Build-products tarball: `du -h $T/binres.tgz` | tee -a "$oldrun/remote-log"
+logs/forensic-k3-k4-20260909113803/k3_file_output.txt:logs/forensic-k3-k4-20260909113803/bash_history.txt:if [ -f arch/x86/boot/bzImage ]; then     echo "SUCCESS: bzImage created";     ls -lh arch/x86/boot/bzImage;     file arch/x86/boot/bzImage; else     echo "ERROR: bzImage was NOT created"; fi

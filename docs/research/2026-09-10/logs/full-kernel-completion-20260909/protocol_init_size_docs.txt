@@ -1,0 +1,5 @@
+		beyond the kernel_alignment added, new init_size and
+0260/4		2.10+		init_size		Linear memory required during initialization
+Field name:	init_size
+   memory_window_size = init_size;
+The range with setup_header.init_size from start address of loaded
