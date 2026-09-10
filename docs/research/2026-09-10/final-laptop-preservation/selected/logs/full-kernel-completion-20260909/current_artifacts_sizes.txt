@@ -1,0 +1,5 @@
+-rw-r--r-- 1 manan manan 3.2M Sep  9 12:12 linux-7.2.2/arch/x86/boot/bzImage
+-rwxr-xr-x 1 manan manan 3.2M Sep  9 12:12 linux-7.2.2/arch/x86/boot/compressed/vmlinux
+-rwxr-xr-x 1 manan manan  14M Sep  9 12:12 linux-7.2.2/arch/x86/boot/compressed/vmlinux.bin
+-rwxr-xr-x 1 manan manan  15K Sep  9 12:12 linux-7.2.2/arch/x86/boot/setup.bin
+-rwxr-xr-x 1 manan manan  17M Sep  9 12:12 linux-7.2.2/vmlinux

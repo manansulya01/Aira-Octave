@@ -1,0 +1,1 @@
+grub-mkrescue: error: cannot open `/usr/lib/grub/x86_64-efi/biosdisk.mod': No such file or directory.

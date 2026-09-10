@@ -1,0 +1,4 @@
+make: Entering directory '/home/manan/Aira-Octave/linux-7.2.2'
+  DESCEND objtool
+Kernel: arch/x86/boot/bzImage is ready  (#3)
+make: Leaving directory '/home/manan/Aira-Octave/linux-7.2.2'

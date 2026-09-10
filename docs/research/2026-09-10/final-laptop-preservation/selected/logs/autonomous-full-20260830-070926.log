@@ -1,0 +1,126 @@
+
+==============================================================
+[1] INITIAL PROJECT SNAPSHOT
+==============================================================
+DATE=Sun Aug 30 07:09:26 UTC 2026
+HOST=IPAD-SERVER
+PWD=/home/manan/Aira-Octave
+GIT=83a73251c
+BRANCH=main
+ M initramfs.cpio
+?? logs/initramfs-result.txt
+?? logs/initramfs.sha256
+
+==============================================================
+[2] VERIFY TOOLCHAIN
+==============================================================
+OK: gcc -> /usr/bin/gcc
+OK: make -> /usr/bin/make
+OK: nasm -> /usr/bin/nasm
+OK: ld -> /usr/bin/ld
+OK: cpio -> /usr/bin/cpio
+OK: gzip -> /usr/bin/gzip
+OK: qemu-system-x86_64 -> /usr/bin/qemu-system-x86_64
+
+==============================================================
+[3] VERIFY INITRAMFS SOURCE
+==============================================================
+PASS: initramfs/init exists and is executable
+PASS: BusyBox exists and is executable
+PASS: BusyBox shell symlink exists
+
+==============================================================
+[4] REBUILD INITRAMFS
+==============================================================
+4288 blocks
+PASS: initramfs.cpio rebuilt
+-rw-r--r-- 1 manan manan 2.1M Aug 30 07:09 initramfs.cpio
+
+==============================================================
+[5] VERIFY INITRAMFS CONTENT
+==============================================================
+4288 blocks
+PASS: initramfs contains init
+PASS: initramfs contains bin/busybox
+PASS: initramfs contains bin/sh
+PASS: initramfs contains bin/mount
+PASS: initramfs contains bin/uname
+PASS: initramfs contains bin/dmesg
+
+==============================================================
+[6] VERIFY INIT SCRIPT
+==============================================================
+----- initramfs/init -----
+#!/bin/sh
+
+echo
+echo "========================================"
+echo "          AIRAOS LINUX"
+echo "========================================"
+echo
+
+mount -t devtmpfs devtmpfs /dev
+mount -t proc proc /proc
+mount -t sysfs sysfs /sys
+
+echo "AiraOS Linux kernel is alive."
+echo
+
+echo "Kernel:"
+uname -a
+echo
+
+echo "CPU:"
+grep -m1 "model name" /proc/cpuinfo
+echo
+
+echo "Memory:"
+grep MemTotal /proc/meminfo
+echo
+
+echo "========================================"
+echo "        AiraOS userspace ready"
+echo "========================================"
+echo
+
+echo "Available commands:"
+echo "  ls  cat  ps  free  mount  dmesg  uname"
+echo
+
+exec /bin/sh
+--------------------------
+PASS: /init has /bin/sh interpreter
+
+==============================================================
+[7] CHECK LINUX CONFIG
+==============================================================
+CONFIG_BLK_DEV_INITRD=y
+CONFIG_INITRAMFS_SOURCE=""
+CONFIG_64BIT=y
+CONFIG_X86_64=y
+CONFIG_DEVTMPFS=y
+CONFIG_DEVTMPFS_MOUNT=y
+CONFIG_PROC_FS=y
+CONFIG_SYSFS=y
+CONFIG_TMPFS=y
+PASS: Linux INITRD support enabled
+
+==============================================================
+[8] REBUILD LINUX KERNEL
+==============================================================
+make: Entering directory '/home/manan/Aira-Octave/linux-7.2.2'
+  DESCEND objtool
+Kernel: arch/x86/boot/bzImage is ready  (#3)
+make: Leaving directory '/home/manan/Aira-Octave/linux-7.2.2'
+PASS: Linux bzImage built
+-rw-r--r-- 1 manan manan 15M Aug 30 06:20 linux-7.2.2/arch/x86/boot/bzImage
+
+==============================================================
+[9] CREATE AUTONOMOUS BOOT SCRIPT
+==============================================================
+PASS: Autonomous QEMU boot script created
+
+==============================================================
+[10] BOOT TEST
+==============================================================
+Starting QEMU timeout test...

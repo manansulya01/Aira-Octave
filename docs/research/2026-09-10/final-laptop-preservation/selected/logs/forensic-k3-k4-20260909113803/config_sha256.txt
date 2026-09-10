@@ -1,0 +1,1 @@
+2d6f6b3ef65a9cda008ff39d5523e1b250e416e3eb6dc1f58a31684e4fbcd64c  /home/manan/Aira-Octave/linux-7.2.2/.config

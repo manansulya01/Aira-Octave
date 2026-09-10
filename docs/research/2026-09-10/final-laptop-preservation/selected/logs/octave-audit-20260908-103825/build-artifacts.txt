@@ -1,0 +1,15 @@
+Kernel image:
+-rw-r--r-- 1 manan manan 2.4M Sep  8 10:40 /home/manan/Aira-Octave/linux-7.2.2/arch/x86/boot/bzImage
+/home/manan/Aira-Octave/linux-7.2.2/arch/x86/boot/bzImage: Linux kernel x86 boot executable, bzImage, version 7.2.2 (manan@IPAD-SERVER) #4 SMP PREEMPT Tue Sep  8 10:40:39 UTC 2026, RO-rootFS, Normal VGA, setup size 512*31, syssize 0x25140, jump 0x26c 0x8cd88ec0fc8cd239 instruction, protocol 2.15, from protected-mode code at offset 0x2c4 0x243818 bytes XZ compressed, relocatable, handover offset 0x24bc91, legacy 64-bit entry point, can be above 4G, 64-bit EFI handoff entry point, xloadflags bit 5, max cmdline size 2047, init_size 0xde9000
+92625229a8e270a4279376a688428ef082c866747ff4222b3c9ea61f47fe3b45  /home/manan/Aira-Octave/linux-7.2.2/arch/x86/boot/bzImage
+
+Kernel System.map:
+-rw-r--r-- 1 manan manan 2.1M Sep  8 10:40 /home/manan/Aira-Octave/linux-7.2.2/System.map
+5632352a6ff819bde920b13c44953e678a20515f7d43473fc363e1862554d2c3  /home/manan/Aira-Octave/linux-7.2.2/System.map
+
+Kernel modules:
+12
+
+VMLINUX:
+-rwxr-xr-x 1 manan manan 17M Sep  8 10:40 /home/manan/Aira-Octave/linux-7.2.2/vmlinux
+/home/manan/Aira-Octave/linux-7.2.2/vmlinux: ELF 64-bit LSB executable, x86-64, version 1 (SYSV), statically linked, BuildID[sha1]=a7597662ac0d897bfd0226a300ed363667773c69, not stripped

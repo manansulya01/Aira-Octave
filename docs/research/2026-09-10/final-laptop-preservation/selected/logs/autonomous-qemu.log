@@ -1,0 +1,1 @@
+qemu: error reading initrd initramfs.cpio: Failed to open file “initramfs.cpio”: open() failed: No such file or directory

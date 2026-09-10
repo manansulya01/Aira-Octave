@@ -1,0 +1,11 @@
+AIRA OCTAVE QEMU BOOT
+Kernel: /home/manan/Aira-Octave/linux-7.2.2/arch/x86/boot/bzImage
+Initramfs: /home/manan/Aira-Octave/initramfs.cpio
+c[?7l[2J[0mSeaBIOS (version 1.17.0-debian-1.17.0-1ubuntu1)
+
+
+iPXE (https://ipxe.org) 00:03.0 CA00 PCI2.10 PnP PMM+1EFC8BD0+1EF08BD0 CA00
+Press Ctrl-B to configure iPXE (PCI 00:03.0)...                                                                               
+
+
+Booting from ROM..c[?7l[2Jqemu-system-x86_64: terminating on signal 15 from pid 53938 (timeout)

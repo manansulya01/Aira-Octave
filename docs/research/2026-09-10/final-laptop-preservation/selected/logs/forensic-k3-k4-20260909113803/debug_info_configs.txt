@@ -1,0 +1,14 @@
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	CONFIG_DEBUG_INFO=y
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+  If you build your kernel with debug info (CONFIG_DEBUG_INFO=y), you can
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+CONFIG_DEBUG_INFO=y
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+CONFIG_DEBUG_INFO=y
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+if grep -q CONFIG_DEBUG_INFO=y include/config/auto.conf &&
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+			pr_warning("Rebuild with CONFIG_DEBUG_INFO=y, ");
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+				"please rebuild kernel with CONFIG_DEBUG_INFO=y.\n");
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+CONFIG_DEBUG_INFO=y
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+CONFIG_DEBUG_INFO=y
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+CONFIG_DEBUG_INFO=y
+logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+CONFIG_DEBUG_INFO=y
+logs/forensic-k3-k4-20260909113803/historical_config_values.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+	CONFIG_DEBUG_INFO=y
+logs/forensic-k3-k4-20260909113803/historical_config_values.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+  If you build your kernel with debug info (CONFIG_DEBUG_INFO=y), you can
+logs/forensic-k3-k4-20260909113803/historical_config_values.txt:logs/forensic-k3-k4-20260909113803/commit_f677e7377.txt:+CONFIG_DEBUG_INFO=y

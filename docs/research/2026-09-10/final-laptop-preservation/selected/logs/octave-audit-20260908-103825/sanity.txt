@@ -1,0 +1,1005 @@
+Undefined symbols in vmlinux, if available:
+
+Kernel warnings from build log:
+
+Suspicious TODO/FIXME/HACK markers in custom/root files:
+/home/manan/Aira-Octave/configs/airaos-x86_64.config:679:CONFIG_HAVE_JUMP_LABEL_HACK=y
+/home/manan/Aira-Octave/configs/airaos-x86_64.config:680:CONFIG_HAVE_NOINSTR_HACK=y
+/home/manan/Aira-Octave/configs/airaos-x86_64.config:1310:# CONFIG_MOUSE_VSXXXAA is not set
+/home/manan/Aira-Octave/configs/airaos-x86_64.config:1364:# CONFIG_SERIAL_8250_PCI1XXXX is not set
+/home/manan/Aira-Octave/configs/airaos-x86_64.config:1447:# CONFIG_BATTERY_BQ27XXX is not set
+/home/manan/Aira-Octave/configs/airaos-x86_64.config:1547:# CONFIG_FB_S1D13XXX is not set
+/home/manan/Aira-Octave/configs/airaos-x86_64.config:2237:# Kernel hacking
+/home/manan/Aira-Octave/configs/airaos-x86_64.config:2472:# Rust hacking
+/home/manan/Aira-Octave/configs/airaos-x86_64.config:2474:# end of Rust hacking
+/home/manan/Aira-Octave/configs/airaos-x86_64.config:2475:# end of Kernel hacking
+/home/manan/Aira-Octave/configs/airaos-x86_64-working.config:679:CONFIG_HAVE_JUMP_LABEL_HACK=y
+/home/manan/Aira-Octave/configs/airaos-x86_64-working.config:680:CONFIG_HAVE_NOINSTR_HACK=y
+/home/manan/Aira-Octave/configs/airaos-x86_64-working.config:1310:# CONFIG_MOUSE_VSXXXAA is not set
+/home/manan/Aira-Octave/configs/airaos-x86_64-working.config:1364:# CONFIG_SERIAL_8250_PCI1XXXX is not set
+/home/manan/Aira-Octave/configs/airaos-x86_64-working.config:1447:# CONFIG_BATTERY_BQ27XXX is not set
+/home/manan/Aira-Octave/configs/airaos-x86_64-working.config:1547:# CONFIG_FB_S1D13XXX is not set
+/home/manan/Aira-Octave/configs/airaos-x86_64-working.config:2237:# Kernel hacking
+/home/manan/Aira-Octave/configs/airaos-x86_64-working.config:2472:# Rust hacking
+/home/manan/Aira-Octave/configs/airaos-x86_64-working.config:2474:# end of Rust hacking
+/home/manan/Aira-Octave/configs/airaos-x86_64-working.config:2475:# end of Kernel hacking
+/home/manan/Aira-Octave/logs/octave-audit-20260908-103825/octave-source-scan.txt:563:/home/manan/Aira-Octave/logs/autonomous-20260830-063845.log:594:./configs/airaos-x86_64.config:2237:# Kernel hacking
+/home/manan/Aira-Octave/logs/octave-audit-20260908-103825/octave-source-scan.txt:581:/home/manan/Aira-Octave/logs/autonomous-20260830-063845.log:612:./configs/airaos-x86_64.config:2475:# end of Kernel hacking
+/home/manan/Aira-Octave/logs/octave-audit-20260908-103825/octave-source-scan.txt:677:/home/manan/Aira-Octave/logs/autonomous-20260830-063845.log:708:./configs/airaos-x86_64-working.config:2237:# Kernel hacking
+/home/manan/Aira-Octave/logs/octave-audit-20260908-103825/octave-source-scan.txt:695:/home/manan/Aira-Octave/logs/autonomous-20260830-063845.log:726:./configs/airaos-x86_64-working.config:2475:# end of Kernel hacking
+/home/manan/Aira-Octave/logs/octave-audit-20260908-103825/octave-source-scan.txt:1307:1788005170.6719499610 2026-08-29 12:06:10.6719499610 /home/manan/Aira-Octave/linux-7.2.2/drivers/gpu/drm/i915/display/.dvo_ch7xxx.o.cmd
+/home/manan/Aira-Octave/logs/octave-audit-20260908-103825/octave-source-scan.txt:1308:1788005170.6639499610 2026-08-29 12:06:10.6639499610 /home/manan/Aira-Octave/linux-7.2.2/drivers/gpu/drm/i915/display/dvo_ch7xxx.o
+/home/manan/Aira-Octave/logs/octave-audit-20260908-103825/sanity.txt:5:Suspicious TODO/FIXME/HACK markers in custom/root files:
+/home/manan/Aira-Octave/logs/octave-audit-20260908-103825/audit.log:1688:# CONFIG_MOUSE_VSXXXAA is not set
+/home/manan/Aira-Octave/logs/octave-audit-20260908-103825/audit.log:1705:# CONFIG_SERIAL_8250_PCI1XXXX is not set
+/home/manan/Aira-Octave/logs/octave-audit-20260908-103825/audit.log:1751:# CONFIG_BATTERY_BQ27XXX is not set
+/home/manan/Aira-Octave/logs/octave-audit-20260908-103825/audit.log:1805:# CONFIG_FB_S1D13XXX is not set
+/home/manan/Aira-Octave/logs/octave-audit-20260908-103825/audit.log:2282:	clear, cmp, cp, cpio, crc32, crond, crontab, cttyhack, cut, date, dc,
+/home/manan/Aira-Octave/logs/octave-audit-20260908-103825/audit.log:2895:/home/manan/Aira-Octave/logs/autonomous-20260830-063845.log:594:./configs/airaos-x86_64.config:2237:# Kernel hacking
+/home/manan/Aira-Octave/logs/octave-audit-20260908-103825/audit.log:2913:/home/manan/Aira-Octave/logs/autonomous-20260830-063845.log:612:./configs/airaos-x86_64.config:2475:# end of Kernel hacking
+/home/manan/Aira-Octave/logs/octave-audit-20260908-103825/audit.log:3009:/home/manan/Aira-Octave/logs/autonomous-20260830-063845.log:708:./configs/airaos-x86_64-working.config:2237:# Kernel hacking
+/home/manan/Aira-Octave/logs/octave-audit-20260908-103825/audit.log:3027:/home/manan/Aira-Octave/logs/autonomous-20260830-063845.log:726:./configs/airaos-x86_64-working.config:2475:# end of Kernel hacking
+/home/manan/Aira-Octave/logs/octave-audit-20260908-103825/audit.log:3639:1788005170.6719499610 2026-08-29 12:06:10.6719499610 /home/manan/Aira-Octave/linux-7.2.2/drivers/gpu/drm/i915/display/.dvo_ch7xxx.o.cmd
+/home/manan/Aira-Octave/logs/octave-audit-20260908-103825/audit.log:3640:1788005170.6639499610 2026-08-29 12:06:10.6639499610 /home/manan/Aira-Octave/linux-7.2.2/drivers/gpu/drm/i915/display/dvo_ch7xxx.o
+/home/manan/Aira-Octave/logs/octave-audit-20260908-103825/audit.log:6071:Suspicious TODO/FIXME/HACK markers in custom/root files:
+/home/manan/Aira-Octave/logs/octave-audit-20260908-103825/config-summary.txt:509:# CONFIG_MOUSE_VSXXXAA is not set
+/home/manan/Aira-Octave/logs/octave-audit-20260908-103825/config-summary.txt:526:# CONFIG_SERIAL_8250_PCI1XXXX is not set
+/home/manan/Aira-Octave/logs/octave-audit-20260908-103825/config-summary.txt:572:# CONFIG_BATTERY_BQ27XXX is not set
+/home/manan/Aira-Octave/logs/octave-audit-20260908-103825/config-summary.txt:626:# CONFIG_FB_S1D13XXX is not set
+/home/manan/Aira-Octave/logs/octave-audit-20260908-103825/final.config:679:CONFIG_HAVE_JUMP_LABEL_HACK=y
+/home/manan/Aira-Octave/logs/octave-audit-20260908-103825/final.config:680:CONFIG_HAVE_NOINSTR_HACK=y
+/home/manan/Aira-Octave/logs/octave-audit-20260908-103825/final.config:1310:# CONFIG_MOUSE_VSXXXAA is not set
+/home/manan/Aira-Octave/logs/octave-audit-20260908-103825/final.config:1364:# CONFIG_SERIAL_8250_PCI1XXXX is not set
+/home/manan/Aira-Octave/logs/octave-audit-20260908-103825/final.config:1447:# CONFIG_BATTERY_BQ27XXX is not set
+/home/manan/Aira-Octave/logs/octave-audit-20260908-103825/final.config:1547:# CONFIG_FB_S1D13XXX is not set
+/home/manan/Aira-Octave/logs/octave-audit-20260908-103825/final.config:2237:# Kernel hacking
+/home/manan/Aira-Octave/logs/octave-audit-20260908-103825/final.config:2472:# Rust hacking
+/home/manan/Aira-Octave/logs/octave-audit-20260908-103825/final.config:2474:# end of Rust hacking
+/home/manan/Aira-Octave/logs/octave-audit-20260908-103825/final.config:2475:# end of Kernel hacking
+/home/manan/Aira-Octave/logs/octave-audit-20260908-103825/initramfs.txt:96:	clear, cmp, cp, cpio, crc32, crond, crontab, cttyhack, cut, date, dc,
+/home/manan/Aira-Octave/logs/autonomous-20260830-063845.log:293:cttyhack
+/home/manan/Aira-Octave/logs/autonomous-20260830-063845.log:594:./configs/airaos-x86_64.config:2237:# Kernel hacking
+/home/manan/Aira-Octave/logs/autonomous-20260830-063845.log:612:./configs/airaos-x86_64.config:2475:# end of Kernel hacking
+/home/manan/Aira-Octave/logs/autonomous-20260830-063845.log:708:./configs/airaos-x86_64-working.config:2237:# Kernel hacking
+/home/manan/Aira-Octave/logs/autonomous-20260830-063845.log:726:./configs/airaos-x86_64-working.config:2475:# end of Kernel hacking
+/home/manan/Aira-Octave/linux-7.2.2/mm/khugepaged.c:724:			 * TODO: Support shared pages without leading to further
+/home/manan/Aira-Octave/linux-7.2.2/mm/khugepaged.c:738:		 * TODO: In some cases of partially-mapped folios, we'd actually
+/home/manan/Aira-Octave/linux-7.2.2/mm/khugepaged.c:1186:		 * TODO: Support swapin without leading to further mTHP
+/home/manan/Aira-Octave/linux-7.2.2/mm/khugepaged.c:2258:	 * TODO: once shmem always calls mapping_set_large_folios() on its
+/home/manan/Aira-Octave/linux-7.2.2/mm/migrate.c:116:	 * TODO: these pages will not be folios in the future. All
+/home/manan/Aira-Octave/linux-7.2.2/mm/migrate.c:196:	 * TODO: these pages will not be folios in the future. All
+/home/manan/Aira-Octave/linux-7.2.2/mm/migrate.c:229: * TODO: migration core will treat both pages as folios and lock them before
+/home/manan/Aira-Octave/linux-7.2.2/mm/page_isolation.c:192:		 * FIXME: Now, memory hotplug doesn't call shrink_slab() by
+/home/manan/Aira-Octave/linux-7.2.2/mm/.secretmem.o.cmd:324:    $(wildcard include/config/HAVE_JUMP_LABEL_HACK) \
+/home/manan/Aira-Octave/linux-7.2.2/mm/memblock.c:2778:	/* TODO: Allocation must be outside of scratch region */
+/home/manan/Aira-Octave/linux-7.2.2/mm/page_alloc.c:2567:	bool todo = false;
+/home/manan/Aira-Octave/linux-7.2.2/mm/page_alloc.c:2580:			todo = true;
+/home/manan/Aira-Octave/linux-7.2.2/mm/page_alloc.c:2589:		todo = true;
+/home/manan/Aira-Octave/linux-7.2.2/mm/page_alloc.c:2594:	return todo;
+/home/manan/Aira-Octave/linux-7.2.2/mm/page_alloc.c:3829:		 * XXX: For now, allow allocations to potentially
+/home/manan/Aira-Octave/linux-7.2.2/mm/page_alloc.c:4106:	 * XXX: GFP_NOFS allocations should rather fail than rely on
+/home/manan/Aira-Octave/linux-7.2.2/mm/.mmu_notifier.o.cmd:261:    $(wildcard include/config/HAVE_JUMP_LABEL_HACK) \
+/home/manan/Aira-Octave/linux-7.2.2/mm/vma.c:2577:	/* TODO: Fix SPARC ADI! */
+/home/manan/Aira-Octave/linux-7.2.2/mm/page_counter.c:435:	 * TODO: calculation should be more robust so that we do not need
+/home/manan/Aira-Octave/linux-7.2.2/mm/hugetlb.c:2849: * NOTE! "cow_from_owner" represents a very hacky usage only used in CoW
+/home/manan/Aira-Octave/linux-7.2.2/mm/hugetlb.c:5961:		/* TODO: Track hugetlb faults using vm_fault */
+/home/manan/Aira-Octave/linux-7.2.2/mm/.hugetlb_cgroup.o.cmd:418:    $(wildcard include/config/HAVE_JUMP_LABEL_HACK) \
+/home/manan/Aira-Octave/linux-7.2.2/mm/.numa.o.cmd:329:    $(wildcard include/config/HAVE_JUMP_LABEL_HACK) \
+/home/manan/Aira-Octave/linux-7.2.2/mm/vmscan.c:1606:		/* TODO: these pages should not even appear in this list. */
+/home/manan/Aira-Octave/linux-7.2.2/mm/vmscan.c:5470:			const char *s = "xxx";
+/home/manan/Aira-Octave/linux-7.2.2/mm/vmscan.c:5495:		const char *s = "xxxx";
+/home/manan/Aira-Octave/linux-7.2.2/mm/vmscan.c:6750:	 * will pick up pages from other mem cgroup's as well. We hack
+/home/manan/Aira-Octave/linux-7.2.2/mm/vmscan.c:6910:		 * TODO: NR_FREE_PAGES_BLOCKS moves in steps of
+/home/manan/Aira-Octave/linux-7.2.2/mm/.memfd.o.cmd:367:    $(wildcard include/config/HAVE_JUMP_LABEL_HACK) \
+/home/manan/Aira-Octave/linux-7.2.2/mm/.hugetlb_sysctl.o.cmd:263:    $(wildcard include/config/HAVE_JUMP_LABEL_HACK) \
+/home/manan/Aira-Octave/linux-7.2.2/mm/vmalloc.c:832:	 * XXX we might need to change this if we add VIRTUAL_BUG_ON for
+/home/manan/Aira-Octave/linux-7.2.2/mm/vmalloc.c:840:		return NULL; /* XXX: no allowance for huge pgd */
+/home/manan/Aira-Octave/linux-7.2.2/mm/vmalloc.c:4313: * If @p is %NULL, vrealloc_XXX() behaves exactly like vmalloc_XXX(). If @size
+/home/manan/Aira-Octave/linux-7.2.2/mm/vmalloc.c:4452:	/* TODO: Grow the vm_area, i.e. allocate and map additional pages. */
+/home/manan/Aira-Octave/linux-7.2.2/mm/vmalloc.c:4810: * Returns:	0 for success, -Exxx on failure
+/home/manan/Aira-Octave/linux-7.2.2/mm/vmalloc.c:4871: * Returns:	0 for success, -Exxx on failure
+/home/manan/Aira-Octave/linux-7.2.2/mm/page_owner.c:19: * TODO: teach PAGE_OWNER_STACK_DEPTH (__dump_page_owner and save_stack)
+/home/manan/Aira-Octave/linux-7.2.2/mm/memory_hotplug.c:770:	 * TODO now we have a visible range of pages which are not associated
+/home/manan/Aira-Octave/linux-7.2.2/mm/memory_hotplug.c:847:		/* TODO: cache values */
+/home/manan/Aira-Octave/linux-7.2.2/mm/memory_hotplug.c:1374:	 * TODO: Although we have a check here to make sure that vmemmap pages
+/home/manan/Aira-Octave/linux-7.2.2/mm/memory_hotplug.c:2017:				 * TODO: fatal migration failures should bail
+/home/manan/Aira-Octave/linux-7.2.2/mm/.hugetlb_sysfs.o.cmd:199:    $(wildcard include/config/HAVE_JUMP_LABEL_HACK) \
+/home/manan/Aira-Octave/linux-7.2.2/mm/balloon.c:198: * TODO: remove the caller accounting requirements, and allow caller to wait
+/home/manan/Aira-Octave/linux-7.2.2/mm/.migrate.o.cmd:328:    $(wildcard include/config/HAVE_JUMP_LABEL_HACK) \
+/home/manan/Aira-Octave/linux-7.2.2/mm/.madvise.o.cmd:369:    $(wildcard include/config/HAVE_JUMP_LABEL_HACK) \
+/home/manan/Aira-Octave/linux-7.2.2/mm/hugetlb_cgroup.c:151:	 * TODO: this routine can waste much memory for nodes which will
+/home/manan/Aira-Octave/linux-7.2.2/mm/workingset.c:409:	/* XXX: target_memcg can be NULL, go through lruvec */
+/home/manan/Aira-Octave/linux-7.2.2/mm/workingset.c:468:	 * XXX: On !CONFIG_MEMCG, this will always return NULL; it
+/home/manan/Aira-Octave/linux-7.2.2/mm/workingset.c:486:	 * XXX: With per-memcg flushing and thresholding, is ratelimiting
+/home/manan/Aira-Octave/linux-7.2.2/mm/workingset.c:588:		 * XXX: Move to folio_add_lru() when it supports new vs
+/home/manan/Aira-Octave/linux-7.2.2/mm/.process_vm_access.o.cmd:347:    $(wildcard include/config/HAVE_JUMP_LABEL_HACK) \
+/home/manan/Aira-Octave/linux-7.2.2/mm/memcontrol.c:3599:		 * TODO: we could batch this until slab_pgdat(slab) changes
+/home/manan/Aira-Octave/linux-7.2.2/mm/kmsan/instrumentation.c:5: * This file implements __msan_XXX hooks that Clang inserts into the code
+/home/manan/Aira-Octave/linux-7.2.2/mm/highmem.c:667:		 * This is a horrible hack for XTENSA to calculate the
+/home/manan/Aira-Octave/linux-7.2.2/mm/.page_counter.o.cmd:300:    $(wildcard include/config/HAVE_JUMP_LABEL_HACK) \
+/home/manan/Aira-Octave/linux-7.2.2/mm/.hugetlb_vmemmap.o.cmd:324:    $(wildcard include/config/HAVE_JUMP_LABEL_HACK) \
+/home/manan/Aira-Octave/linux-7.2.2/mm/damon/core.c:3088:	/* todo: do this for only installed probes */
+/home/manan/Aira-Octave/linux-7.2.2/mm/damon/core.c:3214:	/* todo: do this for only installed probes */
+/home/manan/Aira-Octave/linux-7.2.2/mm/damon/sysfs.c:1712:	/* TODO: support multiple contexts per kdamond */
+/home/manan/Aira-Octave/linux-7.2.2/mm/damon/sysfs.c:2105:	/* TODO: Support multiple contexts per kdamond */
+/home/manan/Aira-Octave/linux-7.2.2/mm/damon/sysfs.c:2135:	/* TODO: Support multiple contexts per kdamond */
+/home/manan/Aira-Octave/linux-7.2.2/mm/damon/sysfs.c:2227:	/* TODO: support multiple contexts per kdamond */
+/home/manan/Aira-Octave/linux-7.2.2/mm/.memory-tiers.o.cmd:296:    $(wildcard include/config/HAVE_JUMP_LABEL_HACK) \
+/home/manan/Aira-Octave/linux-7.2.2/mm/swapfile.c:3465:	/* swap partition endianness hack... */
+/home/manan/Aira-Octave/linux-7.2.2/mm/oom_kill.c:17: *  for newbie kernel hackers. It features several pointers to major
+/home/manan/Aira-Octave/linux-7.2.2/mm/mempolicy.c:31: *                FIXME: memory is allocated starting with the first node
+/home/manan/Aira-Octave/linux-7.2.2/mm/slab_common.c:2137:	 * TODO: Introduce a version of __kvfree_rcu_barrier() that works
+/home/manan/Aira-Octave/linux-7.2.2/mm/.ptdump.o.cmd:326:    $(wildcard include/config/HAVE_JUMP_LABEL_HACK) \
+/home/manan/Aira-Octave/linux-7.2.2/mm/vmpressure.c:35: * TODO: Make the window size depend on machine size, as we do for vmstat
+/home/manan/Aira-Octave/linux-7.2.2/mm/.numa_memblks.o.cmd:332:    $(wildcard include/config/HAVE_JUMP_LABEL_HACK) \
+/home/manan/Aira-Octave/linux-7.2.2/mm/.mempolicy.o.cmd:419:    $(wildcard include/config/HAVE_JUMP_LABEL_HACK) \
+/home/manan/Aira-Octave/linux-7.2.2/mm/mremap.c:1789:	 *        .<--------->xxx>
+/home/manan/Aira-Octave/linux-7.2.2/mm/zsmalloc.c:1701:	 * TODO: nothing prevents a zspage from getting destroyed while
+/home/manan/Aira-Octave/linux-7.2.2/mm/huge_memory.c:2045:	 * TODO: once we support anonymous pages, use
+/home/manan/Aira-Octave/linux-7.2.2/mm/huge_memory.c:3129:		 * FIXME: Do we want to invalidate secondary mmu by calling
+/home/manan/Aira-Octave/linux-7.2.2/mm/huge_memory.c:3808:	 * TODO: this will also currently refuse folios without a mapping in the
+/home/manan/Aira-Octave/linux-7.2.2/mm/memory.c:444:		smp_wmb(); /* Could be smp_wmb__xxx(before|after)_spin_lock */
+/home/manan/Aira-Octave/linux-7.2.2/mm/memory.c:2714:	update_mmu_cache(vma, addr, pte); /* XXX: why not for insert_page? */
+/home/manan/Aira-Octave/linux-7.2.2/mm/memory.c:6455:			 * TODO once we support anonymous PUDs: NUMA case and
+/home/manan/Aira-Octave/linux-7.2.2/mm/memory-failure.c:310:	 * TODO: Could shrink slab caches here if a lightweight range-based
+/home/manan/Aira-Octave/linux-7.2.2/mm/memory-failure.c:893: * XXX: It is possible that a page is isolated from LRU cache,
+/home/manan/Aira-Octave/linux-7.2.2/mm/memory-failure.c:1525:	 * XXX: the dirty test could be racy: set_page_dirty() may not always
+/home/manan/Aira-Octave/linux-7.2.2/mm/memory-failure.c:1734:		 * TODO: Handle device pages which may need coordination
+/home/manan/Aira-Octave/linux-7.2.2/mm/Kconfig:612:# PA-RISC 7xxx's spinlock_t would enlarge struct page from 32 to 44 bytes.
+/home/manan/Aira-Octave/linux-7.2.2/mm/Kconfig:987:	  XXX: For now, swap cluster backing transparent huge page
+/home/manan/Aira-Octave/linux-7.2.2/mm/Kconfig:1027:# TODO: Allow to be enabled without THP
+/home/manan/Aira-Octave/linux-7.2.2/mm/memcontrol-v1.c:382:		 * term TODO.
+/home/manan/Aira-Octave/linux-7.2.2/mm/memcontrol-v1.c:2112:		.name = "cgroup.event_control",		/* XXX: for compat */
+/home/manan/Aira-Octave/linux-7.2.2/mm/filemap.c:60: * FIXME: remove all knowledge of the buffer layer from the core VM
+/home/manan/Aira-Octave/linux-7.2.2/mm/slub.c:5179:	 * TODO: do we want to support *sheaf == NULL to be equivalent of
+/home/manan/Aira-Octave/linux-7.2.2/mm/slub.c:6922:	 * TODO: Revise huge-mapping path to support non-blocking
+/home/manan/Aira-Octave/linux-7.2.2/mm/slub.c:8377:		 * XXX: kmem_cache_alloc_node will fallback to other nodes
+/home/manan/Aira-Octave/linux-7.2.2/mm/Kconfig.debug:69:	  possible with slab_debug=xxx. SLUB debugging may be switched
+/home/manan/Aira-Octave/linux-7.2.2/mm/.hugetlb.o.cmd:339:    $(wildcard include/config/HAVE_JUMP_LABEL_HACK) \
+/home/manan/Aira-Octave/linux-7.2.2/mm/zswap.c:1205:	 * and may enter fs. XXX: Harmonize with vmscan.c __GFP_FS
+/home/manan/Aira-Octave/linux-7.2.2/lib/test_hmm.c:223:		/* TODO Support splitting here */
+/home/manan/Aira-Octave/linux-7.2.2/lib/test_hmm.c:1669:	/* FIXME demonstrate how we can adjust migrate range */
+/home/manan/Aira-Octave/linux-7.2.2/lib/tests/test_bits.c:29:/* FIXME: add a test case written in asm for GENMASK() and GENMASK_ULL() */
+/home/manan/Aira-Octave/linux-7.2.2/lib/tests/printf_kunit.c:162:	test("xxx%yyy", "xxx%cyyy", '%');
+/home/manan/Aira-Octave/linux-7.2.2/lib/tests/printf_kunit.c:163:	__test(kunittest, __FILE__, __LINE__, "xxx\0yyy", 7, "xxx%cyyy", '\0');
+/home/manan/Aira-Octave/linux-7.2.2/lib/.glob.o.cmd:368:    $(wildcard include/config/HAVE_JUMP_LABEL_HACK) \
+/home/manan/Aira-Octave/linux-7.2.2/lib/crc/.crc-ccitt.o.cmd:369:    $(wildcard include/config/HAVE_JUMP_LABEL_HACK) \
+/home/manan/Aira-Octave/linux-7.2.2/lib/.assoc_array.o.cmd:253:    $(wildcard include/config/HAVE_JUMP_LABEL_HACK) \
+/home/manan/Aira-Octave/linux-7.2.2/lib/math/div64.c:133: * by the book 'Hacker's Delight'.  The original source and full proof
+/home/manan/Aira-Octave/linux-7.2.2/lib/math/div64.c:136: * 'http://www.hackersdelight.org/hdcodetxt/divDouble.c.txt'
+/home/manan/Aira-Octave/linux-7.2.2/lib/sys_info.c:34:/* Expecting string like "xxx_sys_info=tasks,mem,timers,locks,ftrace,..." */
+/home/manan/Aira-Octave/linux-7.2.2/lib/.bug.o.cmd:368:    $(wildcard include/config/HAVE_JUMP_LABEL_HACK) \
+/home/manan/Aira-Octave/linux-7.2.2/lib/xz/xz_dec_lzma2.c:811:	 * All probabilities are initialized to the same value. This hack
+/home/manan/Aira-Octave/linux-7.2.2/lib/decompress_unxz.c:170: * FIXME: Not all basic memory functions are provided in architecture-specific
+/home/manan/Aira-Octave/linux-7.2.2/lib/xarray.c:1050:	/* XXX: no support for splitting really large entries yet */
+/home/manan/Aira-Octave/linux-7.2.2/lib/uuid.c:83: *	xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+/home/manan/Aira-Octave/linux-7.2.2/lib/raid/raid6/int.uc:46: * specially optimized using architecture-specific hacks.
+/home/manan/Aira-Octave/linux-7.2.2/lib/raid/xor/sparc/xor-sparc64-glue.c:29:/* XXX Ugh, write cheetah versions... -DaveM */
+/home/manan/Aira-Octave/linux-7.2.2/lib/.oid_registry.o.cmd:368:    $(wildcard include/config/HAVE_JUMP_LABEL_HACK) \
+/home/manan/Aira-Octave/linux-7.2.2/lib/lzo/.lzo1x_compress.o.cmd:369:    $(wildcard include/config/HAVE_JUMP_LABEL_HACK) \
+/home/manan/Aira-Octave/linux-7.2.2/lib/lzo/.lzo1x_compress_safe.o.cmd:370:    $(wildcard include/config/HAVE_JUMP_LABEL_HACK) \
+/home/manan/Aira-Octave/linux-7.2.2/lib/vsprintf.c:90:		/* FIXME */
+/home/manan/Aira-Octave/linux-7.2.2/lib/vsprintf.c:1501:	char ip6_addr[sizeof("xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:255.255.255.255")];
+/home/manan/Aira-Octave/linux-7.2.2/lib/vsprintf.c:1527:	char ip6_addr[sizeof("[xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:255.255.255.255]") +
+/home/manan/Aira-Octave/linux-7.2.2/lib/vsprintf.c:2201:	char tbuf[sizeof("xxxx") + 1];
+/home/manan/Aira-Octave/linux-7.2.2/lib/vsprintf.c:2449: *       "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+/home/manan/Aira-Octave/linux-7.2.2/lib/ubsan.c:25: * The mappings of struct SanitizerKind (the -fsanitize=xxx args) to
+/home/manan/Aira-Octave/linux-7.2.2/lib/btree.c:396:			/* FIXME: If the right-most key on higher levels is
+/home/manan/Aira-Octave/linux-7.2.2/lib/btree.c:652:	/* TODO: This needs some optimizations.  Currently we do three tree
+/home/manan/Aira-Octave/linux-7.2.2/lib/.stackdepot.o.cmd:368:    $(wildcard include/config/HAVE_JUMP_LABEL_HACK) \
+/home/manan/Aira-Octave/linux-7.2.2/lib/zstd/compress/zstd_lazy.c:1288:        /* TODO: Measure and potentially add prefetching to DMS */
+/home/manan/Aira-Octave/linux-7.2.2/lib/zstd/compress/zstd_lazy.c:1343: * TODO: The start of the search function involves loading and calculating a
+/home/manan/Aira-Octave/linux-7.2.2/lib/zstd/compress/zstd_lazy.c:1349: * TODO: Move the match re-winding into searchMax. This improves compression
+/home/manan/Aira-Octave/linux-7.2.2/lib/zstd/compress/zstd_lazy.c:1350: * ratio, and unlocks further simplifications with the next TODO.
+/home/manan/Aira-Octave/linux-7.2.2/lib/zstd/compress/zstd_lazy.c:1352: * TODO: Try moving the repcode search into searchMax. After the re-winding
+/home/manan/Aira-Octave/linux-7.2.2/lib/zstd/compress/zstd_ldm.c:572:         * TODO: * Test the chunk size.
+/home/manan/Aira-Octave/linux-7.2.2/lib/zstd/compress/huf_compress.c:474:             * TODO.
+/home/manan/Aira-Octave/linux-7.2.2/lib/zstd/compress/zstd_compress.c:2149:            /* TODO: avoid memset? */
+/home/manan/Aira-Octave/linux-7.2.2/lib/zstd/compress/zstd_compress.c:2184:            /* TODO: avoid memset? */
+/home/manan/Aira-Octave/linux-7.2.2/lib/zstd/compress/zstd_compress.c:3185:    /* TODO: See 3090. We reduced MIN_CBLOCK_SIZE from 3 to 2 so to compensate we are adding
+/home/manan/Aira-Octave/linux-7.2.2/lib/zstd/compress/zstd_compress.c:4535:        /* TODO: See 3090. We reduced MIN_CBLOCK_SIZE from 3 to 2 so to compensate we are adding
+/home/manan/Aira-Octave/linux-7.2.2/lib/zstd/compress/zstd_compress.c:6553:    /* TODO(embg) support fast parsing mode in noBlockDelim mode */
+/home/manan/Aira-Octave/linux-7.2.2/lib/zstd/compress/zstd_compress.c:6778:        /* TODO: See 3090. We reduced MIN_CBLOCK_SIZE from 3 to 2 so to compensate we are adding
+/home/manan/Aira-Octave/linux-7.2.2/lib/zstd/decompress/huf_decompress.c:1282:                /* ugly hack; works only because it's the last symbol. Note : can't easily extract nbBits from just this symbol */
+/home/manan/Aira-Octave/linux-7.2.2/lib/zstd/decompress/zstd_decompress_block.c:1239:     * ZSTD_memcpy hack.
+/home/manan/Aira-Octave/linux-7.2.2/lib/.genalloc.o.cmd:296:    $(wildcard include/config/HAVE_JUMP_LABEL_HACK) \
+/home/manan/Aira-Octave/linux-7.2.2/lib/bch.c:251:	 * xxxxxxxx  yyyyyyyy  zzzzzzzz  tttttttt
+/home/manan/Aira-Octave/linux-7.2.2/lib/bch.c:255:	 * xxxxxxxx  00000000  00000000  00000000  mod g = r3 (precomputed)
+/home/manan/Aira-Octave/linux-7.2.2/lib/bch.c:256:	 * xxxxxxxx  yyyyyyyy  zzzzzzzz  tttttttt  mod g = r0^r1^r2^r3
+/home/manan/Aira-Octave/linux-7.2.2/lib/bch.c:318:	 * http://www-graphics.stanford.edu/~seander/bithacks.html
+/home/manan/Aira-Octave/linux-7.2.2/lib/.dump_stack.o.cmd:434:    $(wildcard include/config/HAVE_JUMP_LABEL_HACK) \
+/home/manan/Aira-Octave/linux-7.2.2/lib/kunit/kunit-test.c:369: * TODO(brendanhiggins@google.com): replace the arrays that keep track of the
+/home/manan/Aira-Octave/linux-7.2.2/lib/kunit/executor.c:306:	/* Hack: print a ktap header so kunit.py can find the start of KUnit output. */
+/home/manan/Aira-Octave/linux-7.2.2/lib/kunit/test.c:313:	 * XXX: we should never reach this line! As kunit_try_catch_throw is
+/home/manan/Aira-Octave/linux-7.2.2/lib/kunit/test.c:462: * XXX: Should ONLY BE CALLED AFTER kunit_run_case_internal!
+/home/manan/Aira-Octave/linux-7.2.2/lib/kunit/test.c:701:	/* TODO: Make generate_params try-catch */
+/home/manan/Aira-Octave/linux-7.2.2/lib/kunit/test.c:744:	 * TODO: Put into a try catch. Since we don't need suite->exit
+/home/manan/Aira-Octave/linux-7.2.2/lib/kunit/test.c:749:	/* TODO: Put this kunit_cleanup into a try-catch. */
+/home/manan/Aira-Octave/linux-7.2.2/lib/kunit/Kconfig:57:	  is intended for curious hackers who would like to understand how to
+/home/manan/Aira-Octave/linux-7.2.2/lib/crypto/.hash_info.o.cmd:126:    $(wildcard include/config/HAVE_JUMP_LABEL_HACK) \
+/home/manan/Aira-Octave/linux-7.2.2/lib/crypto/.arc4.o.cmd:369:    $(wildcard include/config/HAVE_JUMP_LABEL_HACK) \
+/home/manan/Aira-Octave/linux-7.2.2/lib/crypto/.utils.o.cmd:373:    $(wildcard include/config/HAVE_JUMP_LABEL_HACK) \
+/home/manan/Aira-Octave/linux-7.2.2/lib/crypto/.memneq.o.cmd:373:    $(wildcard include/config/HAVE_JUMP_LABEL_HACK) \
+/home/manan/Aira-Octave/linux-7.2.2/lib/crypto/.gf128hash.o.cmd:115:    $(wildcard include/config/HAVE_JUMP_LABEL_HACK) \
+/home/manan/Aira-Octave/linux-7.2.2/lib/crypto/.aes.o.cmd:255:    $(wildcard include/config/HAVE_JUMP_LABEL_HACK) \
+/home/manan/Aira-Octave/linux-7.2.2/lib/crypto/.sha512.o.cmd:391:    $(wildcard include/config/HAVE_JUMP_LABEL_HACK) \
+/home/manan/Aira-Octave/linux-7.2.2/lib/crypto/arm/chacha.h:86:		unsigned int todo = min_t(unsigned int, bytes, SZ_4K);
+/home/manan/Aira-Octave/linux-7.2.2/lib/crypto/arm/chacha.h:89:			chacha_doneon(state, dst, src, todo, nrounds);
+/home/manan/Aira-Octave/linux-7.2.2/lib/crypto/arm/chacha.h:91:		bytes -= todo;
+/home/manan/Aira-Octave/linux-7.2.2/lib/crypto/arm/chacha.h:92:		src += todo;
+/home/manan/Aira-Octave/linux-7.2.2/lib/crypto/arm/chacha.h:93:		dst += todo;
+/home/manan/Aira-Octave/linux-7.2.2/lib/crypto/arm/poly1305.h:32:			unsigned int todo = min_t(unsigned int, len, SZ_4K);
+/home/manan/Aira-Octave/linux-7.2.2/lib/crypto/arm/poly1305.h:35:				poly1305_blocks_neon(state, src, todo, padbit);
+/home/manan/Aira-Octave/linux-7.2.2/lib/crypto/arm/poly1305.h:37:			len -= todo;
+/home/manan/Aira-Octave/linux-7.2.2/lib/crypto/arm/poly1305.h:38:			src += todo;
+/home/manan/Aira-Octave/linux-7.2.2/lib/crypto/.md5.o.cmd:250:    $(wildcard include/config/HAVE_JUMP_LABEL_HACK) \
+/home/manan/Aira-Octave/linux-7.2.2/lib/crypto/mpi/.mpi-mod.o.cmd:369:    $(wildcard include/config/HAVE_JUMP_LABEL_HACK) \
+/home/manan/Aira-Octave/linux-7.2.2/lib/crypto/mpi/.mpi-bit.o.cmd:369:    $(wildcard include/config/HAVE_JUMP_LABEL_HACK) \
+/home/manan/Aira-Octave/linux-7.2.2/lib/crypto/mpi/.generic_mpih-sub1.o.cmd:369:    $(wildcard include/config/HAVE_JUMP_LABEL_HACK) \
+/home/manan/Aira-Octave/linux-7.2.2/lib/crypto/mpi/.mpih-cmp.o.cmd:369:    $(wildcard include/config/HAVE_JUMP_LABEL_HACK) \
+/home/manan/Aira-Octave/linux-7.2.2/lib/crypto/mpi/.generic_mpih-mul3.o.cmd:369:    $(wildcard include/config/HAVE_JUMP_LABEL_HACK) \
+/home/manan/Aira-Octave/linux-7.2.2/lib/crypto/mpi/.mpi-mul.o.cmd:369:    $(wildcard include/config/HAVE_JUMP_LABEL_HACK) \
+/home/manan/Aira-Octave/linux-7.2.2/lib/crypto/mpi/.generic_mpih-mul2.o.cmd:369:    $(wildcard include/config/HAVE_JUMP_LABEL_HACK) \
+/home/manan/Aira-Octave/linux-7.2.2/lib/crypto/mpi/.mpi-cmp.o.cmd:369:    $(wildcard include/config/HAVE_JUMP_LABEL_HACK) \
+/home/manan/Aira-Octave/linux-7.2.2/lib/crypto/mpi/.mpih-mul.o.cmd:107:    $(wildcard include/config/HAVE_JUMP_LABEL_HACK) \
+/home/manan/Aira-Octave/linux-7.2.2/lib/crypto/mpi/.mpiutil.o.cmd:369:    $(wildcard include/config/HAVE_JUMP_LABEL_HACK) \
+/home/manan/Aira-Octave/linux-7.2.2/lib/crypto/mpi/.mpi-pow.o.cmd:411:    $(wildcard include/config/HAVE_JUMP_LABEL_HACK) \
+/home/manan/Aira-Octave/linux-7.2.2/lib/crypto/mpi/mpi-pow.c:40:	/* fixme: we should check that the warning is void */
+/home/manan/Aira-Octave/linux-7.2.2/lib/crypto/mpi/.mpi-sub-ui.o.cmd:369:    $(wildcard include/config/HAVE_JUMP_LABEL_HACK) \
+/home/manan/Aira-Octave/linux-7.2.2/lib/crypto/mpi/.generic_mpih-rshift.o.cmd:369:    $(wildcard include/config/HAVE_JUMP_LABEL_HACK) \
+/home/manan/Aira-Octave/linux-7.2.2/lib/crypto/mpi/.mpi-add.o.cmd:369:    $(wildcard include/config/HAVE_JUMP_LABEL_HACK) \
+/home/manan/Aira-Octave/linux-7.2.2/lib/crypto/mpi/.mpi-div.o.cmd:369:    $(wildcard include/config/HAVE_JUMP_LABEL_HACK) \
+/home/manan/Aira-Octave/linux-7.2.2/lib/crypto/mpi/.mpicoder.o.cmd:227:    $(wildcard include/config/HAVE_JUMP_LABEL_HACK) \
+/home/manan/Aira-Octave/linux-7.2.2/lib/crypto/mpi/.generic_mpih-mul1.o.cmd:369:    $(wildcard include/config/HAVE_JUMP_LABEL_HACK) \
+/home/manan/Aira-Octave/linux-7.2.2/lib/crypto/mpi/.generic_mpih-lshift.o.cmd:369:    $(wildcard include/config/HAVE_JUMP_LABEL_HACK) \
+/home/manan/Aira-Octave/linux-7.2.2/lib/crypto/mpi/.mpih-div.o.cmd:369:    $(wildcard include/config/HAVE_JUMP_LABEL_HACK) \
+/home/manan/Aira-Octave/linux-7.2.2/lib/crypto/mpi/.generic_mpih-add1.o.cmd:369:    $(wildcard include/config/HAVE_JUMP_LABEL_HACK) \
+/home/manan/Aira-Octave/linux-7.2.2/lib/crypto/x86/chacha.h:147:		unsigned int todo = min_t(unsigned int, bytes, SZ_4K);
+/home/manan/Aira-Octave/linux-7.2.2/lib/crypto/x86/chacha.h:150:		chacha_dosimd(state, dst, src, todo, nrounds);
+/home/manan/Aira-Octave/linux-7.2.2/lib/crypto/x86/chacha.h:153:		bytes -= todo;
+/home/manan/Aira-Octave/linux-7.2.2/lib/crypto/x86/chacha.h:154:		src += todo;
+/home/manan/Aira-Octave/linux-7.2.2/lib/crypto/x86/chacha.h:155:		dst += todo;
+/home/manan/Aira-Octave/linux-7.2.2/lib/crypto/powerpc/chacha.h:59:		unsigned int todo = min_t(unsigned int, bytes, SZ_4K);
+/home/manan/Aira-Octave/linux-7.2.2/lib/crypto/powerpc/chacha.h:62:		chacha_p10_do_8x(state, dst, src, todo, nrounds);
+/home/manan/Aira-Octave/linux-7.2.2/lib/crypto/powerpc/chacha.h:65:		bytes -= todo;
+/home/manan/Aira-Octave/linux-7.2.2/lib/crypto/powerpc/chacha.h:66:		src += todo;
+/home/manan/Aira-Octave/linux-7.2.2/lib/crypto/powerpc/chacha.h:67:		dst += todo;
+/home/manan/Aira-Octave/linux-7.2.2/lib/crypto/powerpc/aes-spe-modes.S:36:#define NEXT_BLOCK			/* nothing todo			*/
+/home/manan/Aira-Octave/linux-7.2.2/lib/test_kmod.c:282: * XXX: add result option to display if all errors did not match.
+/home/manan/Aira-Octave/linux-7.2.2/lib/test_kmod.c:604: * XXX: move to kstrncpy() once merged.
+/home/manan/Aira-Octave/linux-7.2.2/lib/.asn1_decoder.o.cmd:387:    $(wildcard include/config/HAVE_JUMP_LABEL_HACK) \
+/home/manan/Aira-Octave/linux-7.2.2/lib/test_bitmap.c:1248: * FIXME: Clang breaks compile-time evaluations when KASAN and GCOV are enabled.
+/home/manan/Aira-Octave/linux-7.2.2/lib/.interval_tree.o.cmd:258:    $(wildcard include/config/HAVE_JUMP_LABEL_HACK) \
+/home/manan/Aira-Octave/linux-7.2.2/lib/lz4/.lz4_compress.o.cmd:223:    $(wildcard include/config/HAVE_JUMP_LABEL_HACK) \
+/home/manan/Aira-Octave/linux-7.2.2/lib/decompress_inflate.c:146:			/* TODO: handle case where both pos and fill are set */
+/home/manan/Aira-Octave/linux-7.2.2/lib/Makefile:90:# FIXME: Clang breaks test_bitmap_const_eval when KASAN and GCOV are enabled
+/home/manan/Aira-Octave/linux-7.2.2/lib/Kconfig.debug:2:menu "Kernel hacking"
+/home/manan/Aira-Octave/linux-7.2.2/lib/Kconfig.debug:476:	  that look like '.Lxxx') so they don't pollute the output of
+/home/manan/Aira-Octave/linux-7.2.2/lib/Kconfig.debug:677:	  Don't say Y unless you really know what this hack does.
+/home/manan/Aira-Octave/linux-7.2.2/lib/Kconfig.debug:978:	  # echo offline > /sys/devices/system/memory/memoryXXX/state
+/home/manan/Aira-Octave/linux-7.2.2/lib/Kconfig.debug:2216:	depends on !ARCH_WANTS_NO_INSTR || HAVE_NOINSTR_HACK || \
+/home/manan/Aira-Octave/linux-7.2.2/lib/Kconfig.debug:2219:	select OBJTOOL if HAVE_NOINSTR_HACK
+/home/manan/Aira-Octave/linux-7.2.2/lib/Kconfig.debug:3566:menu "Rust hacking"
+/home/manan/Aira-Octave/linux-7.2.2/lib/Kconfig.debug:3646:endmenu # Kernel hacking
+/home/manan/Aira-Octave/linux-7.2.2/lib/.check_signature.o.cmd:123:    $(wildcard include/config/HAVE_JUMP_LABEL_HACK) \
+/home/manan/Aira-Octave/linux-7.2.2/lib/test_firmware.c:210: * XXX: move to kstrncpy() once merged.
+/home/manan/Aira-Octave/linux-7.2.2/LICENSES/preferred/BSD-3-Clause-Clear:12:Copyright (c) [xxxx]-[xxxx] [Owner Organization]
+/home/manan/Aira-Octave/linux-7.2.2/LICENSES/preferred/LGPL-2.0:481:by James Random Hacker.
+/home/manan/Aira-Octave/linux-7.2.2/LICENSES/preferred/LGPL-2.1:505:by James Random Hacker.
+/home/manan/Aira-Octave/linux-7.2.2/LICENSES/preferred/GPL-2.0:348:  `Gnomovision' (which makes passes at compilers) written by James Hacker.
+/home/manan/Aira-Octave/linux-7.2.2/LICENSES/deprecated/GPL-1.0:255:  at assemblers) written by James Hacker.
+/home/manan/Aira-Octave/linux-7.2.2/.config.pre-foundation-20260830-082619:861:CONFIG_HAVE_JUMP_LABEL_HACK=y
+/home/manan/Aira-Octave/linux-7.2.2/.config.pre-foundation-20260830-082619:862:CONFIG_HAVE_NOINSTR_HACK=y
+/home/manan/Aira-Octave/linux-7.2.2/.config.pre-foundation-20260830-082619:1801:# CONFIG_BLK_DEV_3W_XXXX_RAID is not set
+/home/manan/Aira-Octave/linux-7.2.2/.config.pre-foundation-20260830-082619:1803:# CONFIG_SCSI_3W_9XXX is not set
+/home/manan/Aira-Octave/linux-7.2.2/.config.pre-foundation-20260830-082619:1807:# CONFIG_SCSI_AIC7XXX is not set
+/home/manan/Aira-Octave/linux-7.2.2/.config.pre-foundation-20260830-082619:2176:# CONFIG_QLA3XXX is not set
+/home/manan/Aira-Octave/linux-7.2.2/.config.pre-foundation-20260830-082619:2253:# CONFIG_AS21XXX_PHY is not set
+/home/manan/Aira-Octave/linux-7.2.2/.config.pre-foundation-20260830-082619:2263:# CONFIG_BCM7XXX_PHY is not set
+/home/manan/Aira-Octave/linux-7.2.2/.config.pre-foundation-20260830-082619:2275:# CONFIG_MARVELL_88Q2XXX_PHY is not set
+/home/manan/Aira-Octave/linux-7.2.2/.config.pre-foundation-20260830-082619:2411:# CONFIG_RTL8XXXU is not set
+/home/manan/Aira-Octave/linux-7.2.2/.config.pre-foundation-20260830-082619:2504:# CONFIG_MOUSE_VSXXXAA is not set
+/home/manan/Aira-Octave/linux-7.2.2/.config.pre-foundation-20260830-082619:2561:# CONFIG_TOUCHSCREEN_HYNITRON_CSTXXX is not set
+/home/manan/Aira-Octave/linux-7.2.2/.config.pre-foundation-20260830-082619:2684:# CONFIG_SERIAL_8250_PCI1XXXX is not set
+/home/manan/Aira-Octave/linux-7.2.2/.config.pre-foundation-20260830-082619:2801:# CONFIG_I2C_PCI1XXXX is not set
+/home/manan/Aira-Octave/linux-7.2.2/.config.pre-foundation-20260830-082619:2870:# CONFIG_IP5XXX_POWER is not set
+/home/manan/Aira-Octave/linux-7.2.2/.config.pre-foundation-20260830-082619:2882:# CONFIG_BATTERY_BQ27XXX is not set
+/home/manan/Aira-Octave/linux-7.2.2/.config.pre-foundation-20260830-082619:3222:# CONFIG_MFD_MC13XXX_I2C is not set
+/home/manan/Aira-Octave/linux-7.2.2/.config.pre-foundation-20260830-082619:4969:# CONFIG_CRYPTO_DEV_QAT_C3XXX is not set
+/home/manan/Aira-Octave/linux-7.2.2/.config.pre-foundation-20260830-082619:4971:# CONFIG_CRYPTO_DEV_QAT_4XXX is not set
+/home/manan/Aira-Octave/linux-7.2.2/.config.pre-foundation-20260830-082619:4973:# CONFIG_CRYPTO_DEV_QAT_6XXX is not set
+/home/manan/Aira-Octave/linux-7.2.2/.config.pre-foundation-20260830-082619:4975:# CONFIG_CRYPTO_DEV_QAT_C3XXXVF is not set
+/home/manan/Aira-Octave/linux-7.2.2/.config.pre-foundation-20260830-082619:5123:# Kernel hacking
+/home/manan/Aira-Octave/linux-7.2.2/.config.pre-foundation-20260830-082619:5467:# Rust hacking
+/home/manan/Aira-Octave/linux-7.2.2/.config.pre-foundation-20260830-082619:5469:# end of Rust hacking
+/home/manan/Aira-Octave/linux-7.2.2/.config.pre-foundation-20260830-082619:5470:# end of Kernel hacking
+/home/manan/Aira-Octave/linux-7.2.2/.config.old:679:CONFIG_HAVE_JUMP_LABEL_HACK=y
+/home/manan/Aira-Octave/linux-7.2.2/.config.old:680:CONFIG_HAVE_NOINSTR_HACK=y
+/home/manan/Aira-Octave/linux-7.2.2/.config.old:1310:# CONFIG_MOUSE_VSXXXAA is not set
+/home/manan/Aira-Octave/linux-7.2.2/.config.old:1364:# CONFIG_SERIAL_8250_PCI1XXXX is not set
+/home/manan/Aira-Octave/linux-7.2.2/.config.old:1447:# CONFIG_BATTERY_BQ27XXX is not set
+/home/manan/Aira-Octave/linux-7.2.2/.config.old:1547:# CONFIG_FB_S1D13XXX is not set
+/home/manan/Aira-Octave/linux-7.2.2/.config.old:2237:# Kernel hacking
+/home/manan/Aira-Octave/linux-7.2.2/.config.old:2472:# Rust hacking
+/home/manan/Aira-Octave/linux-7.2.2/.config.old:2474:# end of Rust hacking
+/home/manan/Aira-Octave/linux-7.2.2/.config.old:2475:# end of Kernel hacking
+/home/manan/Aira-Octave/linux-7.2.2/sound/sound_core.c:97: *	FIXME: we have to resolve modules and fine grained load/unload
+/home/manan/Aira-Octave/linux-7.2.2/sound/firewire/bebob/bebob_maudio.c:668:/* TODO: need testers. these positions are based on authour's assumption */
+/home/manan/Aira-Octave/linux-7.2.2/sound/firewire/bebob/bebob_stream.c:533:	// TODO: This can be removed hwdep functionality becomes popular.
+/home/manan/Aira-Octave/linux-7.2.2/sound/firewire/oxfw/oxfw-stream.c:264:	// TODO: This can be removed hwdep functionality becomes popular.
+/home/manan/Aira-Octave/linux-7.2.2/sound/firewire/fireworks/fireworks_stream.c:193:	// TODO: This can be removed hwdep functionality becomes popular.
+/home/manan/Aira-Octave/linux-7.2.2/sound/firewire/fireface/ff.h:110:	/* TODO: perhaps TCO exists. */
+/home/manan/Aira-Octave/linux-7.2.2/sound/firewire/fireface/ff-protocol-former.c:513:	// TODO: investigate the purpose of this 0x80.
+/home/manan/Aira-Octave/linux-7.2.2/sound/firewire/motu/amdtp-motu.c:194:	/* TODO: how to set an constraint for exactly 24bit PCM sample? */
+/home/manan/Aira-Octave/linux-7.2.2/sound/firewire/tascam/tascam-midi.c:102:		/* TODO: support virtual MIDI ports. */
+/home/manan/Aira-Octave/linux-7.2.2/sound/firewire/tascam/tascam-transaction.c:267:		/* TODO: support virtual MIDI ports. */
+/home/manan/Aira-Octave/linux-7.2.2/sound/isa/es18xx.c:1950:	/* ok. hack using Vendor-Defined Card-Level registers */
+/home/manan/Aira-Octave/linux-7.2.2/sound/isa/sscape.c:102:#define CMD_XXX_MIDI_VOL	0x86
+/home/manan/Aira-Octave/linux-7.2.2/sound/isa/sscape.c:600:		  host_write_ctrl_unsafe(sscape->io_base, CMD_XXX_MIDI_VOL, 100) &&
+/home/manan/Aira-Octave/linux-7.2.2/sound/isa/sscape.c:666:		 && host_write_ctrl_unsafe(s->io_base, CMD_XXX_MIDI_VOL, 100)
+/home/manan/Aira-Octave/linux-7.2.2/sound/isa/gus/gus_mem.c:180:				/* TODO: remove in the future */
+/home/manan/Aira-Octave/linux-7.2.2/sound/isa/sb/sb16.c:204:	{ .id = "CTLXXXX" , .devs = { { "CTL0031" }, { "CTL0021" } } },
+/home/manan/Aira-Octave/linux-7.2.2/sound/isa/sb/sb16.c:205:	{ .id = "CTLXXXX" , .devs = { { "CTL0041" }, { "CTL0021" } } },
+/home/manan/Aira-Octave/linux-7.2.2/sound/isa/sb/sb16.c:206:	{ .id = "CTLXXXX" , .devs = { { "CTL0042" }, { "CTL0022" } } },
+/home/manan/Aira-Octave/linux-7.2.2/sound/isa/sb/sb16.c:207:	{ .id = "CTLXXXX" , .devs = { { "CTL0044" }, { "CTL0023" } } },
+/home/manan/Aira-Octave/linux-7.2.2/sound/isa/sb/sb16.c:208:	{ .id = "CTLXXXX" , .devs = { { "CTL0045" }, { "CTL0022" } } },
+/home/manan/Aira-Octave/linux-7.2.2/sound/isa/sb/sb16_csp.c:411:				/* TODO: Text2Speech handling routines */
+/home/manan/Aira-Octave/linux-7.2.2/sound/isa/sb/sb16_main.c:497:		/* Vibra16X hack */
+/home/manan/Aira-Octave/linux-7.2.2/sound/isa/sb/sb16_main.c:565:		/* Vibra16X hack */
+/home/manan/Aira-Octave/linux-7.2.2/sound/isa/sb/sb_mixer.c:635:	/* FIXME: functionality of 3D controls might be swapped, I didn't find
+/home/manan/Aira-Octave/linux-7.2.2/sound/isa/sb/sb_mixer.c:638:	/* FIXME: maybe there's actually some standard 3D ctrl name for it?? */
+/home/manan/Aira-Octave/linux-7.2.2/sound/isa/sb/sb_mixer.c:640:	/* FIXME: ALS4000a.pdf mentions BBD (Bucket Brigade Device) time delay,
+/home/manan/Aira-Octave/linux-7.2.2/sound/isa/sb/emu8000_callback.c:165:		best[i].time = (unsigned int)(-1); /* XXX MAX_?INT really */
+/home/manan/Aira-Octave/linux-7.2.2/sound/isa/wavefront/wavefront_midi.c:137:		/* XXX fix me - no hard timing loops allowed! */
+/home/manan/Aira-Octave/linux-7.2.2/sound/isa/wavefront/wavefront_midi.c:175:		/* XXX fix me - no hard timing loops allowed! */
+/home/manan/Aira-Octave/linux-7.2.2/sound/isa/wavefront/wavefront_midi.c:518:	/* XXX fix me - no hard timing loops allowed! */
+/home/manan/Aira-Octave/linux-7.2.2/sound/isa/wavefront/wavefront_midi.c:557:		/* XXX error ? */
+/home/manan/Aira-Octave/linux-7.2.2/sound/isa/wavefront/wavefront_synth.c:54:/* XXX this needs to be made firmware and hardware version dependent */
+/home/manan/Aira-Octave/linux-7.2.2/sound/isa/wavefront/wavefront_synth.c:193:	   There is a hack in snd_wavefront_cmd() to support this. The actual
+/home/manan/Aira-Octave/linux-7.2.2/sound/isa/wavefront/wavefront_synth.c:200:	/* This one is a hack as well. We just read the first byte of the
+/home/manan/Aira-Octave/linux-7.2.2/sound/isa/wavefront/wavefront_synth.c:349:	/* Hack to handle the one variable-size write command. See
+/home/manan/Aira-Octave/linux-7.2.2/sound/isa/wavefront/wavefront_synth.c:823:	/* XXX need to zero existing SLOT_USED bit for program_status[i]
+/home/manan/Aira-Octave/linux-7.2.2/sound/isa/wavefront/wavefront_synth.c:832:			/* XXX need to mark SLOT_USED for sample used by
+/home/manan/Aira-Octave/linux-7.2.2/sound/isa/wavefront/wavefront_synth.c:915:		/* XXX it's a debatable point whether or not RDONLY semantics
+/home/manan/Aira-Octave/linux-7.2.2/sound/isa/wavefront/wavefront_synth.c:1245:	/* Need a hack here to pass in the number of bytes
+/home/manan/Aira-Octave/linux-7.2.2/sound/isa/wavefront/wavefront_synth.c:1991:	   XXX Interesting question: why is no RX interrupt received first ?
+/home/manan/Aira-Octave/linux-7.2.2/sound/isa/wavefront/wavefront_synth.c:2234:		/* XXX is this always true ? */
+/home/manan/Aira-Octave/linux-7.2.2/sound/isa/Kconfig:71:	tristate "Diamond Tech. DT-019x and Avance Logic ALSxxx"
+/home/manan/Aira-Octave/linux-7.2.2/sound/isa/Kconfig:391:# select SEQ stuff to min(SND_SEQUENCER,SND_XXX)
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/es1968.c:11: *  TODO:
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/es1968.c:439:/* DMA Hack! */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/es1968.c:871:#if 0 /* XXX: do we need this? */ 
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/es1968.c:2148:	/* XXX huh?  claims to be reserved.. */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/es1968.c:2161:	/* XXX how do we know which to use? */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/lx6464es/lx_core.h:89:	u16	dsp_stat;	/* status type, RMP_SSIZE_XXX */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/lx6464es/lx6464es.c:550:	/* todo: add some error handling? */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/lx6464es/lx6464es.c:724:	/** \todo the mac address should be ready by not, but it isn't,
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/lx6464es/lx_core.c:367:	/* todo: endianess handling */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/lx6464es/lx_core.c:717:	/* todo: pause request, circular buffer */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/lx6464es/lx_core.c:788: * \todo: can we unmute capture/playback channels independently?
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/lx6464es/lx_core.c:960:	/* todo: handle xrun notification */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/es1938.c:12: *  TODO:
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/azt3328.h:110:/** DirectX timer, main interrupt area (FIXME: and something else?) **/ 
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/azt3328.h:153:/* this WORD can be set to have bits 0x0028 activated (FIXME: correct??);
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/azt3328.h:265:  /* FIXME: these values might be reversed... */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/hoontech.c:258:static void stdsp24_ak4524_lock(struct snd_akm4xxx *ak, int chip)
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/hoontech.c:274:	static const struct snd_akm4xxx akm_stdsp24_mv = {
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/hoontech.c:283:	static const struct snd_ak4xxx_private akm_stdsp24_mv_priv = {
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/hoontech.c:295:	struct snd_akm4xxx *ak;
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/hoontech.c:304:	ak = ice->akm = kmalloc_obj(struct snd_akm4xxx);
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/hoontech.c:309:	err = snd_ice1712_akm4xxx_init(ak, &akm_stdsp24_mv, &akm_stdsp24_mv_priv, ice);
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/hoontech.c:314:	return snd_ice1712_akm4xxx_build_controls(ice);
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/quartet.c:257:static void qtet_akm_write(struct snd_akm4xxx *ak, int chip,
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/quartet.c:319:static void qtet_akm_set_regs(struct snd_akm4xxx *ak, unsigned char addr,
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/quartet.c:325:		tmp = snd_akm4xxx_get(ak, chip, addr);
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/quartet.c:330:		snd_akm4xxx_write(ak, chip, addr, tmp);
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/quartet.c:337:static void qtet_akm_set_rate_val(struct snd_akm4xxx *ak, unsigned int rate)
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/quartet.c:365:static const struct snd_akm4xxx_dac_channel qtet_dac[] = {
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/quartet.c:370:static const struct snd_akm4xxx_adc_channel qtet_adc[] = {
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/quartet.c:375:static const struct snd_akm4xxx akm_qtet_dac = {
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/quartet.c:520:		struct snd_akm4xxx *ak = ice->akm;
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/quartet.c:773:	err = snd_ice1712_akm4xxx_build_controls(ice);
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/quartet.c:965:	struct snd_akm4xxx *ak;
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/quartet.c:1008:	ice->akm = kzalloc_objs(struct snd_akm4xxx, 2);
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/quartet.c:1014:	err = snd_ice1712_akm4xxx_init(ak, &akm_qtet_dac, NULL, ice);
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/juli.c:56: * TODO:
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/juli.c:187:static void juli_akm_lock(struct snd_akm4xxx *ak, int chip)
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/juli.c:191:static void juli_akm_unlock(struct snd_akm4xxx *ak, int chip)
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/juli.c:195:static void juli_akm_write(struct snd_akm4xxx *ak, int chip,
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/juli.c:208:static void juli_akm_set_rate_val(struct snd_akm4xxx *ak, unsigned int rate)
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/juli.c:245:	tmp = snd_akm4xxx_get(ak, 0, 2);
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/juli.c:246:	snd_akm4xxx_reset(ak, 1);
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/juli.c:247:	tmp = snd_akm4xxx_get(ak, 0, 2);
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/juli.c:250:	snd_akm4xxx_set(ak, 0, 2, tmp);
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/juli.c:251:	snd_akm4xxx_reset(ak, 0);
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/juli.c:263:static const struct snd_akm4xxx_dac_channel juli_dac[] = {
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/juli.c:271:static const struct snd_akm4xxx akm_juli_dac = {
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/juli.c:316:			snd_akm4xxx_write(ice->akm, 0, 0x01, 0x01);
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/juli.c:327:			snd_akm4xxx_write(ice->akm, 0, 0x01, 0x03);
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/juli.c:418:	err = snd_ice1712_akm4xxx_build_controls(ice);
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/juli.c:452:	struct snd_akm4xxx *ak = ice->akm;
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/juli.c:455:	snd_akm4xxx_reset(ak, 0);
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/juli.c:463:	struct snd_akm4xxx *ak = ice->akm;
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/juli.c:466:	snd_akm4xxx_reset(ak, 1);
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/juli.c:561:	struct snd_akm4xxx *ak;
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/juli.c:597:		ice->akm = kzalloc_obj(struct snd_akm4xxx);
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/juli.c:602:		err = snd_ice1712_akm4xxx_init(ak, &akm_juli_dac, NULL, ice);
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/revo.c:39:static void revo_set_rate_val(struct snd_akm4xxx *ak, unsigned int rate)
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/revo.c:62:	tmp = snd_akm4xxx_get(ak, 0, reg);
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/revo.c:68:	snd_akm4xxx_reset(ak, 1);
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/revo.c:69:	tmp = snd_akm4xxx_get(ak, 0, reg);
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/revo.c:72:	/* snd_akm4xxx_write(ak, 0, reg, tmp); */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/revo.c:73:	snd_akm4xxx_set(ak, 0, reg, tmp); /* value is written in reset(0) */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/revo.c:74:	snd_akm4xxx_reset(ak, 0);
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/revo.c:184:static const struct snd_akm4xxx_dac_channel revo71_front[] = {
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/revo.c:193:static const struct snd_akm4xxx_dac_channel revo71_surround[] = {
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/revo.c:200:static const struct snd_akm4xxx_dac_channel revo51_dac[] = {
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/revo.c:215:static const struct snd_akm4xxx_adc_channel revo51_adc[] = {
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/revo.c:224:static const struct snd_akm4xxx akm_revo_front = {
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/revo.c:233:static const struct snd_ak4xxx_private akm_revo_front_priv = {
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/revo.c:245:static const struct snd_akm4xxx akm_revo_surround = {
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/revo.c:255:static const struct snd_ak4xxx_private akm_revo_surround_priv = {
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/revo.c:267:static const struct snd_akm4xxx akm_revo51 = {
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/revo.c:276:static const struct snd_ak4xxx_private akm_revo51_priv = {
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/revo.c:288:static const struct snd_akm4xxx akm_revo51_adc = {
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/revo.c:294:static const struct snd_ak4xxx_private akm_revo51_adc_priv = {
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/revo.c:309:static void ap192_set_rate_val(struct snd_akm4xxx *ak, unsigned int rate)
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/revo.c:331:static const struct snd_akm4xxx_dac_channel ap192_dac[] = {
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/revo.c:335:static const struct snd_akm4xxx akm_ap192 = {
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/revo.c:344:static const struct snd_ak4xxx_private akm_ap192_priv = {
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/revo.c:494:	struct snd_akm4xxx *ak;
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/revo.c:518:	ak = ice->akm = kzalloc_objs(struct snd_akm4xxx, 2);
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/revo.c:524:		err = snd_ice1712_akm4xxx_init(ak, &akm_revo_front,
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/revo.c:528:		err = snd_ice1712_akm4xxx_init(ak+1, &akm_revo_surround,
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/revo.c:538:		err = snd_ice1712_akm4xxx_init(ak, &akm_revo51,
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/revo.c:542:		err = snd_ice1712_akm4xxx_init(ak+1, &akm_revo51_adc,
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/revo.c:555:		err = snd_ice1712_akm4xxx_init(ak, &akm_ap192, &akm_ap192_priv,
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/revo.c:580:		err = snd_ice1712_akm4xxx_build_controls(ice);
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/revo.c:585:		err = snd_ice1712_akm4xxx_build_controls(ice);
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/revo.c:594:		err = snd_ice1712_akm4xxx_build_controls(ice);
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/pontis.c:578:	/* FIXME: which interface? */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/pontis.c:731:	ice->akm = kzalloc_obj(struct snd_akm4xxx);
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/pontis.c:736:	/* HACK - use this as the SPDIF source.
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/phase.c:91:static const struct snd_akm4xxx akm_phase22 = {
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/phase.c:97:static const struct snd_ak4xxx_private akm_phase22_priv = {
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/phase.c:111:	struct snd_akm4xxx *ak;
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/phase.c:128:	ice->akm = kzalloc_obj(struct snd_akm4xxx);
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/phase.c:136:		err = snd_ice1712_akm4xxx_init(ak, &akm_phase22,
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/phase.c:153:		err = snd_ice1712_akm4xxx_build_controls(ice);
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/phase.c:406:	struct snd_akm4xxx *ak;
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/phase.c:420:	ice->akm = kzalloc_obj(struct snd_akm4xxx);
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/ice1712.h:16:#include <sound/ak4xxx-adda.h>
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/ice1712.h:200: * identical with DMA_XXX on i386 architecture.
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/ice1712.h:251:struct snd_ak4xxx_private {
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/ice1712.h:261:	struct snd_akm4xxx_ops {
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/ice1712.h:262:		void (*set_rate_val)(struct snd_akm4xxx *ak, unsigned int rate);
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/ice1712.h:341:	struct snd_akm4xxx *akm;
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/ice1712.h:481:int snd_ice1712_akm4xxx_init(struct snd_akm4xxx *ak,
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/ice1712.h:482:			     const struct snd_akm4xxx *template,
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/ice1712.h:483:			     const struct snd_ak4xxx_private *priv,
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/ice1712.h:485:void snd_ice1712_akm4xxx_free(struct snd_ice1712 *ice);
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/ice1712.h:486:int snd_ice1712_akm4xxx_build_controls(struct snd_ice1712 *ice);
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/prodigy_hifi.c:1057:	/* HACK - use this as the SPDIF source.
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/prodigy_hifi.c:1063:	ice->akm = kzalloc_obj(struct snd_akm4xxx);
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/prodigy_hifi.c:1140:	/* HACK - use this as the SPDIF source.
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/prodigy_hifi.c:1146:	ice->akm = kzalloc_obj(struct snd_akm4xxx);
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/maya44.c:508:		.count = 4,  /* FIXME: do controls 5-9 have any meaning? */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/ak4xxx.c:21:MODULE_DESCRIPTION("ICEnsemble ICE17xx <-> AK4xxx AD/DA chip interface");
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/ak4xxx.c:24:static void snd_ice1712_akm4xxx_lock(struct snd_akm4xxx *ak, int chip)
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/ak4xxx.c:31:static void snd_ice1712_akm4xxx_unlock(struct snd_akm4xxx *ak, int chip)
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/ak4xxx.c:39: * write AK4xxx register
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/ak4xxx.c:41:static void snd_ice1712_akm4xxx_write(struct snd_akm4xxx *ak, int chip,
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/ak4xxx.c:47:	struct snd_ak4xxx_private *priv = (void *)ak->private_value[0];
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/ak4xxx.c:110: * initialize the struct snd_akm4xxx record with the template
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/ak4xxx.c:112:int snd_ice1712_akm4xxx_init(struct snd_akm4xxx *ak, const struct snd_akm4xxx *temp,
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/ak4xxx.c:113:			     const struct snd_ak4xxx_private *_priv, struct snd_ice1712 *ice)
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/ak4xxx.c:115:	struct snd_ak4xxx_private *priv;
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/ak4xxx.c:130:		ak->ops.lock = snd_ice1712_akm4xxx_lock;
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/ak4xxx.c:132:		ak->ops.unlock = snd_ice1712_akm4xxx_unlock;
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/ak4xxx.c:134:		ak->ops.write = snd_ice1712_akm4xxx_write;
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/ak4xxx.c:135:	snd_akm4xxx_init(ak);
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/ak4xxx.c:139:void snd_ice1712_akm4xxx_free(struct snd_ice1712 *ice)
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/ak4xxx.c:145:		struct snd_akm4xxx *ak = &ice->akm[akidx];
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/ak4xxx.c:152: * build AK4xxx controls
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/ak4xxx.c:154:int snd_ice1712_akm4xxx_build_controls(struct snd_ice1712 *ice)
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/ak4xxx.c:160:		struct snd_akm4xxx *ak = &ice->akm[akidx];
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/ak4xxx.c:161:		err = snd_akm4xxx_build_controls(ak);
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/ak4xxx.c:168:EXPORT_SYMBOL(snd_ice1712_akm4xxx_init);
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/ak4xxx.c:169:EXPORT_SYMBOL(snd_ice1712_akm4xxx_free);
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/ak4xxx.c:170:EXPORT_SYMBOL(snd_ice1712_akm4xxx_build_controls);
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/ews.c:158:static void ews88mt_ak4524_lock(struct snd_akm4xxx *ak, int chip)
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/ews.c:175:static void ews88mt_ak4524_unlock(struct snd_akm4xxx *ak, int chip)
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/ews.c:184:static void ewx2496_ak4524_lock(struct snd_akm4xxx *ak, int chip)
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/ews.c:199:static void dmx6fire_ak4524_lock(struct snd_akm4xxx *ak, int chip)
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/ews.c:201:	struct snd_ak4xxx_private *priv = (void *)ak->private_value[0];
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/ews.c:328:static const struct snd_akm4xxx akm_ews88mt = {
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/ews.c:338:static const struct snd_ak4xxx_private akm_ews88mt_priv = {
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/ews.c:350:static const struct snd_akm4xxx akm_ewx2496 = {
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/ews.c:359:static const struct snd_ak4xxx_private akm_ewx2496_priv = {
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/ews.c:371:static const struct snd_akm4xxx akm_6fire = {
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/ews.c:380:static const struct snd_ak4xxx_private akm_6fire_priv = {
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/ews.c:407:	struct snd_akm4xxx *ak;
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/ews.c:533:	ak = ice->akm = kzalloc_obj(struct snd_akm4xxx);
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/ews.c:543:		err = snd_ice1712_akm4xxx_init(ak, &akm_ews88mt, &akm_ews88mt_priv, ice);
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/ews.c:546:		err = snd_ice1712_akm4xxx_init(ak, &akm_ewx2496, &akm_ewx2496_priv, ice);
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/ews.c:549:		err = snd_ice1712_akm4xxx_init(ak, &akm_6fire, &akm_6fire_priv, ice);
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/ews.c:970:		err = snd_ice1712_akm4xxx_build_controls(ice);
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/delta.c:240:static void delta_ak4524_lock(struct snd_akm4xxx *ak, int chip)
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/delta.c:242:        struct snd_ak4xxx_private *priv = (void *)ak->private_value[0];
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/delta.c:254:static void delta1010lt_ak4524_lock(struct snd_akm4xxx *ak, int chip)
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/delta.c:256:        struct snd_ak4xxx_private *priv = (void *)ak->private_value[0];
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/delta.c:267:static void delta66e_ak4524_lock(struct snd_akm4xxx *ak, int chip)
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/delta.c:269:	struct snd_ak4xxx_private *priv = (void *)ak->private_value[0];
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/delta.c:281:static void vx442_ak4524_lock(struct snd_akm4xxx *ak, int chip)
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/delta.c:283:        struct snd_ak4xxx_private *priv = (void *)ak->private_value[0];
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/delta.c:314:static void delta_ak4524_set_rate_val(struct snd_akm4xxx *ak, unsigned int rate)
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/delta.c:333:	snd_akm4xxx_reset(ak, 1);
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/delta.c:340:	snd_akm4xxx_reset(ak, 0);
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/delta.c:346:static void vx442_ak4524_set_rate_val(struct snd_akm4xxx *ak, unsigned int rate)
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/delta.c:351:	if (snd_akm4xxx_get(ak, 0, 0x02) != val ||
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/delta.c:352:	    snd_akm4xxx_get(ak, 1, 0x02) != val) {
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/delta.c:353:		snd_akm4xxx_reset(ak, 1);
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/delta.c:354:		snd_akm4xxx_write(ak, 0, 0x02, val);
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/delta.c:355:		snd_akm4xxx_write(ak, 1, 0x02, val);
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/delta.c:356:		snd_akm4xxx_reset(ak, 0);
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/delta.c:425:static const struct snd_akm4xxx akm_audiophile = {
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/delta.c:434:static const struct snd_ak4xxx_private akm_audiophile_priv = {
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/delta.c:446:static const struct snd_akm4xxx akm_delta410 = {
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/delta.c:455:static const struct snd_ak4xxx_private akm_delta410_priv = {
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/delta.c:467:static const struct snd_akm4xxx akm_delta1010lt = {
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/delta.c:477:static const struct snd_ak4xxx_private akm_delta1010lt_priv = {
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/delta.c:489:static const struct snd_akm4xxx akm_delta66e = {
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/delta.c:499:static const struct snd_ak4xxx_private akm_delta66e_priv = {
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/delta.c:512:static const struct snd_akm4xxx akm_delta44 = {
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/delta.c:522:static const struct snd_ak4xxx_private akm_delta44_priv = {
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/delta.c:534:static const struct snd_akm4xxx akm_vx442 = {
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/delta.c:544:static const struct snd_ak4xxx_private akm_vx442_priv = {
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/delta.c:559:	unsigned char akm_img_bak[AK4XXX_IMAGE_SIZE];
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/delta.c:560:	unsigned char akm_vol_bak[AK4XXX_IMAGE_SIZE];
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/delta.c:587:		snd_akm4xxx_init(ice->akm);
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/delta.c:590:		snd_akm4xxx_reset(ice->akm, 0);
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/delta.c:599:		snd_akm4xxx_reset(ice->akm, 1);
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/delta.c:608:	struct snd_akm4xxx *ak;
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/delta.c:710:	ak = ice->akm = kmalloc_obj(struct snd_akm4xxx);
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/delta.c:717:		err = snd_ice1712_akm4xxx_init(ak, &akm_audiophile, &akm_audiophile_priv, ice);
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/delta.c:720:		err = snd_ice1712_akm4xxx_init(ak, &akm_delta410, &akm_delta410_priv, ice);
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/delta.c:724:		err = snd_ice1712_akm4xxx_init(ak, &akm_delta1010lt, &akm_delta1010lt_priv, ice);
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/delta.c:728:		err = snd_ice1712_akm4xxx_init(ak, &akm_delta44, &akm_delta44_priv, ice);
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/delta.c:731:		err = snd_ice1712_akm4xxx_init(ak, &akm_vx442, &akm_vx442_priv, ice);
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/delta.c:734:		err = snd_ice1712_akm4xxx_init(ak, &akm_delta66e, &akm_delta66e_priv, ice);
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/delta.c:826:		err = snd_ice1712_akm4xxx_build_controls(ice);
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/vt1720_mobo.c:29:	/* FIXME: TODO */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/vt1720_mobo.c:36:	/* FIXME: needs some quirks for VT1616? */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/ice1712.c:2260:		ice->eeprom.size = 32; /* FIXME: any cards without the correct size? */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/ice1712.c:2432:	snd_ice1712_akm4xxx_free(ice);
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/ice1724.c:909:	.period_bytes_min =	8 * 4 * 2,	/* FIXME: constraints needed */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/ice1724.c:1458:		mdelay(5); /* FIXME */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/ice1724.c:1749:	/* FIXME: the following conflict with IEC958 Playback Route */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/ice1724.c:2121:	uinfo->count = 22; /* FIXME: for compatibility with ice1712... */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/ice1724.c:2463:	snd_ice1712_akm4xxx_free(ice);
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/Makefile:7:snd-ice17xx-ak4xxx-y := ak4xxx.o
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/Makefile:12:obj-$(CONFIG_SND_ICE1712) += snd-ice1712.o snd-ice17xx-ak4xxx.o
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/Makefile:13:obj-$(CONFIG_SND_ICE1724) += snd-ice1724.o snd-ice17xx-ak4xxx.o
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/aureon.c:11: * - we reuse the struct snd_akm4xxx record for storing the wm8770 codec data.
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ice1712/aureon.c:2096:	ice->akm = kzalloc_obj(struct snd_akm4xxx);
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/maestro3.c:1655:#if 0 /* TODO: not supported yet */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/maestro3.c:1948: * hack, returns non zero on err 
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/maestro3.c:2055:	/* seems ac97 PCM needs initialization.. hack hack.. */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/maestro3.c:2328:	/* TODO: MPU401 not supported yet */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/maestro3.c:2682:#if 0 /* TODO: not supported yet */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/maestro3.c:2683:	/* TODO enable MIDI IRQ and I/O */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ctxfi/ctatc.c:474:	if (1 == atc->msr) { /* FIXME: do we really need SRC here if pitch==1 */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ctxfi/cthw20k2.c:1227:				/* FIXME: check this against the chip spec */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ctxfi/cthw20k2.c:2130:	/* TODO: Disable interrupt and so on... */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ctxfi/cthw20k2.c:2196:		/* TODO: detect the card ID and configure GPIO accordingly. */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ctxfi/ctpcm.c:167:	/* TODO: Notify mixer inactive. */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ctxfi/ctpcm.c:307:	/* TODO: Notify mixer inactive. */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/via82xx.c:267:#define  VIA_FUNC_MIDI_PNP	0x80 /* FIXME: it's 0x40 in the datasheet! */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/via82xx.c:268:#define  VIA_FUNC_MIDI_IRQMASK	0x40 /* FIXME: not documented! */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/via82xx.c:1789:	{	/* FIXME: which codec? */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/via82xx.c:2017:	legacy |= VIA_FUNC_MIDI_IRQMASK;	/* FIXME: correct? (disable MIDI) */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/via82xx.c:2127:#if 1 /* FIXME: should we do full reset here for all chip models? */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/via82xx.c:2166:#if 0 /* FIXME: we don't support the second codec yet so skip the detection now.. */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/via82xx.c:2513:			// chip->dxs_fixed = 1; /* FIXME: use 48k for DXS #3? */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/au88x0/au8830.h:144:#define		VOL_MAX 0x7f	/* FIXME: Not confirmed! Just guessed. */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/au88x0/au88x0_mpu401.c:40:	port = (0x03 << 5);	/* FIXME: static address. 0x330 */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/au88x0/au8820.h:117:#define		VOL_MAX 0x7f	/* FIXME: Not confirmed! Just guessed. */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/au88x0/au8820.h:168:#define VORTEX_SPDIF_FLAGS		0x1005c	/* FIXME */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/au88x0/au8810.h:124:#define		VOL_MAX 0x7f	/* FIXME: Not confirmed! Just guessed. */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/au88x0/au88x0_pcm.c:327:		// FIXME: Set rate (i guess using vortex_wt_writereg() somehow).
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/au88x0/au88x0_pcm.c:618:	// This is an evil hack, but it saves a lot of duplicated code.
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/au88x0/au88x0_synth.c:59:	//FIXME: WT audio routing.
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/au88x0/au88x0_synth.c:363:	//FIXME: 64 bit operation.
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/au88x0/au88x0_eq.c:12: *  TODO:
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/au88x0/au88x0_eq.c:911:	   //FIXME: segfault because vortex->eqctrl[i] == 4
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/au88x0/au88x0_a3d.c:210:	// FIXME: verify this!
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/au88x0/au88x0_a3d.c:695:	/* FIXME: implement this. */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/au88x0/au88x0_a3d.c:700:	/* FIXME: implement this. */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/au88x0/au88x0_a3d.c:705:	/* FIXME: implement this. */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/au88x0/au88x0_a3d.c:710:	/* FIXME: implement this. */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/au88x0/au88x0_core.c:73:// FIXME: get rid of this.
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/au88x0/au88x0_core.c:370:	// FIXME: get rid of this crap.
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/au88x0/au88x0_core.c:2323:	/* AC97 Codec channel setup. FIXME: this has no effect on some cards !! */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/au88x0/au88x0_core.c:2463:				/* FIXME: we ignore the return value from
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/nm256/nm256.c:47:static bool vaio_hack;			/* disabled */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/nm256/nm256.c:65:module_param(vaio_hack, bool, 0444);
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/nm256/nm256.c:66:MODULE_PARM_DESC(vaio_hack, "Enable workaround for Sony VAIO notebooks.");
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/nm256/nm256.c:1598:	if (vaio_hack)
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/atiixp.c:215:	int type;			/* ATI_DMA_XXX */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/atiixp.c:639: * pointer callback simplly reads XXX_DMA_DT_CUR register as the current
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/atiixp.c:799:#if 0 /* FIXME: this causes the endless loop */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/atiixp.c:1280:	/* FIXME: non-48k sample rate doesn't work on my test machine with AD1888 */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/fm801.c:597:		/* TODO */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/fm801.c:1357:		/* FIXME: tea575x suspend */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/mixart/mixart_hwdep.h:65:#define  MIXART_PSEUDOREG_MXLX_STATUS_OFFSET       MIXART_PSEUDOREG+0xA4     /* status = EMBEBBED_STAT_XXX */ 
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/mixart/mixart_hwdep.h:68:#define  MIXART_PSEUDOREG_ELF_STATUS_OFFSET        MIXART_PSEUDOREG+0xB0     /* status = EMBEBBED_STAT_XXX */ 
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/mixart/mixart_hwdep.h:84:#define  MIXART_PSEUDOREG_DXLX_STATUS_OFFSET       MIXART_PSEUDOREG+0x9A0    /* status = EMBEBBED_STAT_XXX */ 
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/mixart/mixart_hwdep.c:179:		/* TODO: really need send_msg MSG_CONNECTOR_GET_AUDIO_INFO for each connector ? perhaps for analog level caps ? */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/mixart/mixart_hwdep.c:223:		/* TODO: really need send_msg MSG_CONNECTOR_GET_AUDIO_INFO for each connector ? perhaps for analog level caps ? */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/mixart/mixart.c:445:		/* TODO */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/mixart/mixart.c:450:		/* TODO */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/mixart/mixart.c:482:	/* TODO de façon non bloquante, réappliquer les hw_params (rate, bits, codec) */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/mixart/mixart.c:561:	/* TODO: what else to configure ? */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/mixart/mixart.c:656: *  TODO CONFIGURATION SPACE for all pcms, mono pcm must update channels_max
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/mixart/mixart.c:1295:	mgr->num_cards = MIXART_MAX_CARDS; /* 4  FIXME: configurable? */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/mixart/mixart_core.c:163:	/* TODO : use memcpy_toio() with intermediate buffer to copy the message */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/mixart/mixart_core.c:548:			/* TODO : are there things to do here ? */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/vx222/vx222_ops.c:956: * FIXME: compressor/limiter implementation is missing yet...
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/cs5535audio/cs5535audio_pcm.c:9: * todo: add be fmt support, spdif, pm
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/trident/trident_main.c:10: *  TODO:
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/trident/trident_main.c:2634:	/* FIXME: no tlv yet */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/cs5530.c:14: * that way we can hack up some full duplex audio. 
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/sis7019.c:65: * FIXME: It'd be nice to make use of some of the synth features in the
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/sis7019.c:639:	/* FIXME: The driver only supports recording from one channel
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/sis7019.c:1120:	 * FIXME: Maximum attenuation is set for the music amp, which will
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/pcxhr/pcxhr.h:27:/* TODO : granularity could be 64 or 128 */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/pcxhr/pcxhr_core.c:456:	u16 st_type;		/* status type (RMH_SSIZE_XXX) */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/pcxhr/pcxhr_mixer.c:303:	/* TODO : if mask (3 << pipe->first_audio) is used, left and right
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/pcxhr/pcxhr.c:867:		/* TODO */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/pcxhr/pcxhr_core.h:37:	u16	dsp_stat;		/* status type, RMP_SSIZE_XXX */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/aw2/aw2-alsa.c:337:	/* TODO: something to do ? */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/aw2/aw2-saa7146.c:417:	/* FIXME: switch between analog and digital input does not always work.
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/als4000.c:49: * ToDo:
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/als4000.c:399:	/* FIXME: from second playback on, there's a lot more clicks and pops
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/als4000.c:496:/* FIXME: this IRQ routine doesn't really support IRQ sharing (we always
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/als4000.c:887:	/* FIXME: ALS4000 has interesting MPU401 configuration features
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/cs4281.c:558:	// FIXME: volatile is necessary in the following due to a bug of
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/bt87x.c:281:		/* error 'handling' similar to aic7xxx_pci.c: */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/asihpi/hpi6205.c:9: ASI50xx, AS51xx, ASI6xxx, ASI87xx ASI89xx series adapters.
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/asihpi/hpi6205.c:12: and (except ASI50xx) TI TMS320C6xxx floating point DSP
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/asihpi/hpi_internal.h:604:	u32 command; /**< HPI_BUFFER_CMD_xxx*/
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/asihpi/hpi_internal.h:992:	u16 function;		/* HPI_SUBSYS_xxx, HPI_ADAPTER_xxx */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/asihpi/hpi_internal.h:1003:	u16 function;		/* HPI_SUBSYS_xxx, HPI_ADAPTER_xxx */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/asihpi/hpi_internal.h:1054:	u16 function;		/* HPI_SUBSYS_xxx, HPI_ADAPTER_xxx */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/asihpi/hpi_internal.h:1055:	u16 error;		/* HPI_ERROR_xxx */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/asihpi/hpi_internal.h:1065:	u16 function;		/* HPI_SUBSYS_xxx, HPI_ADAPTER_xxx */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/asihpi/hpi_internal.h:1066:	u16 error;		/* HPI_ERROR_xxx */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/asihpi/asihpi.c:36:MODULE_DESCRIPTION("AudioScience ALSA ASI5xxx ASI6xxx ASI87xx ASI89xx "
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/asihpi/hpicmn.c:10: Common functions used by hpixxxx.c modules
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/intel8x0.c:1927:	{	/* FIXME: which codec? */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/intel8x0.c:2171:#if 0 /* FIXME: this seems wrong on most boards */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/intel8x0.c:2265:	/* FIXME: my test board doesn't work well with VRA... */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/intel8x0.c:2914:		/* Parallels VM emulated sound, PCI SSID: 1ab8:xxxx */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ens1370.c:9: * for ens1371 only ( FIXME )
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ens1370.c:1867:static const struct snd_pci_quirk es1371_amplifier_hack[] = {
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ens1370.c:1875:static const struct es1371_quirk es1371_ac97_reset_hack[] = {
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ens1370.c:1903:	if (es1371_quirk_lookup(ensoniq, es1371_ac97_reset_hack)) {
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ens1370.c:2033:	if (snd_pci_quirk_lookup(pci, es1371_amplifier_hack))
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ens1370.c:2036:	if (es1371_quirk_lookup(ensoniq, es1371_ac97_reset_hack))
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ad1889.c:5: * on the HP PA-RISC [BCJ]-xxx0 workstations.
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ad1889.c:11: * TODO:
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/atiixp_modem.c:191:	int type;			/* ATI_DMA_XXX */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/atiixp_modem.c:588: * pointer callback simplly reads XXX_DMA_DT_CUR register as the current
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/emu10k1/emupcm.c:985:		udelay(50);	/* hack, it takes awhile until capture is started */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/emu10k1/p16v.c:59: *  TODO:
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/emu10k1/p16v.c:283:	/* FIXME: Check emu->buffer.size before actually writing to it. */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/emu10k1/p16v.c:332:	/* FIXME: Check emu->buffer.size before actually writing to it. */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/emu10k1/io.c:169:	reset = (tmp & ~0x3ffff) | 0x20000; /* Set xxx20000 */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/emu10k1/io.c:170:	set = reset | 0x10000; /* Set xxx1xxxx */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/emu10k1/io.c:361:	// FIXME: The /4 is valid for 0404b, but contradicts all other info.
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/emu10k1/io.c:397:	// FIXME: this should probably represent the AND of all currently
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/emu10k1/emu10k1_main.c:189:		/* Hacks for Alice3 to work independent of haP16V driver */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/emu10k1/emu10k1_main.c:204:		/* Hacks for Alice3 to work independent of haP16V driver */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/emu10k1/emu10k1_main.c:290:	/* FIXME: Remove all these emu->model and replace it with a card recognition parameter,
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/emu10k1/emu10k1_main.c:371:	/* FIXME: the following routine disables LiveDrive-II !! */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/emu10k1/emu10k1_main.c:609:	/* Step 3: Wait for awhile;   XXX We can't get away with this
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/emu10k1/emu10k1_main.c:1011:	 * Win sets it to 0xXX61
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/emu10k1/emu10k1_main.c:1601:	// FIXME: these should come from the card_capabilites table.
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/emu10k1/p17v.h:62:/* FIXME: Not tested yet. */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/emu10k1/emumixer.c:936:		// TODO: determine what is actually available.
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/emu10k1/emumixer.c:1929:	/* FIXME: better to use a cached version */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/emu10k1/emumixer.c:2136:			goto no_ac97; /* FIXME: get rid of ugly gotos.. */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/emu10k1/emufx.c:831:	     	/* FIXME: we need to check the WRITE access */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/emu10k1/emufx.c:1099:		/* FIXME: we need to add universal code to the PCM transfer routine */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/emu10k1/emufx.c:2361:#if 0 /* FIXME: who use them? */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/emu10k1/emu10k1x.c:12: *  TODO:
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/emu10k1/emu10k1_callback.c:165:	/* FIXME: emu10k1_synth is broken. */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/emu10k1/emu10k1_callback.c:218:		best[i].time = (unsigned int)-1; /* XXX MAX_?INT really */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/emu10k1/p16v.h:38:#define CAPTURE_P16V_VOLUME1	0x14		/* Low: Capture volume 0xXXXX3030 */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/emu10k1/p16v.h:151:						 * 0xXXXXXXX4 = Enable Front Left/Right
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/emu10k1/p16v.h:165:						/* 0xXXXX3030 = PCM0 Volume (Front).
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/emu10k1/p16v.h:166:						 * 0x3030XXXX = PCM1 Volume (Center)
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/emu10k1/p16v.h:169:						/* 0x3030XXXX = PCM3 Volume (Rear). */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/emu10k1/p16v.h:188:						 * 0xXXXXXXX1 = PCM0 Left. (Front)
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/emu10k1/p16v.h:189:						 * 0xXXXXXXX2 = PCM0 Right.
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/emu10k1/p16v.h:190:						 * 0xXXXXXXX4 = PCM1 Left. (Center/LFE)
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/emu10k1/p16v.h:191:						 * 0xXXXXXXX8 = PCM1 Right.
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/emu10k1/p16v.h:192:						 * 0xXXXXXX1X = PCM2 Left. (Unknown)
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/emu10k1/p16v.h:193:						 * 0xXXXXXX2X = PCM2 Right.
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/emu10k1/p16v.h:194:						 * 0xXXXXXX4X = PCM3 Left. (Rear)
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/emu10k1/p16v.h:195:						 * 0xXXXXXX8X = PCM3 Right.
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/emu10k1/p16v.h:208:						/* 0xXXXXXX10 = PCM0 Left/Right On. (Front)
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/emu10k1/p16v.h:209:						 * 0xXXXXXX20 = PCM1 Left/Right On. (Center/LFE)
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/emu10k1/p16v.h:210:						 * 0xXXXXXX40 = PCM2 Left/Right On. (Unknown)
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/emu10k1/p16v.h:211:						 * 0xXXXXXX80 = PCM3 Left/Right On. (Rear)
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ca0106/ca0106_mixer.c:375:		/* FIXME: this isn't safe, but needed to keep the compatibility
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ca0106/ca0106.h:514:/* FIXME: Not tested yet. */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ca0106/ca0106_main.c:92: *  TODO:
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ca0106/ca0106_main.c:165:	   .name   = "X-Fi Extreme Audio [SBxxxx]",
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ca0106/ca0106_main.c:256:	/* FIXME: the GPIO and I2C setting aren't tested well */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ca0106/ca0106_main.c:311:#if 0 /* FIXME: looks like 44.1kHz capture causes noisy output on 48kHz */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ca0106/ca0106_main.c:319:#endif /* FIXME */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ca0106/ca0106_main.c:368:	reset = (tmp & ~0x3ffff) | 0x20000; /* Set xxx20000 */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ca0106/ca0106_main.c:369:	set = reset | 0x10000; /* Set xxx1xxxx */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ca0106/ca0106_main.c:607:	/* FIXME: maybe zero others */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ca0106/ca0106_main.c:681:	/* FIXME: maybe zero others */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ca0106/ca0106_main.c:720:	/* FIXME: Depending on mixer selection of SPDIF out or not, select the spdif rate or the DAC rate. */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ca0106/ca0106_main.c:768:	/* FIXME: Only let the first channel accessed set this. */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ca0106/ca0106_main.c:790:	/* FIXME: Check emu->buffer->size before actually writing to it. */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ca0106/ca0106_main.c:801:	/* FIXME  test what 0 bytes does. */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ca0106/ca0106_main.c:870:	/* FIXME: Only let the first channel accessed set this. */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ca0106/ca0106_main.c:1203:/* FIXME: Select the correct substream for period elapsed */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ca0106/ca0106_main.c:1219:/* FIXME: Select the correct substream for period elapsed */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ca0106/ca0106_main.c:1410:#if 0 /* FIXME: what are these? */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ca0106/ca0106_main.c:1480:		/* FIXME: Still need to find out what the other GPIO bits do.
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ca0106/ca0106_main.c:1488:		/* FIXME: Still need to find out what the other GPIO bits do.
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ca0106/ca0106_main.c:1554:	/* FIXME: We need to stop and DMA transfers here.
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/azt3328.c:64: *    FIXME: how to enable legacy addr??
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/azt3328.c:73: *    [FIXME: 3.3V or 5V level? maximum rate is 66.2kHz right?]
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/azt3328.c:78: *    required for Microsoft's logo compliance (FIXME: where?)
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/azt3328.c:149: * TODO
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/azt3328.c:252:	spinlock_t *lock; /* TODO: convert to our own per-codec lock member */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/azt3328.c:1255:	 * (FIXME: yes, it works, but what exactly am I doing here?? :)
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/azt3328.c:1256:	 * FIXME: does this have some side effects for full-duplex
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/azt3328.c:1469:			/* FIXME: clear interrupts or what??? */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/azt3328.c:1480:			/* FIXME: enable playback/recording??? */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/azt3328.c:1485:			/* FIXME: what is this value (0x0010)??? */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/azt3328.c:1576:		WARN(1, "FIXME: SNDRV_PCM_TRIGGER_PAUSE_PUSH NIY!\n");
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/azt3328.c:1579:		WARN(1, "FIXME: SNDRV_PCM_TRIGGER_PAUSE_RELEASE NIY!\n");
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/azt3328.c:1582:		WARN(1, "FIXME: unknown trigger mode!\n");
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/azt3328.c:1939:	/* FIXME!! Correct? */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/azt3328.c:1963:	/* FIXME: maybe that card actually has a FIFO?
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/rme9652/hdsp.c:371:/* FIXME : more values for 9632 cards ? */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/rme9652/hdsp.c:418:    u32 xxx_peak[16];
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/rme9652/hdsp.c:423:    u32 xxx_rms_low[16];
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/rme9652/hdsp.c:427:    u32 xxx_rms_high[16];
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/rme9652/hdspm.c:4168:	/* TODO freq from app could be supported here, see tco->samplerate */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/rme9652/hdspm.c:4921:		pref_sync_ref = "XXXX Clock";
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/rme9652/hdspm.c:6243:			/* TODO: Mac driver sets it when f_s>48kHz */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/rme9652/rme9652.c:675:	/* XXX what unsets this ? */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/rme9652/rme9652.c:862:	/* XXX do we actually need to stop the card when we do this ? */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/rme9652/rme9652.c:1357:/* FIXME: this routine needs a port to the new control API --jk */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/rme9652/rme9652.c:1379:	/* XXX bug alert: loop-based timing !!!! */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ali5451/ali5451.c:10: *  TODO:
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ali5451/ali5451.c:1763:	/* FIXME: "IEC958 Playback Switch" may conflict with one on ac97_codec */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/cs46xx/cs46xx_lib.c:16: *  TODO:
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/cs46xx/cs46xx_lib.c:342:	"cwc4630", "cwcasync", "cwcsnoop", "cwcbinhack", "cwcdma"
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/cs46xx/cs46xx_lib.c:348:MODULE_FIRMWARE("cs46xx/cwcbinhack");
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/cs46xx/cs46xx_lib.c:1481:	chip->playback_pcm = cpcm; /* HACK */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/cs46xx/cs46xx_lib.c:2457:	/* get EAPD mixer switch (for voyetra hack) */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/cs46xx/cs46xx_lib.c:3492: *	The original idea and code for this hack comes from David Kaiser at
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/cs46xx/cs46xx_lib.c:3497:static void clkrun_hack(struct snd_cs46xx *chip, int change)
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/cs46xx/cs46xx_lib.c:3642:	/* Not sure if the 570 needs the clkrun hack */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/cs46xx/cs46xx_lib.c:3648:		.active = clkrun_hack,
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/cs46xx/cs46xx_lib.c:3655:		.active = clkrun_hack,
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/cs46xx/cs46xx_lib.c:3840:	/* set up amp and clkrun hack */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/cs46xx/cs46xx_lib.c:3846:			dev_dbg(chip->card->dev, "hack for %s enabled\n",
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/cs46xx/cs46xx_lib.c:3867:			 "Activating CLKRUN hack for Thinkpad.\n");
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/cs46xx/cs46xx_lib.c:3868:		chip->active_ctrl = clkrun_hack;
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/cs46xx/cs46xx.h:1689:	struct snd_kcontrol *eapd_switch; /* for amplifier hack */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/cs46xx/dsp_spos.h:11:#ifdef  CONFIG_SND_CS46XX_NEW_DSP /* hack ... */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/cs46xx/cs46xx_dsp_scb_types.h:296:	/* Initial values are 0000:xxxx */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/cs46xx/cs46xx_dsp_scb_types.h:302:	/* Initial values are xxxx:0000
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/cs46xx/cs46xx_dsp_scb_types.h:784:	   xxx for ASER 1 (not allowed); 118 for ASER2 */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/cs46xx/dsp_spos_scb_lib.c:1229:		/* TODO */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/cs46xx/dsp_spos_scb_lib.c:1242:			/* Hack to bypass creating a new SRC */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/als300.c:6: *  TODO
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/als300.c:236:	/* FIXME: Ack other interrupt types. Not important right now as
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/cmipci.c:652:	/* FIXME: Init (Do we've to set an other register first before programming?) */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/cmipci.c:654:	/* FIXME: Is this correct? Or shouldn't the m/n/r values be used for that? */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/cmipci.c:658:	/* FIXME: Setup (Do we've to set an other register first to enable this?) */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/cmipci.c:1295:static void snd_cmipci_silence_hack(struct cmipci *cm, struct cmipci_pcm *rec)
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/cmipci.c:1346:	snd_cmipci_silence_hack(cm, &cm->channel[0]);
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/cmipci.c:1353:	snd_cmipci_silence_hack(cm, &cm->channel[1]);
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/cmipci.c:1565:	/* FIXME: a file should wait until the device becomes free
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/cmipci.c:2794:	static const int ports[] = { 0x201, 0x200, 0 }; /* FIXME: majority is 0x201? */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/lola/lola_mixer.c:811:/* FIXME: buggy mixer matrix handling */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/lola/lola_mixer.c:840:#endif /* FIXME */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/Kconfig:18:	  device found in particular on the Hewlett-Packard [BCJ]-xxx0
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/Kconfig:66:	tristate "AudioScience ASIxxxx"
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/Kconfig:494:# select SEQ stuff to min(SND_SEQUENCER,SND_XXX)
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ac97/ac97_patch.c:1260:	/* FIXME: assume only page 0 for writing cache */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ac97/ac97_patch.c:2649:	/* FIXME: what about revision D ? */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ac97/ac97_patch.c:3005:	/* FIXME: can anyone confirm below? */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ac97/ac97_patch.c:3127:	/* FIXME: set up GPIO */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ac97/ac97_patch.c:3149:	/* FIXME: check the bits for each model
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ac97/ac97_patch.c:3321:	/* FIXME: set up GPIO */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ac97/ac97_pcm.c:131:/* FIXME: more various mappings for ADC? */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ac97/ac97_pcm.c:167:	/* TODO: double rate support */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ac97/ac97_pcm.c:425: * some slots are available, pcm->xxx.slots and pcm->xxx.rslots[] members
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ac97/ac97_codec.c:138:{ 0x43585428, 0xfffffff8, "Cx20468",		patch_conexant,	NULL }, // SmartAMC fixme: the mask might be different
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ac97/ac97_codec.c:699:	/* FIXME: AC'97 spec doesn't say which bits are used for what */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ac97/ac97_codec.c:1646:	/* Hack for ASUS P5P800-VM, which does not indicate S/PDIF capability */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ac97/ac97_codec.c:2180:	if (bus->ops->reset) // FIXME: always skipping?
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ac97/ac97_codec.c:2183:	/* FIXME: add powerdown control */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ac97/ac97_codec.c:2204:	/* FIXME: add powerdown control */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ac97/ac97_codec.c:2391:		/* FIXME: this may cause click noises on some boards */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ac97/ac97_codec.c:2612:		/* FIXME: extra delay */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ymfpci/ymfpci_main.c:133:		return 0x40000000;	/* FIXME: What's the right value? */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ymfpci/ymfpci_main.c:247:		/* TODO: synth/midi voice deallocation */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ymfpci/ymfpci_main.c:814:	.buffer_bytes_max =	256 * 1024, /* FIXME: enough? */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ymfpci/ymfpci_main.c:816:	.period_bytes_max =	256 * 1024, /* FIXME: enough? */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ymfpci/ymfpci_main.c:836:	.buffer_bytes_max =	256 * 1024, /* FIXME: enough? */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ymfpci/ymfpci_main.c:838:	.period_bytes_max =	256 * 1024, /* FIXME: enough? */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ymfpci/ymfpci_main.c:857:	/* FIXME? True value is 256/48 = 5.33333 ms */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/ymfpci/ymfpci_main.c:983:	/* FIXME? True value is 256/48 = 5.33333 ms */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/oxygen/xonar_lib.c:52:			/* TODO: stop PCMs */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/via82xx_modem.c:177:#define  VIA_FUNC_MIDI_PNP	0x80 /* FIXME: it's 0x40 in the datasheet! */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/via82xx_modem.c:178:#define  VIA_FUNC_MIDI_IRQMASK	0x40 /* FIXME: not documented! */
+/home/manan/Aira-Octave/linux-7.2.2/sound/pci/via82xx_modem.c:945:#if 1 /* FIXME: should we do full reset here for all chip models? */
+/home/manan/Aira-Octave/linux-7.2.2/sound/oss/dmasound/dmasound_core.c:161: * TODO: think about how to sort this out... without bogging everything down in
+/home/manan/Aira-Octave/linux-7.2.2/sound/oss/dmasound/dmasound_core.c:171: * it will be quite hard to trap it with an -EXXX return... because we can't
+/home/manan/Aira-Octave/linux-7.2.2/sound/oss/dmasound/dmasound_core.c:473:	   latency. (TODO.  For now we will copy in the defaults.)
+/home/manan/Aira-Octave/linux-7.2.2/sound/oss/dmasound/dmasound_core.c:769:		/* TODO: if O_RDWR, release any resources grabbed by write part */
+/home/manan/Aira-Octave/linux-7.2.2/sound/oss/dmasound/dmasound_core.c:903:	/* XXX add check here,*/
+/home/manan/Aira-Octave/linux-7.2.2/sound/oss/dmasound/dmasound_core.c:916:   TODO: We might change this to mask O_RDWR such that only one or the other channel
+/home/manan/Aira-Octave/linux-7.2.2/sound/oss/dmasound/dmasound_core.c:1041:		   will cause the _ctx_xxx() functions to be substituted.
+/home/manan/Aira-Octave/linux-7.2.2/sound/oss/dmasound/dmasound_core.c:1239:        return "ERROR: Unsupported AFMT_XXXX code" ;
+/home/manan/Aira-Octave/linux-7.2.2/sound/oss/dmasound/dmasound_core.c:1434:	/* FIXME: other than in the most naive of cases there is no sense in these
+/home/manan/Aira-Octave/linux-7.2.2/sound/.sound_core.o.cmd:370:    $(wildcard include/config/HAVE_JUMP_LABEL_HACK) \
+/home/manan/Aira-Octave/linux-7.2.2/sound/ppc/awacs.c:618:/* FIXME: is this correct order?
+/home/manan/Aira-Octave/linux-7.2.2/sound/ppc/awacs.c:872:	/* FIXME: Only machines with external SRS module need MASK_PAROUT */
+/home/manan/Aira-Octave/linux-7.2.2/sound/ppc/awacs.c:885:		/* FIXME: screamer has loopthru vol control */
+/home/manan/Aira-Octave/linux-7.2.2/sound/ppc/awacs.c:887:		/* FIXME: maybe should be vol << 3 for PCMCIA speaker */
+/home/manan/Aira-Octave/linux-7.2.2/sound/ppc/pmac.c:374: * DEAD status.  However this is a TODO for now - we'll see what gets reported.
+/home/manan/Aira-Octave/linux-7.2.2/sound/ppc/pmac.c:583:#if 0 /* FIXME: still under development.. */
+/home/manan/Aira-Octave/linux-7.2.2/sound/ppc/pmac.c:971:		// chip->can_byte_swap = 0; /* FIXME: check this */
+/home/manan/Aira-Octave/linux-7.2.2/sound/ppc/pmac.c:981:		// chip->can_byte_swap = 0; /* FIXME: check this */
+/home/manan/Aira-Octave/linux-7.2.2/sound/ppc/pmac.c:993:		// chip->can_byte_swap = 0; /* FIXME: check this */
+/home/manan/Aira-Octave/linux-7.2.2/sound/ppc/pmac.c:1000:		// chip->can_byte_swap = 0; /* FIXME: check this */
+/home/manan/Aira-Octave/linux-7.2.2/sound/ppc/snd_ps3.c:676:/* FIXME: ps3av_set_audio_mode() assumes only consumer mode */
+/home/manan/Aira-Octave/linux-7.2.2/sound/ppc/snd_ps3.c:768:	/* FIXME: move this to device_init (H/W probe) */
+/home/manan/Aira-Octave/linux-7.2.2/sound/ppc/tumbler.c:716: * mute switches. FIXME: Turn that into software mute when both outputs are muted
+/home/manan/Aira-Octave/linux-7.2.2/sound/ppc/tumbler.c:890:	  .name = "Input Source", /* FIXME: "Capture Source" doesn't work properly */
+/home/manan/Aira-Octave/linux-7.2.2/sound/ppc/tumbler.c:1136:		/* Here are some crude hacks to extract the GPIO polarity and
+/home/manan/Aira-Octave/linux-7.2.2/sound/ppc/keywest.c:30: * This is kind of a hack, best would be to turn powermac to fixed i2c
+/home/manan/Aira-Octave/linux-7.2.2/sound/ppc/beep.c:220:	/* FIXME: set more better values */
+/home/manan/Aira-Octave/linux-7.2.2/sound/virtio/virtio_pcm_msg.c:386: * @command: Control request code (VIRTIO_SND_R_PCM_XXX).
+/home/manan/Aira-Octave/linux-7.2.2/sound/virtio/virtio_pcm.c:104:	 * TODO: set SNDRV_PCM_INFO_{BATCH,BLOCK_TRANSFER} if device supports
+/home/manan/Aira-Octave/linux-7.2.2/sound/virtio/virtio_pcm.c:516:		/* TODO: deal with shmem elapsed period */
+/home/manan/Aira-Octave/linux-7.2.2/sound/virtio/virtio_jack.c:26: * @features: Jack virtio feature bit map (1 << VIRTIO_SND_JACK_F_XXX).
+/home/manan/Aira-Octave/linux-7.2.2/sound/virtio/virtio_jack.c:30: * @type: Kernel jack type (SND_JACK_XXX).
+/home/manan/Aira-Octave/linux-7.2.2/sound/virtio/virtio_jack.c:98: * Return: SND_JACK_XXX value.
+/home/manan/Aira-Octave/linux-7.2.2/sound/virtio/virtio_pcm.h:22: * @direction: Stream data flow direction (SNDRV_PCM_STREAM_XXX).
+/home/manan/Aira-Octave/linux-7.2.2/sound/virtio/virtio_pcm.h:23: * @features: Stream VirtIO feature bit map (1 << VIRTIO_SND_PCM_F_XXX).
+/home/manan/Aira-Octave/linux-7.2.2/sound/virtio/virtio_kctl.c:278: * @op_flag: Operation code (SNDRV_CTL_TLV_OP_XXX).
+/home/manan/Aira-Octave/linux-7.2.2/sound/virtio/virtio_pcm_ops.c:148: * @format: Selected sample format (SNDRV_PCM_FORMAT_XXX).
+/home/manan/Aira-Octave/linux-7.2.2/sound/virtio/virtio_pcm_ops.c:319: * @command: Substream command (SNDRV_PCM_TRIGGER_XXX).
+/home/manan/Aira-Octave/linux-7.2.2/sound/virtio/virtio_chmap.c:115: * @direction: PCM stream direction (SNDRV_PCM_STREAM_XXX).
+/home/manan/Aira-Octave/linux-7.2.2/sound/virtio/virtio_ctl_msg.c:249: * @command: Control request code (VIRTIO_SND_R_XXX_INFO).
+/home/manan/Aira-Octave/linux-7.2.2/sound/virtio/virtio_ctl_msg.h:46: * The return value is a message status code (VIRTIO_SND_S_XXX) converted to an
+/home/manan/Aira-Octave/linux-7.2.2/sound/xen/xen_snd_front_alsa.c:655: * FIXME: The mmaped data transfer is asynchronous and there is no
+/home/manan/Aira-Octave/linux-7.2.2/sound/sparc/dbri.c:1466:		/* FIXME: enable CHI after _setdata? */
+/home/manan/Aira-Octave/linux-7.2.2/sound/sparc/dbri.c:1483:	/* FIXME - let the CPU do something useful during these delays */
+/home/manan/Aira-Octave/linux-7.2.2/sound/sparc/dbri.c:1822:	/* FIXME: Check status */
+/home/manan/Aira-Octave/linux-7.2.2/sound/sparc/dbri.c:1868:	/* FIXME: do something useful in case of underrun */
+/home/manan/Aira-Octave/linux-7.2.2/sound/sparc/dbri.c:2421:	/* FIXME: mic/line switch */
+/home/manan/Aira-Octave/linux-7.2.2/sound/sparc/cs4231.c:127:/* XXX offsets are different than PC ISA chips... */
+/home/manan/Aira-Octave/linux-7.2.2/sound/sparc/cs4231.c:1147:/* XXX We can do some power-management, in particular on EBUS using
+/home/manan/Aira-Octave/linux-7.2.2/sound/sparc/cs4231.c:1148: * XXX the audio AUXIO register...
+/home/manan/Aira-Octave/linux-7.2.2/sound/.last.o.cmd:439:    $(wildcard include/config/HAVE_JUMP_LABEL_HACK) \
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:18:#include <sound/ak4xxx-adda.h>
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:26:void snd_akm4xxx_write(struct snd_akm4xxx *ak, int chip, unsigned char reg,
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:33:	snd_akm4xxx_set(ak, chip, reg, val);
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:37:EXPORT_SYMBOL(snd_akm4xxx_write);
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:40:static void ak4524_reset(struct snd_akm4xxx *ak, int state)
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:46:		snd_akm4xxx_write(ak, chip, 0x01, state ? 0x00 : 0x03);
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:51:			snd_akm4xxx_write(ak, chip, reg,
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:52:					  snd_akm4xxx_get(ak, chip, reg));
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:57:static void ak4529_reset(struct snd_akm4xxx *ak, int state)
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:67:		snd_akm4xxx_write(ak, 0, 0x09,
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:68:				  snd_akm4xxx_get(ak, 0, 0x09) & ~0x01);
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:74:		snd_akm4xxx_write(ak, 0, reg,
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:75:				  snd_akm4xxx_get(ak, 0, reg));
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:77:	snd_akm4xxx_write(ak, 0, 0x09,
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:78:			  snd_akm4xxx_get(ak, 0, 0x09) | 0x01);
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:82:static void ak435X_reset(struct snd_akm4xxx *ak, int state)
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:87:		snd_akm4xxx_write(ak, 0, 0x01, 0x02); /* reset and soft-mute */
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:92:			snd_akm4xxx_write(ak, 0, reg,
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:93:					  snd_akm4xxx_get(ak, 0, reg));
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:94:	snd_akm4xxx_write(ak, 0, 0x01, 0x01); /* un-reset, unmute */
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:98:static void ak4381_reset(struct snd_akm4xxx *ak, int state)
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:103:		snd_akm4xxx_write(ak, chip, 0x00, state ? 0x0c : 0x0f);
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:107:			snd_akm4xxx_write(ak, chip, reg,
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:108:					  snd_akm4xxx_get(ak, chip, reg));
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:118:void snd_akm4xxx_reset(struct snd_akm4xxx *ak, int state)
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:143:EXPORT_SYMBOL(snd_akm4xxx_reset);
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:181: * initialize all the ak4xxx chips
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:183:void snd_akm4xxx_init(struct snd_akm4xxx *ak)
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:337:		snd_akm4xxx_set_vol(ak, 0, 0x04, 127);
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:338:		snd_akm4xxx_set_vol(ak, 0, 0x05, 127);
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:356:			snd_akm4xxx_write(ak, chip, reg, data);
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:362:EXPORT_SYMBOL(snd_akm4xxx_init);
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:382:static int snd_akm4xxx_volume_info(struct snd_kcontrol *kcontrol,
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:394:static int snd_akm4xxx_volume_get(struct snd_kcontrol *kcontrol,
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:397:	struct snd_akm4xxx *ak = snd_kcontrol_chip(kcontrol);
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:401:	ucontrol->value.integer.value[0] = snd_akm4xxx_get_vol(ak, chip, addr);
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:408:	struct snd_akm4xxx *ak = snd_kcontrol_chip(kcontrol);
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:412:	if (snd_akm4xxx_get_vol(ak, chip, addr) == nval)
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:415:	snd_akm4xxx_set_vol(ak, chip, addr, nval);
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:424:	snd_akm4xxx_write(ak, chip, addr, nval);
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:428:static int snd_akm4xxx_volume_put(struct snd_kcontrol *kcontrol,
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:438:static int snd_akm4xxx_stereo_volume_info(struct snd_kcontrol *kcontrol,
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:450:static int snd_akm4xxx_stereo_volume_get(struct snd_kcontrol *kcontrol,
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:453:	struct snd_akm4xxx *ak = snd_kcontrol_chip(kcontrol);
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:457:	ucontrol->value.integer.value[0] = snd_akm4xxx_get_vol(ak, chip, addr);
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:458:	ucontrol->value.integer.value[1] = snd_akm4xxx_get_vol(ak, chip, addr+1);
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:462:static int snd_akm4xxx_stereo_volume_put(struct snd_kcontrol *kcontrol,
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:479:static int snd_akm4xxx_deemphasis_info(struct snd_kcontrol *kcontrol,
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:488:static int snd_akm4xxx_deemphasis_get(struct snd_kcontrol *kcontrol,
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:491:	struct snd_akm4xxx *ak = snd_kcontrol_chip(kcontrol);
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:496:		(snd_akm4xxx_get(ak, chip, addr) >> shift) & 3;
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:500:static int snd_akm4xxx_deemphasis_put(struct snd_kcontrol *kcontrol,
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:503:	struct snd_akm4xxx *ak = snd_kcontrol_chip(kcontrol);
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:511:		(snd_akm4xxx_get(ak, chip, addr) & ~(3 << shift));
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:512:	change = snd_akm4xxx_get(ak, chip, addr) != nval;
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:514:		snd_akm4xxx_write(ak, chip, addr, nval);
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:518:#define ak4xxx_switch_info	snd_ctl_boolean_mono_info
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:520:static int ak4xxx_switch_get(struct snd_kcontrol *kcontrol,
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:523:	struct snd_akm4xxx *ak = snd_kcontrol_chip(kcontrol);
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:529:	unsigned char val = snd_akm4xxx_get(ak, chip, addr) & (1<<shift);
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:536:static int ak4xxx_switch_put(struct snd_kcontrol *kcontrol,
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:539:	struct snd_akm4xxx *ak = snd_kcontrol_chip(kcontrol);
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:550:	oval = snd_akm4xxx_get(ak, chip, addr);
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:557:		snd_akm4xxx_write(ak, chip, addr, val);
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:563:static int ak4xxx_capture_num_inputs(struct snd_akm4xxx *ak, int mixer_ch)
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:575:static int ak4xxx_capture_source_info(struct snd_kcontrol *kcontrol,
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:578:	struct snd_akm4xxx *ak = snd_kcontrol_chip(kcontrol);
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:582:	num_names = ak4xxx_capture_num_inputs(ak, mixer_ch);
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:589:static int ak4xxx_capture_source_get(struct snd_kcontrol *kcontrol,
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:592:	struct snd_akm4xxx *ak = snd_kcontrol_chip(kcontrol);
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:598:	val = snd_akm4xxx_get(ak, chip, addr) & mask;
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:603:static int ak4xxx_capture_source_put(struct snd_kcontrol *kcontrol,
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:606:	struct snd_akm4xxx *ak = snd_kcontrol_chip(kcontrol);
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:612:	int num_names = ak4xxx_capture_num_inputs(ak, mixer_ch);
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:617:	oval = snd_akm4xxx_get(ak, chip, addr);
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:621:		snd_akm4xxx_write(ak, chip, addr, val);
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:628: * build AK4xxx controls
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:631:static int build_dac_controls(struct snd_akm4xxx *ak)
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:646:			knew.info = ak4xxx_switch_info;
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:647:			knew.get = ak4xxx_switch_get;
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:648:			knew.put = ak4xxx_switch_put;
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:672:			knew.info = snd_akm4xxx_stereo_volume_info;
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:673:			knew.get = snd_akm4xxx_stereo_volume_get;
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:674:			knew.put = snd_akm4xxx_stereo_volume_put;
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:676:			knew.info = snd_akm4xxx_volume_info;
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:677:			knew.get = snd_akm4xxx_volume_get;
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:678:			knew.put = snd_akm4xxx_volume_put;
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:742:static int build_adc_controls(struct snd_akm4xxx *ak)
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:765:			knew.info = snd_akm4xxx_stereo_volume_info;
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:766:			knew.get = snd_akm4xxx_stereo_volume_get;
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:767:			knew.put = snd_akm4xxx_stereo_volume_put;
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:769:			knew.info = snd_akm4xxx_volume_info;
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:770:			knew.get = snd_akm4xxx_volume_get;
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:771:			knew.put = snd_akm4xxx_volume_put;
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:793:			knew.info = ak4xxx_switch_info;
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:794:			knew.get = ak4xxx_switch_get;
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:795:			knew.put = ak4xxx_switch_put;
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:814:			knew.info = ak4xxx_capture_source_info;
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:815:			knew.get = ak4xxx_capture_source_get;
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:816:			knew.put = ak4xxx_capture_source_put;
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:833:static int build_deemphasis(struct snd_akm4xxx *ak, int num_emphs)
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:844:		knew.info = snd_akm4xxx_deemphasis_info;
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:845:		knew.get = snd_akm4xxx_deemphasis_get;
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:846:		knew.put = snd_akm4xxx_deemphasis_put;
+/home/manan/Aira-Octave/linux-7.2.2/sound/i2c/other/ak4xxx-adda.c:880:	struct snd_akm4xxx *ak = entry->private_data;

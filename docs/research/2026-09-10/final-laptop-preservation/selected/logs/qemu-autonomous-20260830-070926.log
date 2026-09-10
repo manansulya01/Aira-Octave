@@ -1,0 +1,3 @@
+AIRA OCTAVE QEMU BOOT
+Kernel: /home/manan/Aira-Octave/linux-7.2.2/arch/x86/boot/bzImage
+Initramfs: /home/manan/Aira-Octave/initramfs.cpio

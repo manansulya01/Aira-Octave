@@ -1,0 +1,79 @@
+		boot loader and the kernel.  setup.S made relocatable,
+		although the traditional setup area still assumed
+		of the traditional setup area, thus making booting
+Protocol 2.04	(Kernel 2.6.14) Extend the syssize field to four bytes.
+		pointer to single linked list of struct	setup_data.
+		beyond the kernel_alignment added, new init_size and
+		("x86/boot: Add ACPI RSDP address to setup_header")
+Protocol 2.15	(Kernel 5.5) Added the kernel_info and kernel_info.setup_type_max.
+     The protocol version number should be changed only if the setup header
+     the original setup header every update to it should be considered
+		|  Kernel setup		 |	The kernel real-mode code.
+setup, and stack/heap) was made relocatable to any address between
+		|  Kernel setup		 |	The kernel real-mode code.
+real-mode code (boot sector and setup code) and then examine the
+01F1/1		ALL(1)		setup_sects		The size of the setup in sectors
+01F4/4		2.04+(2)	syssize			The size of the 32-bit code in 16-byte paras
+0212/2		2.00+		setup_move_size		Move to high memory size (used with hooks)
+0224/2		2.01+		heap_end_ptr		Free memory after setup end
+0250/8		2.09+		setup_data		64-bit physical pointer to linked list
+							of struct setup_data
+0260/4		2.10+		init_size		Linear memory required during initialization
+     (1) For backwards compatibility, if the setup_sects field contains 0,
+     (2) For boot protocol prior to 2.04, the upper two bytes of the syssize
+Field name:	setup_sects
+  The size of the setup code in 512-byte sectors.  If this field is
+  sector (always one 512-byte sector) plus the setup code.
+Field name:	syssize
+  should be less than (0x200 * setup_sects).
+  This is a valid value if and only if the "setup_sects" field
+   0x1c00 >> 9 = 14, So the minimum value for setup_secs is 15.
+	heap_end_ptr is valid.  If this field is clear, some setup code
+Field name:	setup_move_size
+  code) of the end of the setup stack/heap, minus 0x0200.
+  the setup heap and 0xA0000; it does not have to be located in the
+Field name:	setup_data
+  struct setup_data. This is used to define a more extensible boot
+  parameters passing mechanism. The definition of struct setup_data is
+   struct setup_data {
+  The setup_data is a bit awkward to use for extremely large data objects,
+  both because the setup_data header has to be adjacent to the data object
+  Thus setup_indirect struct and SETUP_INDIRECT type were introduced in
+   struct setup_indirect {
+  SETUP_INDIRECT itself since making the setup_indirect a tree structure
+  Let's give an example how to point to SETUP_E820_EXT data using setup_indirect.
+  In this case setup_data and setup_indirect will look like this::
+   struct setup_data {
+	.next = 0,	/* or <addr_of_next_setup_data_struct> */
+	.len = sizeof(setup_indirect),
+	.data[sizeof(setup_indirect)] = (struct setup_indirect) {
+Field name:	init_size
+   memory_window_size = init_size;
+  setup_header = .data
+  boot_params/setup_data = .bss
+available to a BIOS-based loader (setup_data is, though).
+setup_header is permanently limited to 144 bytes due to the reach of the
+by adding setup_data entries. It cannot be used to communicate properties of
+expected to copy into a setup_data chunk.
+Field name:	setup_type_max
+  This field contains maximal allowed type for setup_data and setup_indirect structs.
+above.)  This address can be anywhere between the end of the setup
+    covered by setup_move_size, so you may need to adjust this
+located in the same 64K segment as the real-mode setup code; it is
+  if (setup_sects == 0)
+	setup_sects = 4;
+		setup_move_size = heap_end + strlen(cmdline) + 1;
+		memcpy(0x90000, base_ptr, (setup_sects + 1) * 512);
+	memset(0x90000 + (setup_sects + 1) * 512, 0, (64 - (setup_sects + 1)) * 512);
+The 32-bit (non-real-mode) kernel starts at offset (setup_sects + 1) * 512
+in the kernel file (again, if setup_sects == 0 the real value is 4.)
+LinuxBIOS, etc, and kexec, the 16-bit real mode setup code in kernel
+should be to setup the boot parameters (struct boot_params,
+should be allocated and initialized to all zero. Then the setup header
+boot_params and examined. The end of setup header can be calculated as
+In addition to read/modify/write the setup header of the struct
+should be to setup the boot parameters (struct boot_params,
+Then, the setup header at offset 0x01f1 of kernel image on should be
+loaded into struct boot_params and examined. The end of setup header
+In addition to read/modify/write the setup header of the struct
+The range with setup_header.init_size from start address of loaded

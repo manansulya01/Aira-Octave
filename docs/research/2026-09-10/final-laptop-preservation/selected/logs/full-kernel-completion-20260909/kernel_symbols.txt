@@ -1,0 +1,2 @@
+ffffffff81ae4300 T startup_64
+ffffffff81ae48d0 T x86_64_start_kernel

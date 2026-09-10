@@ -1,0 +1,646 @@
+
+================================================================
+AIRA OCTAVE KERNEL FOUNDATION — START
+================================================================
+RUN_ID=20260830-082619
+DATE=Sun Aug 30 08:26:19 UTC 2026
+HOST=IPAD-SERVER
+GIT=83a73251c
+BRANCH=main
+
+ M initramfs.cpio
+?? logs/initramfs-result.txt
+?? logs/initramfs.sha256
+?? scripts/
+
+================================================================
+0 — SAFETY / BACKUP
+================================================================
+PASS: Kernel configuration backed up
+
+================================================================
+1 — TOOLCHAIN
+================================================================
+PASS: gcc available
+PASS: make available
+PASS: ld available
+PASS: objdump available
+PASS: readelf available
+PASS: cpio available
+PASS: qemu-system-x86_64 available
+PASS: timeout available
+
+================================================================
+2 — K1: MEMORY MANAGEMENT
+================================================================
+PASS: CONFIG_64BIT=y
+PASS: CONFIG_X86_64=y
+PASS: CONFIG_MMU=y
+PASS: CONFIG_MTRR=y
+PASS: CONFIG_SMP=y
+WARN: CONFIG_HIGHMEM64G expected y, found UNSET
+PASS: CONFIG_DEVTMPFS=y
+PASS: CONFIG_DEVTMPFS_MOUNT=y
+
+Memory-related configuration:
+CONFIG_64BIT=y
+CONFIG_X86_64=y
+CONFIG_MMU=y
+CONFIG_SMP=y
+CONFIG_MTRR=y
+CONFIG_SLUB=y
+CONFIG_COMPACTION=y
+CONFIG_ZONE_DMA=y
+CONFIG_ZONE_DMA32=y
+CONFIG_SLUB_DEBUG=y
+
+================================================================
+3 — K1: INTERRUPTS / CPU / TIMER
+================================================================
+PASS: CONFIG_X86_LOCAL_APIC=y
+PASS: CONFIG_X86_IO_APIC=y
+PASS: CONFIG_HPET_TIMER=y
+
+CPU / interrupt configuration:
+CONFIG_NO_HZ=y
+CONFIG_HIGH_RES_TIMERS=y
+CONFIG_SMP=y
+CONFIG_HPET_TIMER=y
+CONFIG_X86_LOCAL_APIC=y
+CONFIG_X86_IO_APIC=y
+CONFIG_X86_MCE=y
+CONFIG_X86_MCE_INTEL=y
+CONFIG_X86_MCE_AMD=y
+
+================================================================
+4 — K1: SCHEDULER
+================================================================
+PASS: CONFIG_PREEMPT_DYNAMIC=y
+PASS: CONFIG_SCHED_INFO=y
+
+Scheduler configuration:
+CONFIG_NO_HZ=y
+CONFIG_PREEMPT_DYNAMIC=y
+CONFIG_HZ=1000
+CONFIG_SCHED_INFO=y
+CONFIG_SCHEDSTATS=y
+
+================================================================
+5 — K1: PROCESS / THREAD MODEL
+================================================================
+PASS: CONFIG_MULTIUSER=y
+PASS: CONFIG_FUTEX=y
+PASS: CONFIG_SIGNALFD=y
+PASS: CONFIG_TIMERFD=y
+PASS: CONFIG_EVENTFD=y
+
+Process/thread facilities:
+CONFIG_CGROUPS=y
+CONFIG_UTS_NS=y
+CONFIG_IPC_NS=y
+CONFIG_PID_NS=y
+CONFIG_MULTIUSER=y
+CONFIG_FUTEX=y
+CONFIG_SIGNALFD=y
+CONFIG_TIMERFD=y
+CONFIG_EVENTFD=y
+
+================================================================
+6 — K2: SYSCALL / USERSPACE BOUNDARY
+================================================================
+PASS: CONFIG_BINFMT_ELF=y
+PASS: CONFIG_64BIT=y
+
+Userspace boundary:
+CONFIG_SECCOMP=y
+CONFIG_SECCOMP_FILTER=y
+CONFIG_BINFMT_ELF=y
+CONFIG_BINFMT_SCRIPT=y
+
+================================================================
+7 — K2: IPC / SYNCHRONIZATION
+================================================================
+PASS: CONFIG_SYSVIPC=y
+PASS: CONFIG_POSIX_MQUEUE=y
+PASS: CONFIG_FUTEX=y
+PASS: CONFIG_EVENTFD=y
+PASS: CONFIG_SIGNALFD=y
+PASS: CONFIG_TIMERFD=y
+
+IPC configuration:
+CONFIG_SYSVIPC=y
+CONFIG_POSIX_MQUEUE=y
+CONFIG_IPC_NS=y
+CONFIG_FUTEX=y
+CONFIG_SIGNALFD=y
+CONFIG_TIMERFD=y
+CONFIG_EVENTFD=y
+CONFIG_UNIX=y
+
+================================================================
+8 — K2: PROCESS ISOLATION / SECURITY FOUNDATION
+================================================================
+CONFIG_RANDOMIZE_BASE=y
+CONFIG_SECCOMP=y
+CONFIG_SECCOMP_FILTER=y
+CONFIG_STACKPROTECTOR=y
+CONFIG_STACKPROTECTOR_STRONG=y
+CONFIG_STRICT_KERNEL_RWX=y
+CONFIG_STRICT_MODULE_RWX=y
+CONFIG_SECURITY=y
+PASS: CONFIG_SECCOMP enabled
+PASS: CONFIG_SECCOMP_FILTER enabled
+PASS: CONFIG_SECURITY enabled
+PASS: CONFIG_STACKPROTECTOR enabled
+PASS: CONFIG_STACKPROTECTOR_STRONG enabled
+PASS: CONFIG_RANDOMIZE_BASE enabled
+
+================================================================
+9 — K1/K2 KERNEL BUILD
+================================================================
+make: Entering directory '/home/manan/Aira-Octave/linux-7.2.2'
+  DESCEND objtool
+Kernel: arch/x86/boot/bzImage is ready  (#3)
+make: Leaving directory '/home/manan/Aira-Octave/linux-7.2.2'
+PASS: K1/K2 kernel build successful
+-rw-r--r-- 1 manan manan 15M Aug 30 06:20 /home/manan/Aira-Octave/linux-7.2.2/arch/x86/boot/bzImage
+
+================================================================
+10 — K1/K2 STATIC KERNEL CHECKS
+================================================================
+/home/manan/Aira-Octave/linux-7.2.2/arch/x86/boot/bzImage: Linux kernel x86 boot executable, bzImage, version 7.2.2 (manan@IPAD-SERVER) #3 SMP PREEMPT_DYNAMIC Sun Aug 30 06:19:50 UTC 2026, RO-rootFS, Normal VGA, setup size 512*39, syssize 0xe5640, jump 0x26c 0x8cd88ec0fc8cd239 instruction, protocol 2.15, from protected-mode code at offset 0x2c4 0xe4585b bytes gzip compressed, relocatable, handover offset 0xe53600, legacy 64-bit entry point, can be above 4G, 32-bit EFI handoff entry point, 64-bit EFI handoff entry point, EFI kexec boot support, xloadflags bit 5, max cmdline size 2047, init_size 0x2aec000
+
+/home/manan/Aira-Octave/linux-7.2.2/arch/x86/boot/bzImage:     file format pei-x86-64
+architecture: i386:x86-64, flags 0x00000103:
+HAS_RELOC, EXEC_P, D_PAGED
+start address 0x0000000000e538f0
+
+PASS: Kernel artifact inspection completed
+
+================================================================
+11 — K1/K2 BOOT TEST
+================================================================
+Starting isolated QEMU boot test...
+QEMU_EXIT=124
+
+----- BOOT TAIL -----
+[    0.013789] x86/fpu: x87 FPU will use FXSAVE
+[    0.575921] pid_max: default: 32768 minimum: 301
+[    0.588099] SELinux:  Initializing.
+[    0.601943] Mount-cache hash table entries: 1024 (order: 1, 8192 bytes, linear)
+[    0.602361] Mountpoint-cache hash table entries: 1024 (order: 1, 8192 bytes, linear)
+[    0.617538] VFS: Finished mounting rootfs on nullfs
+[    0.753853] smpboot: CPU0: AMD QEMU Virtual CPU version 2.5+ (family: 0xf, model: 0x6b, stepping: 0x1)
+[    0.776134] Performance Events: PMU not available due to virtualization, using software events only.
+[    0.778198] signal: max sigframe size: 1440
+[    0.781472] rcu: Hierarchical SRCU implementation.
+[    0.781663] rcu: 	Max phase no-delay instances is 400.
+[    0.790453] smp: Bringing up secondary CPUs ...
+[    0.796130] smp: Brought up 1 node, 1 CPU
+[    0.797039] smpboot: Total of 1 processors activated (5606.60 BogoMIPS)
+[    0.813733] Memory: 467824K/523768K available (19626K kernel code, 2999K rwdata, 8124K rodata, 2900K init, 596K bss, 53132K reserved, 0K cma-reserved)
+[    0.826812] devtmpfs: initialized
+[    0.841445] posixtimers hash table entries: 512 (order: 1, 8192 bytes, linear)
+[    0.842535] futex hash table entries: 256 (16384 bytes on 1 NUMA nodes, total 16 KiB, linear).
+[    0.848266] PM: RTC time: 08:26:31, date: 2026-08-30
+[    0.856518] NET: Registered PF_NETLINK/PF_ROUTE protocol family
+[    0.861559] audit: initializing netlink subsys (disabled)
+[    0.865698] audit: type=2000 audit(1788078390.884:1): state=initialized audit_enabled=0 res=1
+[    0.872634] thermal_sys: Registered thermal governor 'step_wise'
+[    0.873560] cpuidle: using governor menu
+[    0.876723] Freeing SMP alternatives memory: 56K
+[    0.881290] PCI: Using configuration type 1 for base access
+[    0.885256] kprobes: kprobe jump-optimization is enabled. All kprobes are optimized if possible.
+[    0.896053] HugeTLB: registered 2.00 MiB page size, pre-allocated 0 pages
+[    0.896405] HugeTLB: 28 KiB vmemmap can be freed for a 2.00 MiB page
+[    0.913044] ACPI: Added _OSI(Module Device)
+[    0.913347] ACPI: Added _OSI(Processor Device)
+[    0.913454] ACPI: Added _OSI(Processor Aggregator Device)
+[    0.988152] ACPI: 1 ACPI AML tables successfully acquired and loaded
+[    1.039928] ACPI: \_SB_: platform _OSC: OS support mask [002a7eee]
+[    1.062050] ACPI: Interpreter enabled
+[    1.066005] ACPI: PM: (supports S0 S3 S4 S5)
+[    1.066194] ACPI: Using IOAPIC for interrupt routing
+[    1.066999] PCI: Using host bridge windows from ACPI; if necessary, use "pci=nocrs" and report a bug
+[    1.067270] PCI: Using E820 reservations for host bridge windows
+[    1.071554] ACPI: Enabled 2 GPEs in block 00 to 0F
+[    1.203574] ACPI: PCI Root Bridge [PCI0] (domain 0000 [bus 00-ff])
+[    1.207590] acpi PNP0A03:00: _OSC: OS supports [ASPM ClockPM Segments MSI HPX-Type3]
+[    1.210242] acpi PNP0A03:00: _OSC: not requesting OS control; OS requires [ExtendedConfig ASPM ClockPM MSI]
+[    1.211479] acpi PNP0A03:00: _OSC: platform retains control of PCIe features (AE_ERROR)
+[    1.214701] acpi PNP0A03:00: fail to add MMCONFIG information, can't access extended configuration space under this bridge
+[    1.230053] PCI host bridge to bus 0000:00
+[    1.231065] pci_bus 0000:00: root bus resource [io  0x0000-0x0cf7 window]
+[    1.231489] pci_bus 0000:00: root bus resource [io  0x0d00-0xffff window]
+[    1.233899] pci_bus 0000:00: root bus resource [mem 0x000a0000-0x000bffff window]
+[    1.234209] pci_bus 0000:00: root bus resource [mem 0x20000000-0xfebfffff window]
+[    1.234482] pci_bus 0000:00: root bus resource [mem 0x100000000-0x17fffffff window]
+[    1.235081] pci_bus 0000:00: root bus resource [bus 00-ff]
+[    1.241945] pci 0000:00:00.0: [8086:1237] type 00 class 0x060000 conventional PCI endpoint
+[    1.258662] pci 0000:00:01.0: [8086:7000] type 00 class 0x060100 conventional PCI endpoint
+[    1.262539] pci 0000:00:01.1: [8086:7010] type 00 class 0x010180 conventional PCI endpoint
+[    1.266170] pci 0000:00:01.1: BAR 4 [io  0xc040-0xc04f]
+[    1.266457] pci 0000:00:01.1: BAR 0 [io  0x01f0-0x01f7]: legacy IDE quirk
+[    1.266630] pci 0000:00:01.1: BAR 1 [io  0x03f6]: legacy IDE quirk
+[    1.266909] pci 0000:00:01.1: BAR 2 [io  0x0170-0x0177]: legacy IDE quirk
+[    1.267078] pci 0000:00:01.1: BAR 3 [io  0x0376]: legacy IDE quirk
+[    1.270688] pci 0000:00:01.3: [8086:7113] type 00 class 0x068000 conventional PCI endpoint
+[    1.271543] pci 0000:00:01.3: quirk: [io  0x0600-0x063f] claimed by PIIX4 ACPI
+[    1.274263] pci 0000:00:01.3: quirk: [io  0x0700-0x070f] claimed by PIIX4 SMB
+[    1.278342] pci 0000:00:02.0: [1234:1111] type 00 class 0x030000 conventional PCI endpoint
+[    1.285001] pci 0000:00:02.0: BAR 0 [mem 0xfd000000-0xfdffffff pref]
+[    1.285483] pci 0000:00:02.0: BAR 2 [mem 0xfebb0000-0xfebb0fff]
+[    1.285659] pci 0000:00:02.0: ROM [mem 0xfeba0000-0xfebaffff pref]
+[    1.286553] pci 0000:00:02.0: Video device with shadowed ROM at [mem 0x000c0000-0x000dffff]
+[    1.290300] pci 0000:00:03.0: [8086:100e] type 00 class 0x020000 conventional PCI endpoint
+[    1.293468] pci 0000:00:03.0: BAR 0 [mem 0xfeb80000-0xfeb9ffff]
+[    1.293668] pci 0000:00:03.0: BAR 1 [io  0xc000-0xc03f]
+[    1.293898] pci 0000:00:03.0: ROM [mem 0xfeb00000-0xfeb7ffff pref]
+[    1.333058] ACPI: PCI: Interrupt link LNKA configured for IRQ 10
+[    1.334493] ACPI: PCI: Interrupt link LNKB configured for IRQ 10
+[    1.337698] ACPI: PCI: Interrupt link LNKC configured for IRQ 11
+[    1.341082] ACPI: PCI: Interrupt link LNKD configured for IRQ 11
+[    1.341612] ACPI: PCI: Interrupt link LNKS configured for IRQ 9
+[    1.353631] iommu: Default domain type: Translated
+[    1.353920] iommu: DMA domain TLB invalidation policy: lazy mode
+[    1.358656] SCSI subsystem initialized
+[    1.363084] ACPI: bus type USB registered
+[    1.365907] usbcore: registered new interface driver usbfs
+[    1.366503] usbcore: registered new interface driver hub
+[    1.366925] usbcore: registered new device driver usb
+[    1.367524] pps_core: LinuxPPS API ver. 1 registered
+[    1.367647] pps_core: Software ver. 5.3.6 - Copyright 2005-2007 Rodolfo Giometti <giometti@linux.it>
+[    1.369956] PTP clock support registered
+[    1.377150] Advanced Linux Sound Architecture Driver Initialized.
+[    1.410190] NetLabel: Initializing
+[    1.410947] NetLabel:  domain hash size = 128
+[    1.411249] NetLabel:  protocols = UNLABELED CIPSOv4 CALIPSO
+[    1.414839] NetLabel:  unlabeled traffic allowed by default
+[    1.434286] PCI: Using ACPI for IRQ routing
+[    1.437691] e820: register RAM buffer resource [mem 0x0009fc00-0x0009ffff]
+[    1.438248] e820: register RAM buffer resource [mem 0x1ffe0000-0x1fffffff]
+[    1.446853] pci 0000:00:02.0: vgaarb: setting as boot VGA device
+[    1.446853] pci 0000:00:02.0: vgaarb: bridge control possible
+[    1.446853] pci 0000:00:02.0: vgaarb: VGA device added: decodes=io+mem,owns=io+mem,locks=none
+[    1.449969] vgaarb: loaded
+[    1.454444] hpet: 3 channels of 0 reserved for per-cpu timers
+[    1.455316] hpet0: at MMIO 0xfed00000, IRQs 2, 8, 0
+[    1.455605] hpet0: 3 comparators, 64-bit 100.000000 MHz counter
+[    1.466574] clocksource: Switched to clocksource tsc-early
+[    1.491512] VFS: Disk quotas dquot_6.6.0
+[    1.492124] VFS: Dquot-cache hash table entries: 512 (4096 bytes)
+[    1.508238] pnp: PnP ACPI init
+[    1.527327] pnp: PnP ACPI: found 5 devices
+[    1.619910] clocksource: acpi_pm: mask: 0xffffff max_cycles: 0xffffff, max_idle_ns: 2085701024 ns
+[    1.624362] NET: Registered PF_INET protocol family
+[    1.630995] IP idents hash table entries: 8192 (order: 4, 65536 bytes, linear)
+[    1.654173] tcp_listen_portaddr_hash hash table entries: 256 (order: 0, 4096 bytes, linear)
+[    1.655468] Table-perturb hash table entries: 65536 (order: 6, 262144 bytes, linear)
+[    1.655804] TCP established hash table entries: 4096 (order: 3, 32768 bytes, linear)
+[    1.661089] TCP bind hash table entries: 4096 (order: 5, 131072 bytes, linear)
+[    1.661902] TCP: Hash tables configured (established 4096 bind 4096)
+[    1.666200] UDP hash table entries: 256 (order: 2, 16384 bytes, linear)
+[    1.674450] NET: Registered PF_UNIX/PF_LOCAL protocol family
+[    1.682864] RPC: Registered named UNIX socket transport module.
+[    1.686018] RPC: Registered udp transport module.
+[    1.686271] RPC: Registered tcp transport module.
+[    1.686391] RPC: Registered tcp-with-tls transport module.
+[    1.686508] RPC: Registered tcp NFSv4.1 backchannel transport module.
+[    1.699541] pci_bus 0000:00: resource 4 [io  0x0000-0x0cf7 window]
+[    1.701994] pci_bus 0000:00: resource 5 [io  0x0d00-0xffff window]
+[    1.702236] pci_bus 0000:00: resource 6 [mem 0x000a0000-0x000bffff window]
+[    1.702388] pci_bus 0000:00: resource 7 [mem 0x20000000-0xfebfffff window]
+[    1.702644] pci_bus 0000:00: resource 8 [mem 0x100000000-0x17fffffff window]
+[    1.703694] pci 0000:00:01.0: PIIX3: Enabling Passive Release
+[    1.706115] pci 0000:00:00.0: Limiting direct PCI/PCI transfers
+[    1.706533] PCI: CLS 0 bytes, default 64
+[    1.733644] Unpacking initramfs...
+[    1.740624] Initialise system trusted keyrings
+[    1.749511] workingset: timestamp_bits=56 (anon: 51) max_order=17 bucket_order=0 (anon: 0)
+[    1.773589] NFS: Registering the id_resolver key type
+[    1.776081] Key type id_resolver registered
+[    1.776260] Key type id_legacy registered
+[    1.778332] nfs4filelayout_init: NFSv4 File Layout Driver Registering...
+[    1.780658] nfs4flexfilelayout_init: NFSv4 Flexfile Layout Driver Registering...
+[    1.784571] 9p: Installing v9fs 9p2000 file system support
+[    1.815800] Freeing initrd memory: 2144K
+[    1.822517] Key type asymmetric registered
+[    1.822791] Asymmetric key parser 'x509' registered
+[    1.824380] Block layer SCSI generic (bsg) driver version 0.4 loaded (major 251)
+[    1.827425] io scheduler mq-deadline registered
+[    1.827668] io scheduler kyber registered
+[    1.840643] input: Power Button as /devices/platform/LNXPWRBN:00/input/input0
+[    1.843788] ACPI: button: Power Button [PWRF]
+[    1.861244] Serial: 8250/16550 driver, 4 ports, IRQ sharing enabled
+[    1.878031] 00:04: ttyS0 at I/O 0x3f8 (irq = 4, base_baud = 115200) is a 16550A
+[    1.915118] Non-volatile memory driver v1.3
+[    1.921695] ACPI: bus type drm_connector registered
+[    1.986739] loop: module loaded
+[    2.015826] scsi host0: ata_piix
+[    2.022592] scsi host1: ata_piix
+[    2.024667] ata1: PATA max MWDMA2 cmd 0x1f0 ctl 0x3f6 bmdma 0xc040 irq 14 lpm-pol 0
+[    2.024888] ata2: PATA max MWDMA2 cmd 0x170 ctl 0x376 bmdma 0xc048 irq 15 lpm-pol 0
+[    2.038031] e100: Intel(R) PRO/100 Network Driver
+[    2.038244] e100: Copyright(c) 1999-2006 Intel Corporation
+[    2.038496] e1000: Intel(R) PRO/1000 Network Driver
+[    2.040209] e1000: Copyright (c) 1999-2006 Intel Corporation.
+[    2.074718] ACPI: \_SB_.LNKC: Enabled at IRQ 11
+[    2.196303] ata2: found unknown device (class 0)
+[    2.224573] ata2.00: ATAPI: QEMU DVD-ROM, 2.5+, max UDMA/100
+[    2.280236] scsi 1:0:0:0: CD-ROM            QEMU     QEMU DVD-ROM     2.5+ PQ: 0 ANSI: 5
+[    2.326037] sr 1:0:0:0: [sr0] scsi3-mmc drive: 4x/4x cd/rw xa/form2 tray
+[    2.337183] cdrom: Uniform CD-ROM driver Revision: 3.20
+[    2.367568] sr 1:0:0:0: Attached scsi generic sg0 type 5
+[    2.764581] tsc: Refined TSC clocksource calibration: 2803.198 MHz
+[    2.768601] clocksource: tsc: mask: 0xffffffffffffffff max_cycles: 0x28680e0a5c3, max_idle_ns: 440795346756 ns
+[    2.779226] clocksource: Switched to clocksource tsc
+[    2.825201] e1000 0000:00:03.0 eth0: (PCI:33MHz:32-bit) 52:54:00:12:34:56
+[    2.828336] e1000 0000:00:03.0 eth0: Intel(R) PRO/1000 Network Connection
+[    2.830570] e1000e: Intel(R) PRO/1000 Network Driver
+[    2.830739] e1000e: Copyright(c) 1999 - 2015 Intel Corporation.
+[    2.831989] sky2: driver version 1.30
+[    2.840134] usbcore: registered new interface driver usblp
+[    2.840598] usbcore: registered new interface driver usb-storage
+[    2.844449] i8042: PNP: PS/2 Controller [PNP0303:KBD,PNP0f13:MOU] at 0x60,0x64 irq 1,12
+[    2.857677] serio: i8042 KBD port at 0x60,0x64 irq 1
+[    2.859954] serio: i8042 AUX port at 0x60,0x64 irq 12
+[    2.869652] rtc_cmos PNP0B00:00: RTC can wake from S4
+[    2.876218] input: AT Translated Set 2 keyboard as /devices/platform/i8042/serio0/input/input1
+[    2.885731] rtc_cmos PNP0B00:00: registered as rtc0
+[    2.891587] rtc_cmos PNP0B00:00: alarms up to one day, y3k, 242 bytes nvram, hpet irqs
+[    2.900561] device-mapper: ioctl: 4.50.0-ioctl (2025-04-28) initialised: dm-devel@lists.linux.dev
+[    2.902682] hid: raw HID events driver (C) Jiri Kosina
+[    2.906200] usbcore: registered new interface driver usbhid
+[    2.907371] usbhid: USB HID core driver
+[    2.928068] nf_conntrack_irc: The irc conntrack helper is scheduled for removal.
+[    2.928068] Please contact the netfilter-devel mailing list if you still need this.
+[    2.934647] Initializing XFRM netlink socket
+[    2.939096] NET: Registered PF_INET6 protocol family
+[    2.972738] Segment Routing with IPv6
+[    2.973509] In-situ OAM (IOAM) with IPv6
+[    2.977855] NET: Registered PF_PACKET protocol family
+[    2.984128] 9pnet: Installing 9P2000 support
+[    2.985533] Key type dns_resolver registered
+[    2.992519] IPI shorthand broadcast: enabled
+[    3.100200] sched_clock: Marking stable (3121083630, -21146043)->(3122070621, -22133034)
+[    3.110086] registered taskstats version 1
+[    3.111971] Loading compiled-in X.509 certificates
+[    3.161804] Demotion targets for Node 0: null
+[    3.175136] PM:   Magic number: 6:489:423
+[    3.177034] netconsole: network logging started
+[    3.180509] cfg80211: Loading compiled-in X.509 certificates for regulatory database
+[    3.217673] kworker/u4:4 (53) used greatest stack depth: 15080 bytes left
+[    3.258666] Loaded X.509 cert 'sforshee: 00b28ddf47aef9cea7'
+[    3.262998] Loaded X.509 cert 'wens: 61c038651aabdcf94bd0ac7ff06c7248db18c600'
+[    3.269870] faux_driver regulatory: Direct firmware load for regulatory.db failed with error -2
+[    3.270571] cfg80211: failed to load regulatory.db
+[    3.320187] input: ImExPS/2 Generic Explorer Mouse as /devices/platform/i8042/serio1/input/input3
+[    3.426473] ALSA device list:
+[    3.427329]   No soundcards found.
+[    3.540988] Freeing unused kernel image (initmem) memory: 2900K
+[    3.568619] Write protecting the kernel read-only data: 28672k
+[    3.571487] Freeing unused kernel image (text/rodata gap) memory: 852K
+[    3.572240] Freeing unused kernel image (rodata/data gap) memory: 68K
+[    3.876944] x86/mm: Checked W+X mappings: passed, no W+X pages found.
+[    3.877717] Run /init as init process
+
+========================================
+          AIRAOS LINUX
+========================================
+
+[    4.037914] mount (56) used greatest stack depth: 13840 bytes left
+AiraOS Linux kernel is alive.
+
+Kernel:
+Linux (none) 7.2.2 #3 SMP PREEMPT_DYNAMIC Sun Aug 30 06:19:50 UTC 2026 x86_64 GNU/Linux
+
+CPU:
+model name	: QEMU Virtual CPU version 2.5+
+
+Memory:
+MemTotal:         476656 kB
+
+========================================
+        AiraOS userspace ready
+========================================
+
+Available commands:
+  ls  cat  ps  free  mount  dmesg  uname
+
+
+
+BusyBox v1.37.0 (Ubuntu 1:1.37.0-7ubuntu1) built-in shell (ash)
+Enter 'help' for a list of built-in commands.
+
+/bin/sh: can't access tty; job control turned off
+~ # [6nqemu-system-x86_64: terminating on signal 15 from pid 91830 (timeout)
+---------------------
+PASS: Linux kernel entered boot sequence
+PASS: initramfs unpacked
+PASS: /init launched
+PASS: AiraOS Linux userspace reached
+PASS: userspace readiness marker reached
+PASS: BusyBox shell initialized
+PASS: No kernel panic/Oops signature detected
+
+================================================================
+12 — K1/K2 BOOT DIAGNOSTICS
+================================================================
+===== MEMORY =====
+[    0.000000] Zone ranges:
+[    0.000000] Built 1 zonelists, mobility grouping on.  Total pages: 130942
+[    0.000000] SLUB: HWalign=64, Order=0-3, MinObjects=0, CPUs=1, Nodes=1
+[    0.813733] Memory: 467824K/523768K available (19626K kernel code, 2999K rwdata, 8124K rodata, 2900K init, 596K bss, 53132K reserved, 0K cma-reserved)
+Memory:
+
+===== CPU =====
+[    0.753853] smpboot: CPU0: AMD QEMU Virtual CPU version 2.5+ (family: 0xf, model: 0x6b, stepping: 0x1)
+[    0.797039] smpboot: Total of 1 processors activated (5606.60 BogoMIPS)
+
+===== INTERRUPTS =====
+[    0.000000] APIC: Static calls initialized
+[    0.000000] IOAPIC[0]: apic_id 0, version 32, address 0xfec00000, GSI 0-23
+[    0.000000] NR_IRQS: 4352, nr_irqs: 256, preallocated irqs: 16
+[    0.003000] APIC: Switch to symmetric I/O mode setup
+[    0.011000] ..TIMER: vector=0x30 apic1=0 pin1=2 apic2=-1 pin2=-1
+[    1.066194] ACPI: Using IOAPIC for interrupt routing
+
+===== SCHEDULER =====
+[    0.000000] Dynamic Preempt: lazy
+[    0.000000] rcu: Preemptible hierarchical RCU implementation.
+[    0.000000] rcu: 	RCU event tracing is enabled.
+[    0.000000] rcu: 	RCU restricting CPUs from NR_CPUS=64 to nr_cpu_ids=1.
+[    0.000000] 	Trampoline variant of Tasks RCU enabled.
+[    0.000000] 	Tracing variant of Tasks RCU enabled.
+[    0.000000] rcu: RCU calculated value of scheduler-enlistment delay is 100 jiffies.
+[    0.000000] RCU Tasks: Setting shift to 0 and lim to 1 rcu_task_cb_adjust=1 rcu_task_cpu_ids=1.
+[    0.781472] rcu: Hierarchical SRCU implementation.
+[    1.827425] io scheduler mq-deadline registered
+[    1.827668] io scheduler kyber registered
+[    3.100200] sched_clock: Marking stable (3121083630, -21146043)->(3122070621, -22133034)
+
+===== INIT =====
+[    3.877717] Run /init as init process
+          AIRAOS LINUX
+        AiraOS userspace ready
+
+================================================================
+13 — K1/K2 GATE
+================================================================
+PASS: K1 + K2 BOOT GATE PASSED
+
+================================================================
+14 — K3: DEVICE / PCI FOUNDATION
+================================================================
+PCI:
+CONFIG_PCI=y
+CONFIG_PCIEPORTBUS=y
+CONFIG_PCI_MSI=y
+PASS: CONFIG_PCI enabled
+PASS: CONFIG_PCI_MSI enabled
+
+================================================================
+15 — K3: INPUT
+================================================================
+CONFIG_INPUT=y
+CONFIG_INPUT_KEYBOARD=y
+CONFIG_KEYBOARD_ATKBD=y
+CONFIG_INPUT_MOUSE=y
+CONFIG_SERIO=y
+CONFIG_SERIO_I8042=y
+PASS: CONFIG_INPUT enabled
+PASS: CONFIG_INPUT_KEYBOARD enabled
+PASS: CONFIG_KEYBOARD_ATKBD enabled
+PASS: CONFIG_SERIO_I8042 enabled
+
+================================================================
+16 — K3: NETWORKING
+================================================================
+CONFIG_NET=y
+CONFIG_PACKET=y
+CONFIG_INET=y
+CONFIG_NETDEVICES=y
+CONFIG_VIRTIO_NET=y
+CONFIG_ETHERNET=y
+CONFIG_E1000=y
+CONFIG_E1000E=y
+PASS: CONFIG_NET enabled
+PASS: CONFIG_INET enabled
+WARN: CONFIG_INET_TCP not enabled
+WARN: CONFIG_INET_UDP not enabled
+
+================================================================
+17 — K3: STORAGE / BLOCK LAYER
+================================================================
+CONFIG_BLOCK=y
+CONFIG_BLK_DEV=y
+CONFIG_VIRTIO_BLK=y
+CONFIG_SCSI=y
+CONFIG_BLK_DEV_SD=y
+CONFIG_BLK_DEV_SR=y
+CONFIG_ATA=y
+CONFIG_SATA_AHCI=y
+PASS: CONFIG_BLOCK enabled
+PASS: CONFIG_BLK_DEV enabled
+
+================================================================
+18 — K4: VFS / FILESYSTEM FOUNDATION
+================================================================
+CONFIG_DEVTMPFS=y
+CONFIG_DEVTMPFS_MOUNT=y
+CONFIG_EXT4_FS=y
+CONFIG_PROC_FS=y
+CONFIG_SYSFS=y
+CONFIG_TMPFS=y
+PASS: CONFIG_PROC_FS enabled
+PASS: CONFIG_SYSFS enabled
+PASS: CONFIG_TMPFS enabled
+PASS: CONFIG_DEVTMPFS enabled
+
+================================================================
+19 — K4: INITRAMFS
+================================================================
+e9effb81e70280ed4d28a48110892aa3be365c07fc4cefb35771ae66eeae877b  /home/manan/Aira-Octave/initramfs.cpio
+4288 blocks
+PASS: K4 initramfs contains init
+PASS: K4 initramfs contains bin/busybox
+PASS: K4 initramfs contains bin/sh
+PASS: K4 initramfs contains bin/mount
+PASS: K4 initramfs contains bin/uname
+PASS: K4 initramfs contains bin/dmesg
+
+================================================================
+20 — K3/K4 REBUILD
+================================================================
+make: Entering directory '/home/manan/Aira-Octave/linux-7.2.2'
+  DESCEND objtool
+Kernel: arch/x86/boot/bzImage is ready  (#3)
+make: Leaving directory '/home/manan/Aira-Octave/linux-7.2.2'
+PASS: K3/K4 kernel rebuild successful
+
+================================================================
+21 — K3/K4 SECOND BOOT TEST
+================================================================
+QEMU_EXIT=124
+PASS: K3/K4 boot reaches AiraOS Linux
+PASS: K3/K4 userspace ready
+PASS: K3/K4 boot has no obvious kernel fault signature
+
+================================================================
+22 — FINAL REPORT
+================================================================
+==============================================================
+AIRA OCTAVE KERNEL FOUNDATION REPORT
+==============================================================
+
+RUN_ID=20260830-082619
+DATE=Sun Aug 30 08:27:35 UTC 2026
+GIT=83a73251c
+
+RESULTS
+--------------------------------------------------------------
+PASS=74
+FAIL=0
+WARN=3
+
+K1_K2_GATE=PASS
+
+ARTIFACTS
+--------------------------------------------------------------
+-rw-r--r-- 1 manan manan 15M Aug 30 06:20 /home/manan/Aira-Octave/linux-7.2.2/arch/x86/boot/bzImage
+-rw-r--r-- 1 manan manan 2.1M Aug 30 07:09 /home/manan/Aira-Octave/initramfs.cpio
+
+BOOT LOG K1/K2
+logs/kernel-foundation-boot-20260830-082619.log
+
+BOOT LOG K3/K4
+logs/kernel-k34-boot-20260830-082619.log
+
+CONFIG BACKUP
+linux-7.2.2/.config.pre-foundation-20260830-082619
+
+GIT STATUS
+ M initramfs.cpio
+?? logs/initramfs-20260830-082619.sha256
+?? logs/initramfs-result.txt
+?? logs/initramfs.sha256
+?? reports/kernel-foundation-20260830-082619.txt
+?? scripts/
+
+==============================================================
+
+================================================================
+23 — FINAL STATUS
+================================================================
+PASS=74
+FAIL=0
+WARN=3
+
+REPORT=reports/kernel-foundation-20260830-082619.txt
+LOG=logs/kernel-foundation-20260830-082619.log
+K1_K2_BOOT=logs/kernel-foundation-boot-20260830-082619.log
+K3_K4_BOOT=logs/kernel-k34-boot-20260830-082619.log
+
+==============================================================
+ AIRA OCTAVE K1 + K2 + K3 + K4 VALIDATION COMPLETE
+==============================================================

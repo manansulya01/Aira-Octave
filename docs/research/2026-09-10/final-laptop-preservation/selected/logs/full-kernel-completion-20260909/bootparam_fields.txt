@@ -1,0 +1,2 @@
+	__u32	syssize;
+	__u32	init_size;

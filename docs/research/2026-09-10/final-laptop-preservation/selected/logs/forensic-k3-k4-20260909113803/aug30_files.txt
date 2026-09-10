@@ -1,0 +1,8 @@
+./.git/objects/1e/ec0061e0fe62326448c94c89c2a991c4a7580f
+./.git/objects/28/e0b1e2d3a57085c8f0d148d184e69ddee3affd
+./.git/objects/49/4b9a126ec61d1f427670a297a34bdbc2302d3c
+./.git/objects/d8/5a2dacb83b9327e5ab25e48b4b43257c3a1173
+./logs/build-start.log
+./logs/kernel-build.log
+./logs/qemu-boot.log
+./logs/initramfs-build.log
