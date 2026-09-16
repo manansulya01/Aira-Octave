@@ -1,0 +1,29 @@
+#!/bin/sh
+# Real settings: hostname, network (dhcp), display. Runs in xterm if no DISPLAY action.
+set -u
+if [ -z "${DISPLAY:-}" ]; then export DISPLAY=":99"; fi
+menu() {
+  while true; do
+    clear
+    echo "=== AiraOS Settings ==="
+    echo "hostname: $(cat /etc/hostname 2>/dev/null)"
+    echo "net: $(ip -o -4 addr show 2>/dev/null | head -n 3 || echo unknown)"
+    echo "display: ${DISPLAY} screen $(xrandr 2>/dev/null | grep -m1 current || echo unknown)"
+    echo
+    echo "1) set hostname  2) renew DHCP eth0  3) system info  4) quit"
+    printf "choice: "; read c
+    case "$c" in
+      1) printf "new hostname: "; read h; [ -n "$h" ] && { echo "$h" > /etc/hostname; hostname "$h" 2>/dev/null; echo saved; }; read -p "enter..." x ;;
+      2) udhcpc -i eth0 -n -q -t 3 2>&1 | head; read -p "enter..." x ;;
+      3) /usr/bin/aira-sysinfo ;;
+      4|q) break ;;
+    esac
+  done
+}
+if [ -n "${DISPLAY:-}" ] && command -v xterm >/dev/null 2>&1 && [ "${AIRA_SETTINGS_NOTERM:-}" != "1" ]; then
+  exec xterm -T "AiraOS Settings" -e bash "$0" --noterm
+elif [ "${1:-}" = "--noterm" ]; then
+  AIRA_SETTINGS_NOTERM=1 menu
+else
+  menu
+fi

@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+<!-- AiraOS-Octave JWM config: recognizable Aira identity, lightweight -->
+<JWM>
+  <WindowStyle>
+    <Font>Sans-9</Font>
+    <Width>4</Width>
+    <Height>24</Height>
+    <Corner>3</Corner>
+    <Foreground>#eef2ff</Foreground>
+    <Background>#1d2a6b</Background>
+    <Outline>#0d1440</Outline>
+    <Opacity>1.0</Opacity>
+    <Active>
+      <Foreground>#ffffff</Foreground>
+      <Background>#2f4bd7</Background>
+      <Outline>#101c5c</Outline>
+    </Active>
+  </WindowStyle>
+  <TrayStyle>
+    <Font>Sans-9</Font>
+    <Background>#16205c</Background>
+    <Foreground>#e8ecff</Foreground>
+    <Outline>#0d1440</Outline>
+    <Opacity>1.0</Opacity>
+  </TrayStyle>
+  <TaskListStyle>
+    <Font>Sans-9</Font>
+    <Active><Foreground>#ffffff</Foreground><Background>#2f4bd7</Background></Active>
+  </TaskListStyle>
+  <Tray x="0" y="-1" height="28">
+    <TrayButton label="Aira">root:1</TrayButton>
+    <Spacer width="8"/>
+    <TaskList maxwidth="400"/>
+    <Dock/>
+    <Spacer width="8"/>
+    <Swallow name="clock" width="90">aira-clock</Swallow>
+  </Tray>
+  <RootMenu height="24" onroot="1">
+    <Program label="Terminal" icon="">xterm -fa Monospace -fs 10 -bg #0b1026 -fg #e8ecff</Program>
+    <Program label="File Manager" icon="">aira-file-manager</Program>
+    <Program label="Settings" icon="">aira-settings</Program>
+    <Program label="System Information" icon="">aira-sysinfo</Program>
+    <Program label="About AiraOS" icon="">aira-about</Program>
+    <Separator/>
+    <Program label="Run aira diagnose (xterm)" icon="">xterm -e sh -c '/usr/bin/aira diagnose; echo; echo press-enter; read x'</Program>
+    <Separator/>
+    <Exit label="Logout" confirm="false"/>
+  </RootMenu>
+  <Group>
+    <Name>xterm</Name>
+    <Option>icon:xterm</Option>
+  </Group>
+  <Desktops count="2"/>
+  <DoubleClickSpeed>400</DoubleClickSpeed>
+  <DoubleClickDelta>4</DoubleClickDelta>
+  <FocusModel>click</FocusModel>
+  <MoveMode>opaque</MoveMode>
+  <ResizeMode>opaque</ResizeMode>
+</JWM>

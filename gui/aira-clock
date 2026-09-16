@@ -1,0 +1,3 @@
+#!/bin/sh
+# JWM tray clock (HH:MM, updates every 10s). Swallowed by JWM tray.
+while true; do date +"%H:%M"; sleep 10; done

@@ -1,0 +1,17 @@
+#!/bin/sh
+# Real system information (xmessage when graphical, stdout always).
+INFO="$(mktemp)"
+{
+  echo "AiraOS-Octave System Information"; echo
+  cat /etc/os-release 2>/dev/null; echo
+  uname -a; echo
+  grep -m1 "model name" /proc/cpuinfo 2>/dev/null; echo
+  free -h 2>/dev/null || grep -E "MemTotal|MemFree" /proc/meminfo; echo
+  df -h 2>/dev/null | head -n 8; echo
+  ip -o -4 addr show 2>/dev/null | head -n 5 || echo "(no ip)"
+} > "$INFO" 2>&1
+cat "$INFO"
+if [ -n "${DISPLAY:-}" ] && command -v xmessage >/dev/null 2>&1; then
+  xmessage -file "$INFO" -buttons OK:0 -title "AiraOS System Information" 2>/dev/null
+fi
+rm -f "$INFO"

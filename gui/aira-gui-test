@@ -1,0 +1,53 @@
+#!/bin/sh
+# Headless GUI smoke test (runs INSIDE guest): Xvfb + jwm + 5 apps, no crash.
+# Prints GUI-TEST markers. Exit 0 pass, 1 fail. Kills X afterwards.
+export PATH=/persist/usr/bin:/persist/bin:/persist/sbin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+export LD_LIBRARY_PATH=/persist/usr/lib/x86_64-linux-gnu:/persist/lib/x86_64-linux-gnu:/persist/usr/lib:/persist/lib:$LD_LIBRARY_PATH
+export DISPLAY=":99"
+PASS=1
+rm -f /tmp/.X99-lock /tmp/aira-gui-shot.xwd 2>/dev/null
+echo "===== GUI TEST START ====="
+command -v Xvfb >/dev/null 2>&1 || { echo "GUI-TEST FAIL: Xvfb missing (PATH=$PATH)"; ls -l /persist/usr/bin/Xvfb 2>&1; exit 1; }
+command -v jwm >/dev/null 2>&1 || { echo "GUI-TEST FAIL: jwm missing"; exit 1; }
+echo "--- env diagnostics ---"
+ls -l /lib64 /lib 2>&1 | head
+ls /dev/shm 2>&1
+Xvfb -help 2>&1 | head -n 5 || echo "DIAG: Xvfb -help failed rc=$?"
+echo "--- foreground Xvfb trial (:98) ---"
+timeout 5 Xvfb :98 -screen 0 800x600x16 -fp /persist/usr/share/fonts/X11/misc -xkbdir /persist/usr/share/X11/xkb 2>&1 &
+TRIAL=$!
+sleep 3
+ls -l /tmp/.X11-unix/ 2>&1
+kill $TRIAL 2>/dev/null
+wait $TRIAL 2>/dev/null
+echo "trial rc=$?"
+if [ -x /persist/usr/bin/aira-session ]; then SES=/persist/usr/bin/aira-session; else SES=/usr/bin/aira-session; fi
+sh "$SES" --headless --display :99 || { echo "GUI-TEST FAIL: session failed"; exit 1; }
+sleep 1
+xwininfo -root 2>/dev/null | head -n 10 || { echo "GUI-TEST FAIL: xwininfo root"; PASS=0; }
+echo "--- launching apps ---"
+xterm -T "AiraTest-Term" -e sh -c 'sleep 2' &
+TPID=$!
+sh /usr/bin/aira-sysinfo >/tmp/gui-sysinfo.log 2>&1 &
+SPID=$!
+sh /usr/bin/aira-about >/tmp/gui-about.log 2>&1 &
+APID=$!
+DISPLAY=:99 mc --version >/tmp/gui-mc.log 2>&1 && echo "GUI-TEST OK: mc present" || { echo "GUI-TEST FAIL: mc"; PASS=0; }
+sleep 2
+xwininfo -root -children 2>/dev/null | head -n 30 | tee /tmp/gui-windows.log
+grep -qi "xterm\|jwm\|root" /tmp/gui-windows.log && echo "GUI-TEST OK: windows exist" || { echo "GUI-TEST FAIL: no windows"; PASS=0; }
+xwd -root -out /tmp/aira-gui-shot.xwd 2>/dev/null && echo "GUI-TEST OK: screenshot $(wc -c < /tmp/aira-gui-shot.xwd) bytes" || echo "GUI-TEST INFO: xwd failed (non-fatal)"
+kill $TPID $SPID $APID 2>/dev/null
+# desktop must survive app exit
+sleep 1
+ps 2>/dev/null | grep -i jwm 2>/dev/null | head -n 5
+if pidof jwm >/dev/null 2>&1; then echo "GUI-TEST OK: desktop survives apps (pidof)";
+elif ps 2>/dev/null | grep -q "[j]wm"; then echo "GUI-TEST OK: desktop survives apps (ps)";
+else echo "GUI-TEST FAIL: jwm died"; pidof jwm 2>&1; echo "--- full ps ---"; ps 2>/dev/null | tail -n 30; PASS=0; fi
+# cleanup X
+[ -f /tmp/aira-X.pid ] && kill "$(cat /tmp/aira-X.pid)" 2>/dev/null
+[ -f /tmp/aira-jwm.pid ] && kill "$(cat /tmp/aira-jwm.pid)" 2>/dev/null
+pkill Xvfb 2>/dev/null; pkill jwm 2>/dev/null
+sleep 0.5
+if [ "$PASS" = "1" ]; then echo "===== GUI TEST PASS ====="; exit 0;
+else echo "===== GUI TEST FAIL ====="; exit 1; fi

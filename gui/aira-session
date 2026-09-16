@@ -1,0 +1,101 @@
+#!/bin/sh
+# aira-session — start AiraOS desktop (Xvfb fallback + Xorg when available).
+# Usage: aira-session [--headless] [--display :99] [--screen 1024x768x24]
+case ":$PATH:" in
+  *:/persist/usr/bin:*) ;;
+  *) export PATH=/persist/usr/bin:/persist/bin:/persist/sbin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin ;;
+esac
+export LD_LIBRARY_PATH=/persist/usr/lib/x86_64-linux-gnu:/persist/lib/x86_64-linux-gnu:/persist/usr/lib:/persist/lib:$LD_LIBRARY_PATH
+DISP=":99"
+GEOM="1024x768x24"
+HEADLESS="no"
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --headless) HEADLESS="yes"; shift ;;
+    --display) DISP="${2:-:99}"; shift 2 ;;
+    *) shift ;;
+  esac
+done
+# Pick X server: real Xorg if virtio GPU present and not forced headless, else Xvfb
+USE_XVFB="yes"
+if [ "$HEADLESS" = "no" ] && [ -e /dev/dri/card0 ] && command -v Xorg >/dev/null 2>&1; then
+  USE_XVFB="no"
+fi
+if ! command -v Xvfb >/dev/null 2>&1 && ! command -v Xorg >/dev/null 2>&1; then
+  echo "aira-session: no X server found (need Xvfb or Xorg)" >&2
+  exit 1
+fi
+if [ "$USE_XVFB" = "yes" ] && ! command -v Xvfb >/dev/null 2>&1; then
+  USE_XVFB="no"
+fi
+export DISPLAY="$DISP"
+# Socket dir + stale lock (guest /tmp is fresh tmpfs)
+mkdir -p /tmp/.X11-unix 2>/dev/null
+chmod 1777 /tmp/.X11-unix 2>/dev/null || true
+rm -f "/tmp/.X${DISP#:}-lock" 2>/dev/null
+# X helpers expected at fixed /usr/bin paths (rootfs at /persist)
+mkdir -p /usr/bin 2>/dev/null
+for t in xkbcomp Xvfb Xorg jwm xterm xmessage xsetroot xwininfo xwd mc setxkbmap xauth; do
+  if [ ! -x "/usr/bin/$t" ] && [ -x "/persist/usr/bin/$t" ]; then
+    ln -sf "/persist/usr/bin/$t" "/usr/bin/$t" 2>/dev/null || true
+  fi
+done
+# fontconfig expects /etc/fonts + /usr/share/fonts (rootfs at /persist)
+if [ ! -e /etc/fonts/fonts.conf ] && [ -e /persist/etc/fonts/fonts.conf ]; then
+  mkdir -p /etc 2>/dev/null
+  ln -sfn /persist/etc/fonts /etc/fonts 2>/dev/null || true
+fi
+if [ ! -e /usr/share/fonts/truetype ] && [ -e /persist/usr/share/fonts/truetype ]; then
+  mkdir -p /usr/share 2>/dev/null
+  ln -sfn /persist/usr/share/fonts /usr/share/fonts 2>/dev/null || true
+fi
+if [ "$USE_XVFB" = "yes" ]; then
+  echo "[aira-session] starting Xvfb $DISP $GEOM"
+  # Explicit font + xkb paths (rootfs at /persist when booted via initramfs)
+  FPDIR="/persist/usr/share/fonts/X11/misc"
+  [ -d "$FPDIR" ] || FPDIR="/usr/share/fonts/X11/misc"
+  XKBDIR="/persist/usr/share/X11/xkb"
+  [ -d "$XKBDIR" ] || XKBDIR="/usr/share/X11/xkb"
+  Xvfb "$DISP" -screen 0 "$GEOM" -fp "$FPDIR" -xkbdir "$XKBDIR" +extension RANDR +extension RENDER > /tmp/Xvfb.log 2>&1 &
+  XPID=$!
+else
+  echo "[aira-session] starting Xorg $DISP (virtio-gpu)"
+  Xorg "$DISP" > /tmp/Xorg.log 2>&1 &
+  XPID=$!
+fi
+# Wait for socket (generous: QEMU TCG is slow)
+for i in $(seq 1 30); do
+  if [ -S "/tmp/.X11-unix/X${DISP#:}" ]; then break; fi
+  if ! kill -0 $XPID 2>/dev/null; then
+    echo "[aira-session] X server pid $XPID died early" >&2
+    break
+  fi
+  sleep 1
+done
+if [ ! -S "/tmp/.X11-unix/X${DISP#:}" ]; then
+  echo "aira-session: X socket not ready" >&2
+  echo "--- Xvfb/Xorg log ---" >&2
+  cat /tmp/Xvfb.log /tmp/Xorg.log 2>/dev/null >&2
+  kill $XPID 2>/dev/null
+  exit 1
+fi
+# Wallpaper (Aira blue)
+xsetroot -solid "#1d2a6b" 2>/dev/null || true
+# JWM with Aira config (rootfs at /persist when booted via initramfs)
+JWMRC="/persist/etc/jwm/aira-jwmrc"
+[ -f "$JWMRC" ] || JWMRC="/etc/jwm/aira-jwmrc"
+[ -f "$JWMRC" ] || JWMRC="/persist/etc/jwm/system.jwmrc"
+[ -f "$JWMRC" ] || JWMRC="/etc/jwm/system.jwmrc"
+echo "[aira-session] starting jwm"
+jwm -f "$JWMRC" &
+JWM_PID=$!
+sleep 0.5
+echo "[aira-session] desktop ready on $DISPLAY (X pid $XPID, jwm $JWM_PID)"
+# If interactive (not headless test), wait; else return (test harness manages lifetime)
+if [ "$HEADLESS" = "no" ]; then
+  wait $JWM_PID 2>/dev/null
+  kill $XPID 2>/dev/null
+else
+  echo "$XPID" > /tmp/aira-X.pid
+  echo "$JWM_PID" > /tmp/aira-jwm.pid
+fi

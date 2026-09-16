@@ -1,0 +1,12 @@
+#!/bin/sh
+# About AiraOS-Octave (real version from /etc/os-release).
+MSG="AiraOS-Octave
+$(grep PRETTY_NAME /etc/os-release 2>/dev/null | cut -d= -f2- | tr -d '\"')
+Architecture: $(uname -m)
+Kernel: $(uname -r)
+Project: https://github.com/manansulya01/Aira-Octave
+Base: Linux 7.2.2 + AiraOS userspace + JWM desktop"
+echo "$MSG"
+if [ -n "${DISPLAY:-}" ] && command -v xmessage >/dev/null 2>&1; then
+  echo "$MSG" | xmessage -file - -buttons OK:0 -title "About AiraOS" 2>/dev/null
+fi
