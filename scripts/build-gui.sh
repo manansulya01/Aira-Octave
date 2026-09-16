@@ -56,7 +56,7 @@ done
 # Aira GUI files
 mkdir -p "$STAGE/etc/jwm" "$STAGE/usr/bin"
 cp -f "$ROOT/gui/aira-jwmrc" "$STAGE/etc/jwm/aira-jwmrc"
-for b in aira-session aira-file-manager aira-settings aira-sysinfo aira-about aira-clock aira-gui-test; do
+for b in aira-session aira-file-manager aira-settings aira-sysinfo aira-about aira-clock aira-gui-test aira-textedit aira-sysmon aira-pkgcenter; do
   cp -f "$ROOT/gui/$b" "$STAGE/usr/bin/$b"
   chmod +x "$STAGE/usr/bin/$b"
 done

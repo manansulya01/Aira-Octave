@@ -83,6 +83,16 @@ else
   echo "[init] /sbin/aira-init not found, skipping services"
 fi
 
+# Boot-time demo mode: cmdline contains aira_demo=1 (tour, then shell)
+if grep -q "aira_demo=1" /proc/cmdline 2>/dev/null; then
+  echo "[init] aira_demo=1 detected, running guest demo"
+  if [ -x /sbin/guest-demo.sh ]; then
+    exec /sbin/guest-demo.sh
+  else
+    echo "[init] guest-demo.sh missing"
+  fi
+fi
+
 # Automated in-guest test mode (for scripts/test-*.sh): cmdline contains aira_autotest=1
 if grep -q "aira_autotest=1" /proc/cmdline 2>/dev/null; then
   echo "[init] aira_autotest=1 detected, running guest autotest"

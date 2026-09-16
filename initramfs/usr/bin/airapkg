@@ -4,18 +4,23 @@
 # DB: /var/lib/airapkg/{installed/<name>/PKGINFO,files}
 set -u
 DB="/var/lib/airapkg"
-mkdir -p "$DB/installed"
+REPO="/var/lib/airapkg/repo"
+mkdir -p "$DB/installed" "$REPO"
 usage() {
   cat <<'EOF'
-airapkg — AiraOS package manager
+airapkg — AiraOS package manager (local repository)
   airapkg list                        installed packages
-  airapkg query <name>                show metadata + files
+  airapkg search <term>               search installed + repo packages
+  airapkg query <name>                show metadata + files (alias: info)
+  airapkg info <name>                 alias for query
   airapkg install <file.apkg>         install (refuses if already installed unless --force)
   airapkg install --force <file>      reinstall
   airapkg remove <name>               remove files recorded at install
   airapkg verify <name>               check installed files exist
+  airapkg update-check                compare installed vs repo versions
   airapkg build <dir> <out.apkg>      build package from dir (needs PKGINFO)
 PKGINFO fields: NAME, VERSION, DESC, DEPS (space-separated, optional)
+Repo: drop .apkg files in /var/lib/airapkg/repo (local-only in 0.2).
 EOF
 }
 pkgdir() { echo "$DB/installed/$1"; }
@@ -27,13 +32,58 @@ case "$cmd" in
   list)
     ls "$DB/installed" 2>/dev/null || echo "(none)"
     ;;
-  query)
+  query|info)
     need "airapkg query <name>" "${2:-}"
     d="$(pkgdir "$2")"
-    [ -f "$d/PKGINFO" ] || { echo "not installed: $2" >&2; exit 1; }
-    cat "$d/PKGINFO"
-    echo "--- files ---"
-    cat "$d/files" 2>/dev/null || echo "(no file list)"
+    if [ -f "$d/PKGINFO" ]; then
+      cat "$d/PKGINFO"
+      echo "--- files ---"
+      cat "$d/files" 2>/dev/null || echo "(no file list)"
+    else
+      # fall back to repo metadata
+      found=0
+      for p in "$REPO"/*.apkg; do
+        [ -f "$p" ] || continue
+        if tar -xzOf "$p" ./PKGINFO 2>/dev/null | grep -q "^NAME=\"$2\""; then
+          echo "--- repo package: $p ---"
+          tar -xzOf "$p" ./PKGINFO 2>/dev/null
+          found=1
+        fi
+      done
+      [ "$found" = "1" ] || { echo "not installed and not in repo: $2" >&2; exit 1; }
+    fi
+    ;;
+  search)
+    need "airapkg search <term>" "${2:-}"
+    echo "== installed =="
+    ls "$DB/installed" 2>/dev/null | grep -i "$2" || echo "(no match)"
+    echo "== repo ($REPO) =="
+    hit=0
+    for p in "$REPO"/*.apkg; do
+      [ -f "$p" ] || continue
+      if tar -tzf "$p" 2>/dev/null | grep -qi "$2" || basename "$p" | grep -qi "$2"; then
+        echo "$p"; hit=1
+      fi
+    done
+    [ "$hit" = "1" ] || echo "(no match)"
+    ;;
+  update-check)
+    echo "== installed vs repo =="
+    any=0
+    for d in "$DB"/installed/*/; do
+      [ -f "$d/PKGINFO" ] || continue
+      n=""; v=""
+      . "$d/PKGINFO"
+      for p in "$REPO"/*.apkg; do
+        [ -f "$p" ] || continue
+        rv="$(tar -xzOf "$p" ./PKGINFO 2>/dev/null | sed -n 's/^VERSION="\(.*\)"/\1/p' | head -n 1)"
+        rn="$(tar -xzOf "$p" ./PKGINFO 2>/dev/null | sed -n 's/^NAME="\(.*\)"/\1/p' | head -n 1)"
+        if [ "$rn" = "$n" ] && [ -n "$rv" ] && [ "$rv" != "$v" ]; then
+          echo "$n: installed $v, repo $rv ($p)"; any=1
+        fi
+      done
+    done
+    [ "$any" = "1" ] || echo "(all installed packages match repo or repo empty)"
     ;;
   verify)
     need "airapkg verify <name>" "${2:-}"

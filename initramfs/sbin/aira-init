@@ -1,13 +1,15 @@
 #!/bin/sh
 # AiraOS service manager (lightweight, real supervision via pidfiles + run-parts style).
-# Usage: aira-init boot|start <svc>|stop <svc>|restart <svc>|status [svc]
-# Service def: /etc/aira/services/<name>.conf  (CMD=..., DEPS=..., RESPAWN=no)
+# Usage: aira-init boot|start|stop|restart|status|enable|disable [svc]
+# Service def: /etc/aira/services/<name>.conf  (CMD=..., DEPS=..., USER=root, DESC=...)
+# Boot starts only services linked in /etc/aira/enabled/<name> -> ../services/<name>.conf
 set -u
 ROOT_FS="/"
 SVC_DIR="/etc/aira/services"
+EN_DIR="/etc/aira/enabled"
 RUN_DIR="/run/aira-services"
 LOG_DIR="/var/log/airaos"
-mkdir -p "$RUN_DIR" "$LOG_DIR"
+mkdir -p "$RUN_DIR" "$LOG_DIR" "$EN_DIR"
 
 svc_file() { echo "$SVC_DIR/$1.conf"; }
 pid_file() { echo "$RUN_DIR/$1.pid"; }
@@ -16,7 +18,7 @@ load_svc() {
   local name="$1" f
   f="$(svc_file "$name")"
   [ -f "$f" ] || { echo "unknown service: $name" >&2; return 1; }
-  CMD=""; DEPS=""; DESC=""; RESPAWN="no"
+  CMD=""; DEPS=""; DESC=""; RESPAWN="no"; USER="root"
   # shellcheck disable=SC1090
   . "$f"
   [ -n "${CMD:-}" ] || { echo "service $name has no CMD" >&2; return 1; }
@@ -39,9 +41,13 @@ do_start_one() {
       do_start_one "$dep" || { echo "$name: dependency $dep failed" >&2; return 1; }
     fi
   done
-  echo "$name: starting: $CMD"
-  # shellcheck disable=SC2086
-  nohup sh -c "$CMD" >>"$LOG_DIR/$name.log" 2>&1 &
+  if [ "${USER:-root}" = "root" ]; then
+    echo "$name: starting (as root): $CMD"
+    setsid sh -c "$CMD" >>"$LOG_DIR/$name.log" 2>&1 &
+  else
+    echo "$name: starting (as $USER): $CMD"
+    setsid su -s /bin/sh "$USER" -c "$CMD" >>"$LOG_DIR/$name.log" 2>&1 &
+  fi
   echo $! > "$(pid_file "$name")"
   sleep 0.3
   if is_running "$name"; then echo "$name: started pid $(cat "$(pid_file "$name")")"; return 0; fi
@@ -69,8 +75,13 @@ do_status_one() {
 }
 
 boot_order() {
-  # Boot order = alphabetical except session/gui last (deps handle the rest)
-  ls "$SVC_DIR" 2>/dev/null | sed 's/\.conf$//' | sort
+  # Boot order = enabled services only, alphabetical (deps handle the rest).
+  # Fallback: if enabled/ is empty but services exist, use all services (first-boot safety).
+  if ls "$EN_DIR" 2>/dev/null | grep -q .; then
+    ls "$EN_DIR" 2>/dev/null | sort
+  else
+    ls "$SVC_DIR" 2>/dev/null | sed 's/\.conf$//' | sort
+  fi
 }
 
 cmd="${1:-status}"
@@ -91,5 +102,16 @@ case "$cmd" in
       for s in $(boot_order); do do_status_one "$s"; done
     fi
     ;;
-  *) echo "usage: aira-init boot|start|stop|restart|status [svc]" >&2; exit 2 ;;
+  enable)
+    shift; [ $# -ge 1 ] || { echo "usage: aira-init enable <svc>" >&2; exit 2; }
+    [ -f "$(svc_file "$1")" ] || { echo "unknown service: $1" >&2; exit 1; }
+    ln -sf "../services/$1.conf" "$EN_DIR/$1" 2>/dev/null || cp -f "$(svc_file "$1")" "$EN_DIR/$1"
+    echo "$1: enabled"
+    ;;
+  disable)
+    shift; [ $# -ge 1 ] || { echo "usage: aira-init disable <svc>" >&2; exit 2; }
+    rm -f "$EN_DIR/$1" "$EN_DIR/$1.conf"
+    echo "$1: disabled"
+    ;;
+  *) echo "usage: aira-init boot|start|stop|restart|status|enable|disable [svc]" >&2; exit 2 ;;
 esac

@@ -1,0 +1,15 @@
+#!/bin/sh
+# AiraOS text editor: real open/edit/save/create via vi in xterm.
+export DISPLAY="${DISPLAY:-:99}"
+F="${1:-}"
+if [ -n "$F" ] && [ ! -e "$F" ]; then
+  mkdir -p "$(dirname "$F")" 2>/dev/null
+  touch "$F" 2>/dev/null || F=""
+fi
+if command -v xterm >/dev/null 2>&1 && [ -n "${DISPLAY:-}" ]; then
+  if [ -n "$F" ]; then exec xterm -fa Monospace -fs 10 -T "AiraOS Editor - $F" -e vi "$F"
+  else exec xterm -fa Monospace -fs 10 -T "AiraOS Editor" -e sh -c 'printf "file to edit (empty=new): "; read f; [ -n "$f" ] && exec vi "$f" || exec vi'
+  fi
+else
+  exec vi ${F:+"$F"}
+fi

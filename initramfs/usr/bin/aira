@@ -1,18 +1,26 @@
 #!/bin/sh
 # aira — AiraOS-Octave system command (real operations only).
 set -u
-VER="0.1.0"
+VER="0.2.0"
 usage() {
   cat <<'EOF'
 aira — AiraOS-Octave system command
   aira help                  this help
   aira info                  OS/kernel/arch
+  aira version               AiraOS version
   aira system                kernel+cpu+mem+disk summary
   aira status                services + key mounts
-  aira service <a> [s]       start|stop|restart|status (via /sbin/aira-init)
-  aira network [status]      show interfaces/routes/dns
-  aira package <a> [...]     query|list (via airapkg)
+  aira services [args]       service start|stop|restart|status|enable|disable
+  aira service <args>        alias for services
+  aira network [dhcp IF]     interfaces/routes/dns (+ renew DHCP)
+  aira storage               disks/mounts/usage/persist status
+  aira users                 users/groups/ownership
+  aira packages [args]       package list|search|info|install|remove
+  aira package <args>        alias for packages
   aira diagnose              full diagnostic dump
+  aira demo                  guided live demo (real system data)
+  aira shutdown [--force]    power off (needs --force)
+  aira reboot [--force]      reboot (needs --force)
   aira update --check        show version (safe, no self-modify)
 EOF
 }
@@ -23,6 +31,7 @@ case "$cmd" in
     [ -f /etc/os-release ] && cat /etc/os-release
     uname -a
     ;;
+  version) echo "AiraOS-Octave $VER ($(uname -m))" ;;
   system)
     echo "== OS =="; cat /etc/os-release 2>/dev/null || echo "(no os-release)"
     echo "== kernel =="; uname -a
@@ -35,17 +44,40 @@ case "$cmd" in
     echo "== mounts =="; mount 2>/dev/null | head -n 20
     echo "== services =="; /sbin/aira-init status 2>&1 || echo "(aira-init unavailable)"
     ;;
-  service)
+  service|services)
     shift || true
     /sbin/aira-init "$@" ;;
   network)
+    shift || true
+    if [ "${1:-}" = "dhcp" ]; then
+      iface="${2:-eth0}"
+      echo "renewing DHCP on $iface..."
+      udhcpc -i "$iface" -n -q -t 3 2>&1 | head -n 20 || echo "(DHCP failed/unsupported here)"
+      exit 0
+    fi
     echo "== hostname =="; hostname; cat /etc/hostname 2>/dev/null
     echo "== interfaces =="; ip addr 2>/dev/null || ifconfig 2>/dev/null || echo "(no ip/ifconfig)"
     echo "== routes =="; ip route 2>/dev/null || route -n 2>/dev/null || echo "(no route info)"
     echo "== dns =="; cat /etc/resolv.conf 2>/dev/null || echo "(no /etc/resolv.conf)"
     echo "== ping loopback =="; ping -c1 -W2 127.0.0.1 2>&1 | tail -n 5 || echo "(ping failed)"
     ;;
-  package)
+  storage)
+    echo "== disks =="; ls -l /dev/vd* /dev/sd* /dev/sr* 2>/dev/null || echo "(no virtio/scsi disks)"
+    echo "== filesystems =="; df -h 2>/dev/null
+    echo "== mounts =="; mount 2>/dev/null | grep -E "persist|vda|root" || mount 2>/dev/null | head -n 10
+    if [ -d /persist ] && mount 2>/dev/null | grep -q " /persist "; then
+      echo "== persist == OK (/persist mounted)"; df -h /persist 2>/dev/null
+    else
+      echo "== persist == NOT AVAILABLE (boot with -drive aira-rootfs.img for persistence)"
+    fi
+    ;;
+  users)
+    echo "== users =="; cat /etc/passwd 2>/dev/null
+    echo "== groups =="; cat /etc/group 2>/dev/null
+    echo "== home =="; ls -ld /root /home/* 2>/dev/null
+    echo "== identity =="; id 2>/dev/null; whoami 2>/dev/null
+    ;;
+  package|packages)
     shift || true
     exec airapkg "$@" ;;
   diagnose)
@@ -54,14 +86,22 @@ case "$cmd" in
     echo "--- kernel ---"; uname -a; dmesg 2>/dev/null | tail -n 20
     echo "--- cpu ---"; grep -m2 "model name\|cpu MHz" /proc/cpuinfo 2>/dev/null
     echo "--- mem ---"; free -h 2>/dev/null || cat /proc/meminfo 2>/dev/null | head
-    echo "--- disks ---"; df -h 2>/dev/null; lsblk 2>/dev/null || ls -l /dev/vd* /dev/sd* 2>/dev/null || echo "(no block devs)"
+    echo "--- disks ---"; df -h 2>/dev/null; ls -l /dev/vd* /dev/sd* 2>/dev/null || echo "(no block devs)"
     echo "--- mounts ---"; mount 2>/dev/null
     echo "--- net ---"; ip addr 2>/dev/null | head -n 30
     echo "--- services ---"; /sbin/aira-init status 2>&1
+    echo "--- users ---"; cat /etc/passwd 2>/dev/null
     echo "--- graphics ---"; ls -l /dev/dri /dev/fb0 2>&1; dmesg 2>/dev/null | grep -i -E "drm|vga|virtio.*gpu|fb" | head
     echo "--- boot ---"; tail -n 30 /var/log/airaos/boot.log 2>/dev/null || echo "(no boot.log)"
     echo "===== END DIAGNOSE ====="
     ;;
+  demo) exec /usr/bin/aira-demo ;;
+  shutdown)
+    if [ "${2:-}" = "--force" ]; then echo "shutting down..."; sync; poweroff -f
+    else echo "usage: aira shutdown --force" >&2; exit 2; fi ;;
+  reboot)
+    if [ "${2:-}" = "--force" ]; then echo "rebooting..."; sync; reboot -f
+    else echo "usage: aira reboot --force" >&2; exit 2; fi ;;
   update)
     echo "AiraOS-Octave $VER — update --check only in v1 (no self-modifying updater)."
     echo "To update: rebuild via scripts/build-*.sh, verify test-all.sh, reinstall image."

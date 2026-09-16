@@ -28,16 +28,25 @@ xwininfo -root 2>/dev/null | head -n 10 || { echo "GUI-TEST FAIL: xwininfo root"
 echo "--- launching apps ---"
 xterm -T "AiraTest-Term" -e sh -c 'sleep 2' &
 TPID=$!
-sh /usr/bin/aira-sysinfo >/tmp/gui-sysinfo.log 2>&1 &
+mkdir -p /persist/screenshots 2>/dev/null || true
+sh aira-sysinfo >/tmp/gui-sysinfo.log 2>&1 &
 SPID=$!
-sh /usr/bin/aira-about >/tmp/gui-about.log 2>&1 &
+sh aira-about >/tmp/gui-about.log 2>&1 &
 APID=$!
+aira-sysmon --once > /tmp/gui-sysmon.log 2>&1 && grep -qi "cpu\|mem" /tmp/gui-sysmon.log && echo "GUI-TEST OK: sysmon data" || { echo "GUI-TEST FAIL: sysmon"; PASS=0; }
 DISPLAY=:99 mc --version >/tmp/gui-mc.log 2>&1 && echo "GUI-TEST OK: mc present" || { echo "GUI-TEST FAIL: mc"; PASS=0; }
-sleep 2
-xwininfo -root -children 2>/dev/null | head -n 30 | tee /tmp/gui-windows.log
+timeout 12 aira-textedit &
+TEPID=$!
+timeout 12 aira-pkgcenter &
+PCPID=$!
+sleep 4
+xwininfo -root -children 2>/dev/null | head -n 40 | tee /tmp/gui-windows.log
 grep -qi "xterm\|jwm\|root" /tmp/gui-windows.log && echo "GUI-TEST OK: windows exist" || { echo "GUI-TEST FAIL: no windows"; PASS=0; }
+grep -qi "Editor" /tmp/gui-windows.log && echo "GUI-TEST OK: editor window" || echo "GUI-TEST INFO: editor window not seen (non-fatal)"
+grep -qi "Package" /tmp/gui-windows.log && echo "GUI-TEST OK: pkgcenter window" || echo "GUI-TEST INFO: pkgcenter window not seen (non-fatal)"
 xwd -root -out /tmp/aira-gui-shot.xwd 2>/dev/null && echo "GUI-TEST OK: screenshot $(wc -c < /tmp/aira-gui-shot.xwd) bytes" || echo "GUI-TEST INFO: xwd failed (non-fatal)"
-kill $TPID $SPID $APID 2>/dev/null
+cp -f /tmp/aira-gui-shot.xwd /persist/screenshots/ 2>/dev/null || true
+kill $TPID $SPID $APID $TEPID $PCPID 2>/dev/null
 # desktop must survive app exit
 sleep 1
 ps 2>/dev/null | grep -i jwm 2>/dev/null | head -n 5

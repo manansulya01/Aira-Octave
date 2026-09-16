@@ -30,6 +30,13 @@ t "aira info" /usr/bin/aira info
 t_contains "aira info shows Octave" /tmp/aira-info.out "AiraOS-Octave"
 t "aira system" /usr/bin/aira system
 t "aira diagnose" /usr/bin/aira diagnose
+t "aira version" /usr/bin/aira version
+t "aira storage" /usr/bin/aira storage
+t "aira users" /usr/bin/aira users
+if /usr/bin/aira shutdown 2>/dev/null; then echo "GUEST-TEST FAIL: shutdown guard"; PASS=0;
+else echo "GUEST-TEST OK: shutdown guard (needs --force)"; fi
+if /usr/bin/aira reboot 2>/dev/null; then echo "GUEST-TEST FAIL: reboot guard"; PASS=0;
+else echo "GUEST-TEST OK: reboot guard (needs --force)"; fi
 
 echo "--- users ---"
 t_contains "passwd has aira" /etc/passwd "aira:x:1000:1000"
@@ -49,8 +56,30 @@ fi
 
 echo "--- services ---"
 t "aira-init status" /sbin/aira-init status
-/sbin/aira-init status > /tmp/svc.out 2>&1
-t_contains "syslog service known" /tmp/svc.out "syslog"
+/sbin/aira-init status syslog > /tmp/svc.out 2>&1
+t_contains "syslog running" /tmp/svc.out "running"
+t "service restart net" /sbin/aira-init restart net
+if /sbin/aira-init start no-such-service 2>/dev/null; then echo "GUEST-TEST FAIL: unknown service accepted"; PASS=0;
+else echo "GUEST-TEST OK: unknown service rejected"; fi
+printf 'DESC="autotest user service"\nCMD="touch /home/aira/svc-user-marker && sleep 30"\nDEPS=""\nUSER="aira"\n' > /etc/aira/services/autotest-user.conf
+t "enable test service" /sbin/aira-init enable autotest-user
+echo "--- direct su probe ---"
+su -s /bin/sh aira -c 'touch /home/aira/direct-marker' 2>&1; echo "su rc=$?"
+ls -l /home/aira/direct-marker 2>&1
+rm -f /home/aira/direct-marker
+/sbin/aira-init start autotest-user > /tmp/svc-user.out 2>&1
+cat /tmp/svc-user.out
+cat /var/log/airaos/autotest-user.log 2>/dev/null
+sleep 1
+ls -ln /home/aira/svc-user-marker 2>/dev/null
+if [ -f /home/aira/svc-user-marker ] && ls -ln /home/aira/svc-user-marker 2>/dev/null | grep -q " 1000  *1000 "; then
+  echo "GUEST-TEST OK: service ran as aira"
+else
+  echo "GUEST-TEST FAIL: service user ownership"; ls -l /home/aira/svc-user-marker 2>/dev/null; PASS=0
+fi
+/sbin/aira-init stop autotest-user >/dev/null 2>&1
+/sbin/aira-init disable autotest-user >/dev/null 2>&1
+rm -f /etc/aira/services/autotest-user.conf /home/aira/svc-user-marker
 
 echo "--- networking ---"
 ip link set lo up 2>/dev/null
@@ -94,12 +123,19 @@ DEPS=""
 EOF
 echo "hello aira" > /tmp/pkgtest/usr/share/aira/hello.txt
 t "airapkg build" airapkg build /tmp/pkgtest /tmp/hello-aira.apkg
+cp -f /tmp/hello-aira.apkg /var/lib/airapkg/repo/ 2>/dev/null || true
+t "airapkg search" airapkg search hello
+t "airapkg info" airapkg info hello-aira
+t "airapkg update-check" airapkg update-check
 t "airapkg install" airapkg install /tmp/hello-aira.apkg
 t_contains "package file installed" /tmp/t.out "hello-aira"
 [ -f /usr/share/aira/hello.txt ] && echo "GUEST-TEST OK: payload present" || { echo "GUEST-TEST FAIL: payload missing"; PASS=0; }
 t "airapkg verify" airapkg verify hello-aira
 t "airapkg remove" airapkg remove hello-aira
 [ ! -f /usr/share/aira/hello.txt ] && echo "GUEST-TEST OK: payload cleaned" || { echo "GUEST-TEST FAIL: payload not cleaned"; PASS=0; }
+rm -f /var/lib/airapkg/repo/hello-aira.apkg
+if airapkg install /tmp/does-not-exist.apkg 2>/dev/null; then echo "GUEST-TEST FAIL: invalid package accepted"; PASS=0;
+else echo "GUEST-TEST OK: invalid package rejected"; fi
 
 echo "--- gui (if requested) ---"
 if grep -q "aira_guitest=1" /proc/cmdline 2>/dev/null; then

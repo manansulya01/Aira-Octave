@@ -20,16 +20,10 @@ echo "LOG=$LOG"
 } | tee "$LOG"
 
 mkdir -p "$STAGE/etc/aira" "$STAGE/home/aira" "$STAGE/var/log/airaos" "$STAGE/var/lib/airapkg" "$STAGE/persist" "$STAGE/opt/aira/bin" "$STAGE/usr/share/aira"
-# Seed minimal identity files if absent (also created by userspace setup; keep idempotent)
-[ -f "$STAGE/etc/os-release" ] || cat > "$STAGE/etc/os-release" <<'EOF'
-NAME="AiraOS-Octave"
-VERSION="0.1.0"
-ID=aira-octave
-VERSION_ID=0.1.0
-PRETTY_NAME="AiraOS-Octave 0.1.0 (Linux 7.2.2)"
-HOME_URL="https://github.com/manansulya01/Aira-Octave"
-EOF
-[ -f "$STAGE/etc/hostname" ] || echo "aira-octave" > "$STAGE/etc/hostname"
+# Identity single-source: initramfs/etc is canonical; always sync into staging.
+for f in os-release hostname motd; do
+  [ -f "$ROOT/initramfs/etc/$f" ] && cp -f "$ROOT/initramfs/etc/$f" "$STAGE/etc/$f"
+done
 
 rm -f "$IMG"
 set +e

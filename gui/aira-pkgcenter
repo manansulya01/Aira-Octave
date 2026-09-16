@@ -1,0 +1,25 @@
+#!/bin/sh
+# AiraOS package center: GUI frontend for airapkg (local repo).
+export DISPLAY="${DISPLAY:-:99}"
+menu() {
+  while true; do
+    clear 2>/dev/null
+    echo "=== AiraOS Package Center (local repo) ==="
+    echo "installed:"; airapkg list 2>/dev/null
+    echo; echo "1) search  2) info  3) install .apkg  4) remove  5) update-check  6) quit"
+    printf "choice: "; read c
+    case "$c" in
+      1) printf "term: "; read t; airapkg search "$t" 2>&1 | head -n 20; printf "enter..."; read x ;;
+      2) printf "name: "; read n; airapkg info "$n" 2>&1 | head -n 30; printf "enter..."; read x ;;
+      3) printf "path to .apkg: "; read p; airapkg install "$p" 2>&1 | head -n 10; printf "enter..."; read x ;;
+      4) printf "name: "; read n; airapkg remove "$n" 2>&1 | head -n 5; printf "enter..."; read x ;;
+      5) airapkg update-check 2>&1 | head -n 20; printf "enter..."; read x ;;
+      6|q) break ;;
+    esac
+  done
+}
+if command -v xterm >/dev/null 2>&1 && [ -n "${DISPLAY:-}" ] && [ "${1:-}" != "--noterm" ]; then
+  exec xterm -fa Monospace -fs 10 -T "AiraOS Package Center" -e sh "$0" --noterm
+else
+  menu
+fi

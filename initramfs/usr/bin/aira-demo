@@ -1,0 +1,28 @@
+#!/bin/sh
+# aira demo — guided live tour with REAL system data. Never fakes output.
+set -u
+sec() { echo; echo "===== $1 ====="; }
+sec "AiraOS-Octave live demo"
+[ -f /etc/os-release ] && cat /etc/os-release
+uname -a
+sec "CPU + memory"
+grep -m1 "model name" /proc/cpuinfo 2>/dev/null
+grep -E "MemTotal|MemFree" /proc/meminfo 2>/dev/null
+sec "Storage"
+df -h 2>/dev/null | head -n 8
+if mount 2>/dev/null | grep -q " /persist "; then echo "persistence: AVAILABLE (/persist)"; else echo "persistence: NOT AVAILABLE (no disk)"; fi
+sec "Network"
+ip -o -4 addr show 2>/dev/null | head -n 5 || echo "(no ip)"
+ping -c1 -W2 127.0.0.1 2>&1 | tail -n 2
+sec "Services"
+ /sbin/aira-init status 2>&1
+sec "Packages"
+airapkg list 2>/dev/null
+sec "Users"
+cat /etc/passwd 2>/dev/null
+sec "Desktop"
+if [ -x /persist/usr/bin/aira-session ]; then echo "desktop: AVAILABLE (/persist GUI stack)";
+elif command -v Xvfb >/dev/null 2>&1; then echo "desktop: AVAILABLE (X on PATH)";
+else echo "desktop: NOT AVAILABLE (boot with -drive aira-rootfs.img)"; fi
+echo
+echo "Demo data above is live from this machine. Try: aira system, aira diagnose, mc, vi."

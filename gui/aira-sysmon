@@ -1,0 +1,24 @@
+#!/bin/sh
+# AiraOS system monitor: real CPU/mem/process/uptime, refreshes every 2s.
+# In X: xterm window. Without X: stdout once (for tests: SYS indef).
+export DISPLAY="${DISPLAY:-:99}"
+oneshot() {
+  echo "=== AiraOS System Monitor ($(date '+%H:%M:%S')) ==="
+  echo "--- cpu ---"
+  grep -m1 "model name" /proc/cpuinfo 2>/dev/null
+  awk '/^cpu /{printf "cpu user=%s nice=%s sys=%s idle=%s iowait=%s\n",$2,$3,$4,$5,$6}' /proc/stat 2>/dev/null
+  echo "--- load ---"
+  cat /proc/loadavg 2>/dev/null
+  echo "--- mem ---"
+  grep -E "MemTotal|MemFree|MemAvailable|Buffers|Cached" /proc/meminfo 2>/dev/null
+  echo "--- uptime ---"
+  cat /proc/uptime 2>/dev/null
+  echo "--- top procs ---"
+  ps -o pid,user,comm,args 2>/dev/null | head -n 12 || ps 2>/dev/null | head -n 12
+}
+if [ "${1:-}" = "--once" ]; then oneshot; exit 0; fi
+if command -v xterm >/dev/null 2>&1 && [ -n "${DISPLAY:-}" ]; then
+  exec xterm -fa Monospace -fs 10 -T "AiraOS System Monitor" -e sh -c 'while true; do clear; sh "$0" --once; sleep 2; done' "$0"
+else
+  oneshot
+fi
