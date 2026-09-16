@@ -1,37 +1,98 @@
 #!/bin/sh
-
+# AiraOS-Octave /init — kernel -> userspace handoff + core setup + services + session.
+# Must always end in a recovery shell (never exit). No bashisms (busybox sh).
 echo
 echo "========================================"
 echo "          AIRAOS LINUX"
 echo "========================================"
 echo
 
-mount -t devtmpfs devtmpfs /dev
-mount -t proc proc /proc
-mount -t sysfs sysfs /sys
+# Essential mounts (never fail the boot if one fails)
+mount -t devtmpfs devtmpfs /dev 2>/dev/null || echo "[init] /dev mount failed"
+mount -t proc proc /proc 2>/dev/null || echo "[init] /proc mount failed"
+mount -t sysfs sysfs /sys 2>/dev/null || echo "[init] /sys mount failed"
+mkdir -p /tmp /run /dev/pts /dev/shm /var/log/airaos /persist /home/aira /root
+chown 1000:1000 /home/aira 2>/dev/null || true
+mount -t tmpfs tmpfs /tmp 2>/dev/null
+mount -t tmpfs tmpfs /run 2>/dev/null
+mount -t tmpfs tmpfs /dev/shm 2>/dev/null
+mount -t devpts devpts /dev/pts 2>/dev/null
+
+# Hostname
+if [ -f /etc/hostname ]; then
+  read HN < /etc/hostname 2>/dev/null
+  hostname "$HN" 2>/dev/null
+fi
+
+# Device nodes (mdev if available, else static fallback already in initramfs/dev)
+if [ -x /bin/mdev ]; then
+  echo "[init] populating /dev via mdev"
+  echo /bin/mdev > /proc/sys/kernel/hotplug 2>/dev/null
+  /bin/mdev -s 2>/dev/null
+fi
+
+# Boot log header
+{
+  echo "=== AiraOS boot $(date -u 2>/dev/null || echo unknown) ==="
+  uname -a
+  grep -m1 "model name" /proc/cpuinfo 2>/dev/null
+  grep MemTotal /proc/meminfo 2>/dev/null
+} >> /var/log/airaos/boot.log 2>/dev/null
+dmesg >> /var/log/airaos/dmesg-boot.log 2>/dev/null
 
 echo "AiraOS Linux kernel is alive."
 echo
-
 echo "Kernel:"
 uname -a
 echo
-
 echo "CPU:"
-grep -m1 "model name" /proc/cpuinfo
+grep -m1 "model name" /proc/cpuinfo 2>/dev/null
 echo
-
 echo "Memory:"
-grep MemTotal /proc/meminfo
+grep MemTotal /proc/meminfo 2>/dev/null
 echo
 
+# Persistent disk (best effort; missing disk is NOT fatal)
+if [ -b /dev/vda ]; then
+  echo "[init] found /dev/vda, mounting /persist"
+  mount -t ext4 /dev/vda /persist 2>/dev/null && echo "[init] /persist mounted" || echo "[init] /persist mount failed (unformatted?)"
+else
+  echo "[init] no /dev/vda (run with --drive aira-rootfs.img for persistence)"
+fi
+
+# PATH + motd
+export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+export HOME=/root
+export TERM=linux
+[ -f /etc/motd ] && cat /etc/motd
+
+echo
 echo "========================================"
 echo "        AiraOS userspace ready"
 echo "========================================"
 echo
-
 echo "Available commands:"
-echo "  ls  cat  ps  free  mount  dmesg  uname"
+echo "  aira  airapkg  ls  cat  ps  free  mount  dmesg  uname  ip  ping"
 echo
 
+# Start core services (best effort; failure must not block shell)
+if [ -x /sbin/aira-init ]; then
+  echo "[init] starting AiraOS services..."
+  /sbin/aira-init boot >> /var/log/airaos/services.log 2>&1 || echo "[init] service boot reported errors (see /var/log/airaos/services.log)"
+else
+  echo "[init] /sbin/aira-init not found, skipping services"
+fi
+
+# Automated in-guest test mode (for scripts/test-*.sh): cmdline contains aira_autotest=1
+if grep -q "aira_autotest=1" /proc/cmdline 2>/dev/null; then
+  echo "[init] aira_autotest=1 detected, running guest autotest"
+  if [ -x /sbin/guest-autotest.sh ]; then
+    exec /sbin/guest-autotest.sh
+  else
+    echo "[init] guest-autotest.sh missing"
+  fi
+fi
+
+echo "[init] launching shell (recovery shell always available)"
+echo
 exec /bin/sh

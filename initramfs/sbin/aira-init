@@ -1,0 +1,95 @@
+#!/bin/sh
+# AiraOS service manager (lightweight, real supervision via pidfiles + run-parts style).
+# Usage: aira-init boot|start <svc>|stop <svc>|restart <svc>|status [svc]
+# Service def: /etc/aira/services/<name>.conf  (CMD=..., DEPS=..., RESPAWN=no)
+set -u
+ROOT_FS="/"
+SVC_DIR="/etc/aira/services"
+RUN_DIR="/run/aira-services"
+LOG_DIR="/var/log/airaos"
+mkdir -p "$RUN_DIR" "$LOG_DIR"
+
+svc_file() { echo "$SVC_DIR/$1.conf"; }
+pid_file() { echo "$RUN_DIR/$1.pid"; }
+
+load_svc() {
+  local name="$1" f
+  f="$(svc_file "$name")"
+  [ -f "$f" ] || { echo "unknown service: $name" >&2; return 1; }
+  CMD=""; DEPS=""; DESC=""; RESPAWN="no"
+  # shellcheck disable=SC1090
+  . "$f"
+  [ -n "${CMD:-}" ] || { echo "service $name has no CMD" >&2; return 1; }
+}
+
+is_running() {
+  local name="$1" pid
+  [ -f "$(pid_file "$name")" ] || return 1
+  pid="$(cat "$(pid_file "$name")")"
+  [ -n "$pid" ] && kill -0 "$pid" 2>/dev/null
+}
+
+do_start_one() {
+  local name="$1" dep
+  load_svc "$name" || return 1
+  if is_running "$name"; then echo "$name: already running"; return 0; fi
+  for dep in ${DEPS:-}; do
+    if ! is_running "$dep"; then
+      echo "$name: starting dependency $dep"
+      do_start_one "$dep" || { echo "$name: dependency $dep failed" >&2; return 1; }
+    fi
+  done
+  echo "$name: starting: $CMD"
+  # shellcheck disable=SC2086
+  nohup sh -c "$CMD" >>"$LOG_DIR/$name.log" 2>&1 &
+  echo $! > "$(pid_file "$name")"
+  sleep 0.3
+  if is_running "$name"; then echo "$name: started pid $(cat "$(pid_file "$name")")"; return 0; fi
+  # Short-lived daemons (oneshot) may exit 0 immediately; treat as OK if log exists
+  echo "$name: process exited quickly (oneshot?)"
+  return 0
+}
+
+do_stop_one() {
+  local name="$1" pid
+  if ! is_running "$name"; then echo "$name: not running"; rm -f "$(pid_file "$name")"; return 0; fi
+  pid="$(cat "$(pid_file "$name")")"
+  echo "$name: stopping pid $pid"
+  kill "$pid" 2>/dev/null || true
+  sleep 0.5
+  if kill -0 "$pid" 2>/dev/null; then kill -9 "$pid" 2>/dev/null || true; fi
+  rm -f "$(pid_file "$name")"
+  echo "$name: stopped"
+}
+
+do_status_one() {
+  local name="$1"
+  if is_running "$name"; then echo "$name: running pid $(cat "$(pid_file "$name")")";
+  else echo "$name: stopped"; fi
+}
+
+boot_order() {
+  # Boot order = alphabetical except session/gui last (deps handle the rest)
+  ls "$SVC_DIR" 2>/dev/null | sed 's/\.conf$//' | sort
+}
+
+cmd="${1:-status}"
+case "$cmd" in
+  boot)
+    echo "[aira-init] boot order: $(boot_order | tr '\n' ' ')"
+    rc=0
+    for s in $(boot_order); do do_start_one "$s" || rc=1; done
+    exit $rc
+    ;;
+  start) shift; [ $# -ge 1 ] || { echo "usage: aira-init start <svc>" >&2; exit 2; }; do_start_one "$1" ;;
+  stop) shift; [ $# -ge 1 ] || { echo "usage: aira-init stop <svc>" >&2; exit 2; }; do_stop_one "$1" ;;
+  restart) shift; [ $# -ge 1 ] || { echo "usage: aira-init restart <svc>" >&2; exit 2; }; do_stop_one "$1"; do_start_one "$1" ;;
+  status)
+    shift
+    if [ $# -ge 1 ]; then do_status_one "$1";
+    else
+      for s in $(boot_order); do do_status_one "$s"; done
+    fi
+    ;;
+  *) echo "usage: aira-init boot|start|stop|restart|status [svc]" >&2; exit 2 ;;
+esac

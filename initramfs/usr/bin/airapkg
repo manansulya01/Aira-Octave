@@ -1,0 +1,109 @@
+#!/bin/sh
+# airapkg — lightweight AiraOS package manager (local/offline v1).
+# Format: .apkg = gzipped tar with PKGINFO at root + payload files (absolute or relative).
+# DB: /var/lib/airapkg/{installed/<name>/PKGINFO,files}
+set -u
+DB="/var/lib/airapkg"
+mkdir -p "$DB/installed"
+usage() {
+  cat <<'EOF'
+airapkg — AiraOS package manager
+  airapkg list                        installed packages
+  airapkg query <name>                show metadata + files
+  airapkg install <file.apkg>         install (refuses if already installed unless --force)
+  airapkg install --force <file>      reinstall
+  airapkg remove <name>               remove files recorded at install
+  airapkg verify <name>               check installed files exist
+  airapkg build <dir> <out.apkg>      build package from dir (needs PKGINFO)
+PKGINFO fields: NAME, VERSION, DESC, DEPS (space-separated, optional)
+EOF
+}
+pkgdir() { echo "$DB/installed/$1"; }
+need() { [ -n "${2:-}" ] || { echo "usage error: $1" >&2; usage >&2; exit 2; }; }
+
+cmd="${1:-list}"
+case "$cmd" in
+  help|--help|-h) usage ;;
+  list)
+    ls "$DB/installed" 2>/dev/null || echo "(none)"
+    ;;
+  query)
+    need "airapkg query <name>" "${2:-}"
+    d="$(pkgdir "$2")"
+    [ -f "$d/PKGINFO" ] || { echo "not installed: $2" >&2; exit 1; }
+    cat "$d/PKGINFO"
+    echo "--- files ---"
+    cat "$d/files" 2>/dev/null || echo "(no file list)"
+    ;;
+  verify)
+    need "airapkg verify <name>" "${2:-}"
+    d="$(pkgdir "$2")"
+    [ -f "$d/files" ] || { echo "not installed: $2" >&2; exit 1; }
+    miss=0
+    while IFS= read -r f; do
+      [ -e "$f" ] || { echo "MISSING $f"; miss=1; }
+    done < "$d/files"
+    [ "$miss" = "0" ] && echo "$2: verify OK" || { echo "$2: verify FAIL"; exit 1; }
+    ;;
+  install)
+    force=0
+    if [ "${2:-}" = "--force" ]; then force=1; shift; fi
+    need "airapkg install <file.apkg>" "${2:-}"
+    f="$2"
+    [ -f "$f" ] || { echo "file not found: $f" >&2; exit 1; }
+    tmp="$(mktemp -d)"
+    tar -xzf "$f" -C "$tmp" || { echo "invalid .apkg (tar extract failed)" >&2; rm -rf "$tmp"; exit 1; }
+    [ -f "$tmp/PKGINFO" ] || { echo "invalid .apkg (no PKGINFO)" >&2; rm -rf "$tmp"; exit 1; }
+    # shellcheck disable=SC1091
+    NAME=""; VERSION=""; . "$tmp/PKGINFO"
+    [ -n "${NAME:-}" ] && [ -n "${VERSION:-}" ] || { echo "invalid PKGINFO (need NAME+VERSION)" >&2; rm -rf "$tmp"; exit 1; }
+    if [ -d "$(pkgdir "$NAME")" ] && [ "$force" != "1" ]; then
+      echo "$NAME already installed (use --force)" >&2; rm -rf "$tmp"; exit 1
+    fi
+    # dependency check (warn only in v1, do not auto-resolve)
+    # shellcheck disable=SC1091
+    DEPS=""; . "$tmp/PKGINFO"
+    for dep in ${DEPS:-}; do
+      [ -d "$(pkgdir "$dep")" ] || echo "WARN: dependency $dep not installed"
+    done
+    # install payload (everything except PKGINFO), record absolute paths (POSIX sh)
+    mkdir -p "$(pkgdir "$NAME")"
+    cp -f "$tmp/PKGINFO" "$(pkgdir "$NAME")/PKGINFO"
+    : > "$(pkgdir "$NAME")/files"
+    (cd "$tmp" && find . -mindepth 1 -not -name PKGINFO) > "$tmp/list.txt"
+    while IFS= read -r rel; do
+      rel="${rel#./}"
+      [ -n "$rel" ] || continue
+      src="$tmp/$rel"
+      dest="/$rel"
+      if [ -d "$src" ] && [ ! -L "$src" ]; then
+        mkdir -p "$dest"
+      else
+        mkdir -p "$(dirname "$dest")"
+        cp -f "$src" "$dest"
+        chmod +x "$dest" 2>/dev/null || true
+        echo "$dest" >> "$(pkgdir "$NAME")/files"
+      fi
+    done < "$tmp/list.txt"
+    rm -rf "$tmp"
+    echo "$NAME $VERSION installed"
+    ;;
+  remove)
+    need "airapkg remove <name>" "${2:-}"
+    d="$(pkgdir "$2")"
+    [ -f "$d/PKGINFO" ] || { echo "not installed: $2" >&2; exit 1; }
+    if [ -f "$d/files" ]; then
+      while IFS= read -r f; do rm -f "$f" 2>/dev/null || true; done < "$d/files"
+    fi
+    rm -rf "$d"
+    echo "$2 removed"
+    ;;
+  build)
+    need "airapkg build <dir> <out.apkg>" "${3:-}"
+    src="$2"; out="$3"
+    [ -f "$src/PKGINFO" ] || { echo "need $src/PKGINFO" >&2; exit 1; }
+    tar -czf "$out" -C "$src" . || exit 1
+    echo "built $out"
+    ;;
+  *) echo "unknown: $cmd" >&2; usage >&2; exit 2 ;;
+esac

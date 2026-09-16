@@ -1,0 +1,70 @@
+#!/bin/sh
+# aira — AiraOS-Octave system command (real operations only).
+set -u
+VER="0.1.0"
+usage() {
+  cat <<'EOF'
+aira — AiraOS-Octave system command
+  aira help                  this help
+  aira info                  OS/kernel/arch
+  aira system                kernel+cpu+mem+disk summary
+  aira status                services + key mounts
+  aira service <a> [s]       start|stop|restart|status (via /sbin/aira-init)
+  aira network [status]      show interfaces/routes/dns
+  aira package <a> [...]     query|list (via airapkg)
+  aira diagnose              full diagnostic dump
+  aira update --check        show version (safe, no self-modify)
+EOF
+}
+cmd="${1:-help}"
+case "$cmd" in
+  help|--help|-h) usage ;;
+  info)
+    [ -f /etc/os-release ] && cat /etc/os-release
+    uname -a
+    ;;
+  system)
+    echo "== OS =="; cat /etc/os-release 2>/dev/null || echo "(no os-release)"
+    echo "== kernel =="; uname -a
+    echo "== cpu =="; grep -m1 "model name" /proc/cpuinfo 2>/dev/null || echo "(no cpuinfo)"
+    echo "== mem =="; grep -E "MemTotal|MemFree|MemAvailable" /proc/meminfo 2>/dev/null
+    echo "== disk =="; df -h 2>/dev/null | head -n 10
+    echo "== uptime =="; uptime 2>/dev/null || cat /proc/uptime 2>/dev/null
+    ;;
+  status)
+    echo "== mounts =="; mount 2>/dev/null | head -n 20
+    echo "== services =="; /sbin/aira-init status 2>&1 || echo "(aira-init unavailable)"
+    ;;
+  service)
+    shift || true
+    /sbin/aira-init "$@" ;;
+  network)
+    echo "== hostname =="; hostname; cat /etc/hostname 2>/dev/null
+    echo "== interfaces =="; ip addr 2>/dev/null || ifconfig 2>/dev/null || echo "(no ip/ifconfig)"
+    echo "== routes =="; ip route 2>/dev/null || route -n 2>/dev/null || echo "(no route info)"
+    echo "== dns =="; cat /etc/resolv.conf 2>/dev/null || echo "(no /etc/resolv.conf)"
+    echo "== ping loopback =="; ping -c1 -W2 127.0.0.1 2>&1 | tail -n 5 || echo "(ping failed)"
+    ;;
+  package)
+    shift || true
+    exec airapkg "$@" ;;
+  diagnose)
+    echo "===== AIRA DIAGNOSE $VER $(date -u 2>/dev/null) ====="
+    echo "--- os ---"; cat /etc/os-release 2>/dev/null
+    echo "--- kernel ---"; uname -a; dmesg 2>/dev/null | tail -n 20
+    echo "--- cpu ---"; grep -m2 "model name\|cpu MHz" /proc/cpuinfo 2>/dev/null
+    echo "--- mem ---"; free -h 2>/dev/null || cat /proc/meminfo 2>/dev/null | head
+    echo "--- disks ---"; df -h 2>/dev/null; lsblk 2>/dev/null || ls -l /dev/vd* /dev/sd* 2>/dev/null || echo "(no block devs)"
+    echo "--- mounts ---"; mount 2>/dev/null
+    echo "--- net ---"; ip addr 2>/dev/null | head -n 30
+    echo "--- services ---"; /sbin/aira-init status 2>&1
+    echo "--- graphics ---"; ls -l /dev/dri /dev/fb0 2>&1; dmesg 2>/dev/null | grep -i -E "drm|vga|virtio.*gpu|fb" | head
+    echo "--- boot ---"; tail -n 30 /var/log/airaos/boot.log 2>/dev/null || echo "(no boot.log)"
+    echo "===== END DIAGNOSE ====="
+    ;;
+  update)
+    echo "AiraOS-Octave $VER — update --check only in v1 (no self-modifying updater)."
+    echo "To update: rebuild via scripts/build-*.sh, verify test-all.sh, reinstall image."
+    ;;
+  *) echo "unknown: $cmd (try: aira help)" >&2; exit 2 ;;
+esac

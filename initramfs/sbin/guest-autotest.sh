@@ -1,0 +1,132 @@
+#!/bin/sh
+# In-guest automated verification (runs as init when aira_autotest=1 on cmdline).
+# Prints GUEST-TEST markers to serial, then poweroff. Never hangs.
+export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+export HOME=/root
+export TERM=linux
+PASS=1
+t() {
+  desc="$1"; shift
+  if "$@" >/tmp/t.out 2>&1; then echo "GUEST-TEST OK: $desc";
+  else echo "GUEST-TEST FAIL: $desc"; cat /tmp/t.out; PASS=0; fi
+}
+t_contains() {
+  desc="$1"; file="$2"; pat="$3"
+  if grep -q "$pat" "$file" 2>/dev/null; then echo "GUEST-TEST OK: $desc";
+  else echo "GUEST-TEST FAIL: $desc (missing '$pat')"; PASS=0; fi
+}
+echo "===== GUEST AUTOTEST START ====="
+uname -a
+cat /etc/os-release 2>/dev/null || { echo "GUEST-TEST FAIL: os-release"; PASS=0; }
+# mounts from /init already done when run via /init; if run standalone, ensure basics
+mount -t proc proc /proc 2>/dev/null
+mount -t sysfs sysfs /sys 2>/dev/null
+mount -t devtmpfs devtmpfs /dev 2>/dev/null
+mkdir -p /var/log/airaos /run/aira-services /tmp
+
+echo "--- aira CLI ---"
+t "aira info" /usr/bin/aira info
+/usr/bin/aira info > /tmp/aira-info.out 2>&1
+t_contains "aira info shows Octave" /tmp/aira-info.out "AiraOS-Octave"
+t "aira system" /usr/bin/aira system
+t "aira diagnose" /usr/bin/aira diagnose
+
+echo "--- users ---"
+t_contains "passwd has aira" /etc/passwd "aira:x:1000:1000"
+t "id aira" id aira
+touch /home/aira/autotest-write 2>/dev/null && echo "GUEST-TEST OK: aira home writable" || echo "GUEST-TEST INFO: home write check skipped"
+echo "--- permissions ---"
+if su aira -c 'touch /root/aira-should-fail' 2>/dev/null; then
+  echo "GUEST-TEST FAIL: aira wrote /root (DAC broken)"; rm -f /root/aira-should-fail; PASS=0
+else
+  echo "GUEST-TEST OK: aira cannot write /root"
+fi
+if su aira -c 'touch /home/aira/aira-own-write && rm -f /home/aira/aira-own-write' 2>/dev/null; then
+  echo "GUEST-TEST OK: aira can write own home"
+else
+  echo "GUEST-TEST FAIL: aira cannot write own home"; PASS=0
+fi
+
+echo "--- services ---"
+t "aira-init status" /sbin/aira-init status
+/sbin/aira-init status > /tmp/svc.out 2>&1
+t_contains "syslog service known" /tmp/svc.out "syslog"
+
+echo "--- networking ---"
+ip link set lo up 2>/dev/null
+ip addr add 127.0.0.1/8 dev lo 2>/dev/null
+t "ip link lo" ip link show lo
+t "ping loopback" ping -c1 -W2 127.0.0.1
+ip addr show eth0 2>/dev/null && echo "GUEST-TEST INFO: eth0 present" || echo "GUEST-TEST INFO: no eth0 (ok without --net)"
+
+echo "--- storage ---"
+df > /tmp/df.out 2>&1 && echo "GUEST-TEST OK: df works" || { echo "GUEST-TEST FAIL: df"; PASS=0; }
+if [ -b /dev/vda ]; then
+  mkdir -p /persist
+  if mount 2>/dev/null | grep -q " /persist "; then
+    echo "GUEST-TEST OK: /dev/vda mounted (/persist already mounted by /init)"
+  elif mount -t ext4 /dev/vda /persist 2>/dev/null; then
+    echo "GUEST-TEST OK: /dev/vda mounted"
+  else
+    echo "GUEST-TEST INFO: /dev/vda present but mount failed (may need mkfs)"
+  fi
+  if mount 2>/dev/null | grep -q " /persist "; then
+    if [ -f /persist/autotest-marker ]; then
+      echo "GUEST-TEST OK: persist-exists from previous boot: $(cat /persist/autotest-marker)"
+    else
+      echo "GUEST-TEST INFO: no previous persist marker (first boot with this disk)"
+    fi
+    echo "persist-autotest-$(date +%s 2>/dev/null || echo manual)" > /persist/autotest-marker 2>/dev/null && echo "GUEST-TEST OK: persist write" || { echo "GUEST-TEST FAIL: persist write"; PASS=0; }
+    cat /persist/autotest-marker 2>/dev/null
+    sync
+  fi
+else
+  echo "GUEST-TEST INFO: no /dev/vda (boot with --drive for persistence test)"
+fi
+
+echo "--- packages ---"
+mkdir -p /tmp/pkgtest/usr/share/aira
+cat > /tmp/pkgtest/PKGINFO <<'EOF'
+NAME="hello-aira"
+VERSION="1.0"
+DESC="test package"
+DEPS=""
+EOF
+echo "hello aira" > /tmp/pkgtest/usr/share/aira/hello.txt
+t "airapkg build" airapkg build /tmp/pkgtest /tmp/hello-aira.apkg
+t "airapkg install" airapkg install /tmp/hello-aira.apkg
+t_contains "package file installed" /tmp/t.out "hello-aira"
+[ -f /usr/share/aira/hello.txt ] && echo "GUEST-TEST OK: payload present" || { echo "GUEST-TEST FAIL: payload missing"; PASS=0; }
+t "airapkg verify" airapkg verify hello-aira
+t "airapkg remove" airapkg remove hello-aira
+[ ! -f /usr/share/aira/hello.txt ] && echo "GUEST-TEST OK: payload cleaned" || { echo "GUEST-TEST FAIL: payload not cleaned"; PASS=0; }
+
+echo "--- gui (if requested) ---"
+if grep -q "aira_guitest=1" /proc/cmdline 2>/dev/null; then
+  # GUI lives in /persist (rootfs.img); extend PATH/LD so Xvfb/jwm run
+  if [ -d /persist/usr/bin ]; then
+    export PATH=/persist/usr/bin:/persist/bin:/persist/sbin:$PATH
+    export LD_LIBRARY_PATH=/persist/usr/lib/x86_64-linux-gnu:/persist/lib/x86_64-linux-gnu:/persist/usr/lib:$LD_LIBRARY_PATH
+    echo "GUI-TEST: using /persist GUI stack"
+    if [ -x /persist/usr/bin/aira-gui-test ]; then
+      if /persist/usr/bin/aira-gui-test 2>&1; then echo "GUEST-TEST OK: gui";
+      else echo "GUEST-TEST FAIL: gui"; PASS=0; fi
+    elif [ -x /usr/bin/aira-gui-test ]; then
+      if /usr/bin/aira-gui-test 2>&1; then echo "GUEST-TEST OK: gui";
+      else echo "GUEST-TEST FAIL: gui"; PASS=0; fi
+    else
+      echo "GUEST-TEST FAIL: aira-gui-test not found (build-gui.sh missing?)"; PASS=0
+    fi
+  else
+    echo "GUEST-TEST FAIL: /persist/usr/bin missing (boot with --drive aira-rootfs.img after build-gui)"; PASS=0
+  fi
+else
+  echo "GUI-TEST: skipped (no aira_guitest=1)"
+fi
+
+if [ "$PASS" = "1" ]; then echo "===== GUEST AUTOTEST PASS =====";
+else echo "===== GUEST AUTOTEST FAIL ====="; fi
+echo "powering off"
+sync
+poweroff -f 2>/dev/null || reboot -f 2>/dev/null || echo "halt"
+sleep 5

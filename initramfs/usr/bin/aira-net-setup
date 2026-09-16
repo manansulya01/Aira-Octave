@@ -1,0 +1,14 @@
+#!/bin/sh
+# Bring up loopback + eth0 via DHCP (best effort, never fatal).
+ip link set lo up 2>/dev/null
+ip addr add 127.0.0.1/8 dev lo 2>/dev/null
+echo "[net] lo up"
+if ip link show eth0 2>/dev/null | grep -q eth0; then
+  echo "[net] eth0 found, trying DHCP"
+  ip link set eth0 up 2>/dev/null
+  udhcpc -i eth0 -n -q -t 3 2>&1 | head -n 20 || echo "[net] DHCP failed or not available (static/user-net may be needed)"
+  ip addr show eth0 2>/dev/null
+else
+  echo "[net] no eth0 (QEMU default e1000 should appear; try --net user for virtio-net)"
+fi
+echo "[net] done"

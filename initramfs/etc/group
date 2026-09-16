@@ -1,0 +1,11 @@
+root:x:0:
+aira:x:1000:
+tty:x:5:
+kmem:x:9:
+dialout:x:20:
+cdrom:x:24:
+floppy:x:25:
+video:x:44:
+audio:x:29:
+netdev:x:108:
+nogroup:x:65534:
