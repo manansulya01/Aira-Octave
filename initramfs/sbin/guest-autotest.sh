@@ -97,6 +97,15 @@ else
 fi
 rm -f /etc/aira/services/autotest-user.conf /home/aira/svc-user-marker
 
+echo "--- platform ---"
+t "aira platform" /usr/bin/aira platform
+/usr/bin/aira platform > /tmp/aira-platform.out 2>&1
+t_contains "platform cpu" /tmp/aira-platform.out "model name"
+t_contains "platform pci" /tmp/aira-platform.out "vendor="
+t_contains "platform interrupts" /tmp/aira-platform.out "CPU0"
+echo "--- platform listing (evidence) ---"
+head -n 30 /tmp/aira-platform.out
+
 echo "--- networking ---"
 ip link set lo up 2>/dev/null
 ip addr add 127.0.0.1/8 dev lo 2>/dev/null

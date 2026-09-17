@@ -1,7 +1,7 @@
 #!/bin/sh
 # aira — AiraOS-Octave system command (real operations only).
 set -u
-VER="0.2.0"
+VER="0.3.0"
 usage() {
   cat <<'EOF'
 aira — AiraOS-Octave system command
@@ -13,6 +13,7 @@ aira — AiraOS-Octave system command
   aira services [args]       service start|stop|restart|status|enable|disable
   aira service <args>        alias for services
   aira network [dhcp IF]     interfaces/routes/dns (+ renew DHCP)
+  aira platform              cpu/smp/pci/virtio/input/graphics
   aira storage               disks/mounts/usage/persist status
   aira users                 users/groups/ownership
   aira packages [args]       package list|search|info|install|remove
@@ -96,6 +97,24 @@ case "$cmd" in
     echo "===== END DIAGNOSE ====="
     ;;
   demo) exec /usr/bin/aira-demo ;;
+  platform)
+    echo "== cpu =="; grep -E "model name|cpu MHz" /proc/cpuinfo 2>/dev/null | head -n 4
+    echo "CPUs: $(grep -c '^processor' /proc/cpuinfo 2>/dev/null)"
+    echo "== interrupts =="; head -n 12 /proc/interrupts 2>/dev/null || echo "(no /proc/interrupts)"
+    echo "== pci =="
+    if [ -d /sys/bus/pci/devices ]; then
+      for d in /sys/bus/pci/devices/*; do
+        [ -e "$d/vendor" ] || continue
+        printf "%s vendor=%s device=%s class=%s\n" "$(basename "$d")" "$(cat "$d/vendor" 2>/dev/null)" "$(cat "$d/device" 2>/dev/null)" "$(cat "$d/class" 2>/dev/null)"
+      done 2>/dev/null | head -n 20
+    else
+      dmesg 2>/dev/null | grep -i pci | head -n 10
+    fi
+    echo "== virtio =="; dmesg 2>/dev/null | grep -i virtio | head -n 10
+    echo "== input =="; dmesg 2>/dev/null | grep -iE "i8042|input:" | head -n 8
+    echo "== drm/fb =="; ls -l /dev/dri /dev/fb0 2>&1 || echo "(no DRM/fbdev on this boot path; use --gpu virtio)"
+    exit 0
+    ;;
   shutdown)
     if [ "${2:-}" = "--force" ]; then echo "shutting down..."; sync; poweroff -f
     else echo "usage: aira shutdown --force" >&2; exit 2; fi ;;
