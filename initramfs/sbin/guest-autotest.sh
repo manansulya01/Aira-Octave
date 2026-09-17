@@ -33,6 +33,12 @@ t "aira diagnose" /usr/bin/aira diagnose
 t "aira version" /usr/bin/aira version
 t "aira storage" /usr/bin/aira storage
 t "aira users" /usr/bin/aira users
+t "aira help" /usr/bin/aira help
+t "aira status" /usr/bin/aira status
+t "aira network show" /usr/bin/aira network
+t "aira package list" /usr/bin/aira package list
+t "aira update check" /usr/bin/aira update --check
+/usr/bin/aira demo > /tmp/aira-demo.out 2>&1 && grep -qi "live demo" /tmp/aira-demo.out && echo "GUEST-TEST OK: aira demo" || { echo "GUEST-TEST FAIL: aira demo"; PASS=0; }
 if /usr/bin/aira shutdown 2>/dev/null; then echo "GUEST-TEST FAIL: shutdown guard"; PASS=0;
 else echo "GUEST-TEST OK: shutdown guard (needs --force)"; fi
 if /usr/bin/aira reboot 2>/dev/null; then echo "GUEST-TEST FAIL: reboot guard"; PASS=0;
@@ -77,8 +83,18 @@ if [ -f /home/aira/svc-user-marker ] && ls -ln /home/aira/svc-user-marker 2>/dev
 else
   echo "GUEST-TEST FAIL: service user ownership"; ls -l /home/aira/svc-user-marker 2>/dev/null; PASS=0
 fi
-/sbin/aira-init stop autotest-user >/dev/null 2>&1
-/sbin/aira-init disable autotest-user >/dev/null 2>&1
+t "stop test service" /sbin/aira-init stop autotest-user
+if /sbin/aira-init status autotest-user 2>/dev/null | grep -q "stopped"; then
+  echo "GUEST-TEST OK: stopped state reported"
+else
+  echo "GUEST-TEST FAIL: stopped state"; PASS=0
+fi
+t "disable test service" /sbin/aira-init disable autotest-user
+if [ ! -e /etc/aira/enabled/autotest-user ]; then
+  echo "GUEST-TEST OK: disable removed link"
+else
+  echo "GUEST-TEST FAIL: disable link remains"; PASS=0
+fi
 rm -f /etc/aira/services/autotest-user.conf /home/aira/svc-user-marker
 
 echo "--- networking ---"

@@ -33,7 +33,7 @@
     <TaskList maxwidth="400"/>
     <Dock/>
     <Spacer width="8"/>
-    <Swallow name="xload" width="60">xload -bg #16205c -fg #7fd4ff -hl #ffffff -update 2</Swallow>
+    <Swallow name="xload" width="60">xload -bg navy -fg steelblue -hl white -update 2</Swallow>
     <Spacer width="4"/>
     <Swallow name="clock" width="90">aira-clock</Swallow>
   </Tray>

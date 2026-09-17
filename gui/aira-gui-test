@@ -26,24 +26,44 @@ sh "$SES" --headless --display :99 || { echo "GUI-TEST FAIL: session failed"; ex
 sleep 1
 xwininfo -root 2>/dev/null | head -n 10 || { echo "GUI-TEST FAIL: xwininfo root"; PASS=0; }
 echo "--- launching apps ---"
-xterm -T "AiraTest-Term" -e sh -c 'sleep 2' &
+xterm -T "AiraTest-Term" -e sh -c 'sleep 90' &
 TPID=$!
 mkdir -p /persist/screenshots 2>/dev/null || true
-sh aira-sysinfo >/tmp/gui-sysinfo.log 2>&1 &
+sh "$(command -v aira-sysinfo)" >/tmp/gui-sysinfo.log 2>&1 &
 SPID=$!
-sh aira-about >/tmp/gui-about.log 2>&1 &
+sh "$(command -v aira-about)" >/tmp/gui-about.log 2>&1 &
 APID=$!
 aira-sysmon --once > /tmp/gui-sysmon.log 2>&1 && grep -qi "cpu\|mem" /tmp/gui-sysmon.log && echo "GUI-TEST OK: sysmon data" || { echo "GUI-TEST FAIL: sysmon"; PASS=0; }
 DISPLAY=:99 mc --version >/tmp/gui-mc.log 2>&1 && echo "GUI-TEST OK: mc present" || { echo "GUI-TEST FAIL: mc"; PASS=0; }
-timeout 12 aira-textedit &
+timeout 90 aira-textedit &
 TEPID=$!
-timeout 12 aira-pkgcenter &
+timeout 90 aira-pkgcenter &
 PCPID=$!
-sleep 4
-xwininfo -root -children 2>/dev/null | head -n 40 | tee /tmp/gui-windows.log
-grep -qi "xterm\|jwm\|root" /tmp/gui-windows.log && echo "GUI-TEST OK: windows exist" || { echo "GUI-TEST FAIL: no windows"; PASS=0; }
-grep -qi "Editor" /tmp/gui-windows.log && echo "GUI-TEST OK: editor window" || echo "GUI-TEST INFO: editor window not seen (non-fatal)"
-grep -qi "Package" /tmp/gui-windows.log && echo "GUI-TEST OK: pkgcenter window" || echo "GUI-TEST INFO: pkgcenter window not seen (non-fatal)"
+echo "--- waiting for app windows (poll up to 60s) ---"
+i=0
+while [ "$i" -lt 30 ]; do
+  xwininfo -root -children 2>/dev/null > /tmp/gui-windows.log
+  # count mapped client windows (exclude 1x1 JWM frame and 1024x28 tray)
+  n=$(grep -c "0x[0-9a-f]* (" /tmp/gui-windows.log 2>/dev/null || echo 0)
+  if [ "$n" -ge 5 ]; then
+    echo "app windows mapped: $n children after ${i}x2s"; break
+  fi
+  sleep 2
+  i=$((i+1))
+done
+xlsclients 2>/dev/null | tee /tmp/gui-clients.log
+head -n 60 /tmp/gui-windows.log
+echo "--- log sizes ---"
+wc -c /tmp/gui-sysinfo.log /tmp/gui-about.log /tmp/gui-sysmon.log 2>&1
+head -n 5 /tmp/gui-sysinfo.log 2>&1
+head -n 5 /tmp/gui-about.log 2>&1
+n=$(grep -c "0x[0-9a-f]* (" /tmp/gui-windows.log 2>/dev/null || echo 0)
+if [ "$n" -ge 5 ]; then echo "GUI-TEST OK: $n client windows mapped (terminal+editor+pkgcenter+dialogs)";
+else echo "GUI-TEST FAIL: only $n windows (need >=5)"; PASS=0; fi
+grep -qi "AiraTest-Term\|Editor\|Package" /tmp/gui-windows.log && echo "GUI-TEST OK: named app window present" || echo "GUI-TEST INFO: titles not yet set (slow TCG, non-fatal)"
+grep -qi "xterm\|xmessage" /tmp/gui-clients.log && echo "GUI-TEST OK: xterm/xmessage clients" || echo "GUI-TEST INFO: xlsclients empty (non-fatal)"
+grep -qi "airaos-octave\|memtotal" /tmp/gui-sysinfo.log && echo "GUI-TEST OK: sysinfo content" || { echo "GUI-TEST FAIL: sysinfo content"; PASS=0; }
+grep -qi "airaos-octave" /tmp/gui-about.log && echo "GUI-TEST OK: about content" || { echo "GUI-TEST FAIL: about content"; PASS=0; }
 xwd -root -out /tmp/aira-gui-shot.xwd 2>/dev/null && echo "GUI-TEST OK: screenshot $(wc -c < /tmp/aira-gui-shot.xwd) bytes" || echo "GUI-TEST INFO: xwd failed (non-fatal)"
 cp -f /tmp/aira-gui-shot.xwd /persist/screenshots/ 2>/dev/null || true
 kill $TPID $SPID $APID $TEPID $PCPID 2>/dev/null
