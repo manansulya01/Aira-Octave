@@ -212,6 +212,32 @@ t "airapkg remove" airapkg remove hello-aira
 rm -f /var/lib/airapkg/repo/hello-aira.apkg
 if airapkg install /tmp/does-not-exist.apkg 2>/dev/null; then echo "GUEST-TEST FAIL: invalid package accepted"; PASS=0;
 else echo "GUEST-TEST OK: invalid package rejected"; fi
+echo "corrupt-data" > /tmp/corrupt.apkg
+if airapkg install /tmp/corrupt.apkg 2>/dev/null; then echo "GUEST-TEST FAIL: corrupt package accepted"; PASS=0;
+else echo "GUEST-TEST OK: corrupt package rejected"; fi
+rm -f /tmp/corrupt.apkg
+echo "--- rollback ---"
+mkdir -p /tmp/rbtest/usr/share/aira
+printf 'NAME="rbtest"\nVERSION="2.0"\nDESC="rollback test"\nDEPS=""\n' > /tmp/rbtest/PKGINFO
+echo "v1-content" > /usr/share/aira/rb.txt
+echo "v2-content" > /tmp/rbtest/usr/share/aira/rb.txt
+t "rollback pkg build" airapkg build /tmp/rbtest /tmp/rbtest.apkg
+t "rollback pkg install" airapkg install /tmp/rbtest.apkg
+[ "$(cat /usr/share/aira/rb.txt 2>/dev/null)" = "v2-content" ] && echo "GUEST-TEST OK: v2 installed" || { echo "GUEST-TEST FAIL: v2 content"; PASS=0; }
+t "rollback restore" airapkg rollback rbtest
+[ "$(cat /usr/share/aira/rb.txt 2>/dev/null)" = "v1-content" ] && echo "GUEST-TEST OK: rollback restored v1" || { echo "GUEST-TEST FAIL: rollback content"; PASS=0; }
+t "rollback pkg remove" airapkg remove rbtest
+rm -rf /tmp/rbtest /tmp/rbtest.apkg /usr/share/aira/rb.txt
+mkdir -p /tmp/deptest
+printf 'NAME="deptest"\nVERSION="1.0"\nDESC="dep test"\nDEPS="missing-dep-xyz"\n' > /tmp/deptest/PKGINFO
+airapkg build /tmp/deptest /tmp/deptest.apkg >/dev/null 2>&1
+if airapkg install /tmp/deptest.apkg 2>&1 | grep -q "WARN: dependency"; then
+  echo "GUEST-TEST OK: missing dep warns"
+else
+  echo "GUEST-TEST FAIL: missing dep warning"; PASS=0
+fi
+airapkg remove deptest >/dev/null 2>&1
+rm -rf /tmp/deptest /tmp/deptest.apkg
 
 echo "--- gui (if requested) ---"
 if grep -q "aira_guitest=1" /proc/cmdline 2>/dev/null; then

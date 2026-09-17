@@ -17,6 +17,7 @@ airapkg — AiraOS package manager (local repository)
   airapkg install --force <file>      reinstall
   airapkg remove <name>               remove files recorded at install
   airapkg verify <name>               check installed files exist
+  airapkg rollback <name>             restore files overwritten at install
   airapkg update-check                compare installed vs repo versions
   airapkg build <dir> <out.apkg>      build package from dir (needs PKGINFO)
 PKGINFO fields: NAME, VERSION, DESC, DEPS (space-separated, optional)
@@ -119,7 +120,11 @@ case "$cmd" in
     # install payload (everything except PKGINFO), record absolute paths (POSIX sh)
     mkdir -p "$(pkgdir "$NAME")"
     cp -f "$tmp/PKGINFO" "$(pkgdir "$NAME")/PKGINFO"
+    # back up files we are about to overwrite (for rollback)
+    rm -rf "$(pkgdir "$NAME")/backup"
+    mkdir -p "$(pkgdir "$NAME")/backup"
     : > "$(pkgdir "$NAME")/files"
+    : > "$(pkgdir "$NAME")/backup-files"
     (cd "$tmp" && find . -mindepth 1 -not -name PKGINFO) > "$tmp/list.txt"
     while IFS= read -r rel; do
       rel="${rel#./}"
@@ -130,6 +135,11 @@ case "$cmd" in
         mkdir -p "$dest"
       else
         mkdir -p "$(dirname "$dest")"
+        if [ -e "$dest" ]; then
+          mkdir -p "$(pkgdir "$NAME")/backup/$(dirname "$rel")"
+          cp -f "$dest" "$(pkgdir "$NAME")/backup/$rel"
+          echo "$dest" >> "$(pkgdir "$NAME")/backup-files"
+        fi
         cp -f "$src" "$dest"
         chmod +x "$dest" 2>/dev/null || true
         echo "$dest" >> "$(pkgdir "$NAME")/files"
@@ -137,6 +147,23 @@ case "$cmd" in
     done < "$tmp/list.txt"
     rm -rf "$tmp"
     echo "$NAME $VERSION installed"
+    ;;
+  rollback)
+    need "airapkg rollback <name>" "${2:-}"
+    d="$(pkgdir "$2")"
+    [ -f "$d/PKGINFO" ] || { echo "not installed: $2" >&2; exit 1; }
+    [ -f "$d/backup-files" ] || { echo "$2: nothing to roll back" >&2; exit 1; }
+    restored=0; dropped=0
+    while IFS= read -r f; do
+      [ -n "$f" ] || continue
+      rel="${f#/}"
+      if [ -f "$d/backup/$rel" ]; then
+        cp -f "$d/backup/$rel" "$f" && restored=$((restored+1))
+      else
+        rm -f "$f" 2>/dev/null && dropped=$((dropped+1))
+      fi
+    done < "$d/files"
+    echo "$2: rollback done (restored $restored, removed $dropped new)"
     ;;
   remove)
     need "airapkg remove <name>" "${2:-}"
