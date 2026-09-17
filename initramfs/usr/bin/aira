@@ -1,7 +1,7 @@
 #!/bin/sh
 # aira — AiraOS-Octave system command (real operations only).
 set -u
-VER="0.4.0"
+VER="0.5.0"
 usage() {
   cat <<'EOF'
 aira — AiraOS-Octave system command
@@ -116,10 +116,10 @@ case "$cmd" in
     exit 0
     ;;
   shutdown)
-    if [ "${2:-}" = "--force" ]; then echo "shutting down..."; sync; poweroff -f
+    if [ "${2:-}" = "--force" ]; then echo "stopping services..."; /sbin/aira-init shutdown 2>&1; sync; echo "shutting down..."; poweroff -f
     else echo "usage: aira shutdown --force" >&2; exit 2; fi ;;
   reboot)
-    if [ "${2:-}" = "--force" ]; then echo "rebooting..."; sync; reboot -f
+    if [ "${2:-}" = "--force" ]; then echo "stopping services..."; /sbin/aira-init shutdown 2>&1; sync; echo "rebooting..."; reboot -f
     else echo "usage: aira reboot --force" >&2; exit 2; fi ;;
   update)
     echo "AiraOS-Octave $VER — update --check only in v1 (no self-modifying updater)."

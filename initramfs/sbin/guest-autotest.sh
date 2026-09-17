@@ -106,6 +106,19 @@ if [ -f /home/aira/svc-user-marker ] && ls -ln /home/aira/svc-user-marker 2>/dev
 else
   echo "GUEST-TEST FAIL: service user ownership"; ls -l /home/aira/svc-user-marker 2>/dev/null; PASS=0
 fi
+SVCPID="$(cat /run/aira-services/autotest-user.pid 2>/dev/null)"
+if [ -n "$SVCPID" ]; then
+  kill -9 "$SVCPID" 2>/dev/null
+  sleep 0.5
+  if /sbin/aira-init status autotest-user 2>/dev/null | grep -q "failed"; then
+    echo "GUEST-TEST OK: crash detected as failed"
+  else
+    echo "GUEST-TEST FAIL: crash not detected"; PASS=0
+  fi
+  t "recover crashed service" /sbin/aira-init restart autotest-user
+else
+  echo "GUEST-TEST FAIL: no pidfile for crash test"; PASS=0
+fi
 t "stop test service" /sbin/aira-init stop autotest-user
 if /sbin/aira-init status autotest-user 2>/dev/null | grep -q "stopped"; then
   echo "GUEST-TEST OK: stopped state reported"
@@ -119,6 +132,21 @@ else
   echo "GUEST-TEST FAIL: disable link remains"; PASS=0
 fi
 rm -f /etc/aira/services/autotest-user.conf /home/aira/svc-user-marker
+echo "--- shutdown ordering ---"
+printf 'DESC="shutdown probe"\nCMD="sleep 60"\nDEPS=""\n' > /etc/aira/services/autotest-sd.conf
+/sbin/aira-init enable autotest-sd >/dev/null 2>&1
+/sbin/aira-init start autotest-sd >/dev/null 2>&1
+t "ordered shutdown" /sbin/aira-init shutdown
+if /sbin/aira-init status autotest-sd 2>/dev/null | grep -q "stopped"; then
+  echo "GUEST-TEST OK: shutdown stopped services"
+else
+  echo "GUEST-TEST FAIL: shutdown left services running"; PASS=0
+fi
+t "recover syslog after shutdown" /sbin/aira-init start syslog
+t "recover klog after shutdown" /sbin/aira-init start klog
+/sbin/aira-init disable autotest-sd >/dev/null 2>&1
+/sbin/aira-init disable autotest-user >/dev/null 2>&1
+rm -f /etc/aira/services/autotest-sd.conf /run/aira-services/autotest-sd.pid
 
 echo "--- platform ---"
 t "aira platform" /usr/bin/aira platform
