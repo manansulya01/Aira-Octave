@@ -13,6 +13,8 @@ mount -t proc proc /proc 2>/dev/null || echo "[init] /proc mount failed"
 mount -t sysfs sysfs /sys 2>/dev/null || echo "[init] /sys mount failed"
 mkdir -p /tmp /run /dev/pts /dev/shm /var/log/airaos /persist /home/aira /root
 chown 1000:1000 /home/aira 2>/dev/null || true
+chmod 700 /root 2>/dev/null || true
+chmod 755 /home/aira 2>/dev/null || true
 mount -t tmpfs tmpfs /tmp 2>/dev/null
 mount -t tmpfs tmpfs /run 2>/dev/null
 mount -t tmpfs tmpfs /dev/shm 2>/dev/null

@@ -59,6 +59,29 @@ if su aira -c 'touch /home/aira/aira-own-write && rm -f /home/aira/aira-own-writ
 else
   echo "GUEST-TEST FAIL: aira cannot write own home"; PASS=0
 fi
+echo "--- security ---"
+if ls -ld /root 2>/dev/null | grep -q "^drwx------"; then
+  echo "GUEST-TEST OK: /root is 700"
+else
+  echo "GUEST-TEST FAIL: /root perms"; ls -ld /root 2>/dev/null; PASS=0
+fi
+SUID_OUT="$(ls -l /bin /sbin /usr/bin 2>/dev/null | grep -E "^-...s" || true)"
+if [ -n "$SUID_OUT" ]; then
+  echo "GUEST-TEST FAIL: setuid/setgid files present"; echo "$SUID_OUT"; PASS=0
+else
+  echo "GUEST-TEST OK: no setuid/setgid files in system paths"
+fi
+if netstat -ltn >/tmp/ns.out 2>/tmp/ns.err; then
+  if grep -qE ":[0-9]+ " /tmp/ns.out; then
+    echo "GUEST-TEST INFO: listeners present:"; cat /tmp/ns.out
+  else
+    echo "GUEST-TEST OK: no TCP listeners by default"
+  fi
+else
+  echo "GUEST-TEST INFO: netstat unavailable ($(cat /tmp/ns.err 2>/dev/null))"
+fi
+echo "--- privileged processes (evidence) ---"
+ps -o pid,user,comm 2>/dev/null | head -n 20 || ps 2>/dev/null | head -n 20
 
 echo "--- services ---"
 t "aira-init status" /sbin/aira-init status
