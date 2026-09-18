@@ -1,4 +1,4 @@
-# AiraOS-Octave Showcase (0.2.0)
+# AiraOS-Octave Showcase (1.0.0)
 
 ## What is it?
 A bootable x86_64 OS: Linux 7.2.2 foundation + AiraOS userspace, services,
@@ -23,5 +23,5 @@ stable Linux foundation instead of reimplementing kernels.
 - **Evidence**: `docs/research/0.2/screenshots/aira-gui-shot.xwd` (real 1024x768x24 XWD dump) + serial logs.
 
 ## Build/test/release
-`scripts/build-*.sh` → `scripts/test-all.sh` (7 suites incl. ISO) → `scripts/build-release.sh 0.2.0`.
+`scripts/build-*.sh` → `scripts/test-all.sh` (8 suites incl. demo+ISO) → `scripts/test-release.sh 1.0.0`.
 See `docs/research/0.2/DEMO_SCRIPT.md` for the 5–10 minute live demo.
