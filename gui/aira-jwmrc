@@ -42,7 +42,8 @@
       <Program label="Terminal" icon="">xterm -fa Monospace -fs 10 -bg #0b1026 -fg #e8ecff</Program>
       <Program label="System Monitor" icon="">aira-sysmon</Program>
       <Program label="System Information" icon="">aira-sysinfo</Program>
-      <Program label="Run aira diagnose" icon="">xterm -e sh -c '/usr/bin/aira diagnose; echo; echo press-enter; read x'</Program>
+      <Program label="Network Manager" icon="">aira-netman</Program>
+      <Program label="Run aira diagnose" icon="">xterm -e sh -c 'aira diagnose; echo; echo press-enter; read x'</Program>
       <Program label="About AiraOS" icon="">aira-about</Program>
     </Menu>
     <Menu label="Utilities">

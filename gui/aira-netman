@@ -1,0 +1,35 @@
+#!/bin/sh
+# AiraOS Network Manager: real interface/IP state + DHCP renew (xterm UI or --once dump).
+export DISPLAY="${DISPLAY:-:99}"
+once() {
+  echo "=== AiraOS Network Manager ==="
+  echo "hostname: $(hostname 2>/dev/null)"
+  echo "--- interfaces ---"
+  ip -o link show 2>/dev/null || ifconfig -a 2>/dev/null || echo "(no interface tool)"
+  echo "--- addresses ---"
+  ip -o -4 addr show 2>/dev/null || echo "(no addresses)"
+  echo "--- routes ---"
+  ip route 2>/dev/null || echo "(no routes)"
+  echo "--- dns ---"
+  cat /etc/resolv.conf 2>/dev/null || echo "(no /etc/resolv.conf)"
+}
+menu() {
+  while true; do
+    clear 2>/dev/null
+    once
+    echo; echo "1) renew DHCP eth0  2) show again  3) quit"
+    printf "choice: "; read c
+    case "$c" in
+      1) udhcpc -i eth0 -n -q -t 3 2>&1 | head -n 10; printf "enter..."; read x ;;
+      2) continue ;;
+      3|q) break ;;
+    esac
+  done
+}
+if [ "${1:-}" = "--once" ]; then once; exit 0; fi
+if [ "${1:-}" = "--menu" ]; then menu; exit 0; fi
+if command -v xterm >/dev/null 2>&1 && [ -n "${DISPLAY:-}" ]; then
+  exec xterm -fa Monospace -fs 10 -T "AiraOS Network Manager" -e sh "$0" --menu
+else
+  once
+fi

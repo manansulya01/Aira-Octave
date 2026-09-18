@@ -34,11 +34,14 @@ SPID=$!
 sh "$(command -v aira-about)" >/tmp/gui-about.log 2>&1 &
 APID=$!
 aira-sysmon --once > /tmp/gui-sysmon.log 2>&1 && grep -qi "cpu\|mem" /tmp/gui-sysmon.log && echo "GUI-TEST OK: sysmon data" || { echo "GUI-TEST FAIL: sysmon"; PASS=0; }
+aira-netman --once > /tmp/gui-netman.log 2>&1 && grep -qi "interface\|address" /tmp/gui-netman.log && echo "GUI-TEST OK: netman data" || { echo "GUI-TEST FAIL: netman"; PASS=0; }
 DISPLAY=:99 mc --version >/tmp/gui-mc.log 2>&1 && echo "GUI-TEST OK: mc present" || { echo "GUI-TEST FAIL: mc"; PASS=0; }
 timeout 90 aira-textedit &
 TEPID=$!
 timeout 90 aira-pkgcenter &
 PCPID=$!
+timeout 90 aira-netman &
+NMPID=$!
 echo "--- waiting for app windows (poll up to 60s) ---"
 i=0
 while [ "$i" -lt 30 ]; do
@@ -66,7 +69,7 @@ grep -qi "airaos-octave\|memtotal" /tmp/gui-sysinfo.log && echo "GUI-TEST OK: sy
 grep -qi "airaos-octave" /tmp/gui-about.log && echo "GUI-TEST OK: about content" || { echo "GUI-TEST FAIL: about content"; PASS=0; }
 xwd -root -out /tmp/aira-gui-shot.xwd 2>/dev/null && echo "GUI-TEST OK: screenshot $(wc -c < /tmp/aira-gui-shot.xwd) bytes" || echo "GUI-TEST INFO: xwd failed (non-fatal)"
 cp -f /tmp/aira-gui-shot.xwd /persist/screenshots/ 2>/dev/null || true
-kill $TPID $SPID $APID $TEPID $PCPID 2>/dev/null
+kill $TPID $SPID $APID $TEPID $PCPID $NMPID 2>/dev/null
 # desktop must survive app exit
 sleep 1
 ps 2>/dev/null | grep -i jwm 2>/dev/null | head -n 5
