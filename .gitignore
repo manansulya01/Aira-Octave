@@ -39,3 +39,7 @@ rootfs/
 logs/final-completion/build/debs-*/
 initramfs.cpio.bak-*
 *.img
+# Sample build products (rebuild via scripts/build-samples.sh)
+samples/hello-aira/hello-aira
+samples/hello-aira/pkg/usr/share/aira-samples/hello-aira
+samples/*.apkg
