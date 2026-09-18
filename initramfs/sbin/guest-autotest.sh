@@ -162,6 +162,19 @@ ip link set lo up 2>/dev/null
 ip addr add 127.0.0.1/8 dev lo 2>/dev/null
 t "ip link lo" ip link show lo
 t "ping loopback" ping -c1 -W2 127.0.0.1
+echo "--- loopback TCP (IPC) ---"
+rm -f /tmp/nc.out
+nc -l -p 19999 > /tmp/nc.out 2>&1 &
+NCPID=$!
+sleep 1
+echo "hello-ipc" | nc -w 2 127.0.0.1 19999 2>/dev/null || true
+sleep 1
+kill $NCPID 2>/dev/null
+if grep -q "hello-ipc" /tmp/nc.out 2>/dev/null; then
+  echo "GUEST-TEST OK: loopback TCP works"
+else
+  echo "GUEST-TEST FAIL: loopback TCP"; cat /tmp/nc.out 2>/dev/null; PASS=0
+fi
 ip addr show eth0 2>/dev/null && echo "GUEST-TEST INFO: eth0 present" || echo "GUEST-TEST INFO: no eth0 (ok without --net)"
 
 echo "--- storage ---"
@@ -238,6 +251,23 @@ else
 fi
 airapkg remove deptest >/dev/null 2>&1
 rm -rf /tmp/deptest /tmp/deptest.apkg
+echo "--- sample app (dev workflow) ---"
+SAMPLE_APKG=""
+for cand in /var/lib/airapkg/repo/hello-aira-1.0.apkg /persist/var/lib/airapkg/repo/hello-aira-1.0.apkg; do
+  if [ -f "$cand" ]; then SAMPLE_APKG="$cand"; break; fi
+done
+if [ -n "$SAMPLE_APKG" ]; then
+  echo "sample apkg: $SAMPLE_APKG"
+  t "sample install" airapkg install "$SAMPLE_APKG"
+  if [ "$(/usr/share/aira-samples/hello-aira 2>/dev/null)" = "hello from AiraOS-Octave sample v1.0" ]; then
+    echo "GUEST-TEST OK: sample executes with exact output"
+  else
+    echo "GUEST-TEST FAIL: sample output"; /usr/share/aira-samples/hello-aira 2>&1; PASS=0
+  fi
+  t "sample remove" airapkg remove hello-aira
+else
+  echo "GUEST-TEST INFO: sample .apkg not in repo image (dev image only)"
+fi
 
 echo "--- gui (if requested) ---"
 if grep -q "aira_guitest=1" /proc/cmdline 2>/dev/null; then

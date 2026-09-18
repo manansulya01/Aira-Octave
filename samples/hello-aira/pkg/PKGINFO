@@ -1,0 +1,4 @@
+NAME="hello-aira"
+VERSION="1.0"
+DESC="AiraOS-Octave sample application"
+DEPS=""

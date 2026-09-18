@@ -13,3 +13,13 @@
 
 ## Cross-dev
 Guest arch = host arch (x86_64); Ubuntu-deb binaries run unmodified. No toolchain in guest v1 (use host gcc + copy). GUI needs no compilation (shell + deb packaging).
+
+## Sample application (proven workflow)
+- Source: `samples/hello-aira/` (libc-only C + Makefile + PKGINFO dir + README).
+- Build + package + stage: `scripts/build-samples.sh` (host gcc → .apkg → rootfs local repo).
+- Guest proof: autotest installs from repo, executes (exact-output assert), removes.
+- Guest runtime works because the image ships glibc + /lib64 loader symlink.
+
+## IPC
+Use Linux facilities: pipes (`|`), Unix/TCP sockets. Loopback TCP proven in-guest
+(`nc -l` + client, see autotest networking section). No custom IPC daemon in 0.8.
