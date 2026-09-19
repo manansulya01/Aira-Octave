@@ -103,8 +103,41 @@ case "$cmd" in
     f="$2"
     [ -f "$f" ] || { echo "file not found: $f" >&2; exit 1; }
     tmp="$(mktemp -d)"
+    # Pre-validate raw tar members for absolute/traversal before extraction
+    if tar -tzf "$f" 2>/dev/null > "$tmp/members.txt"; then
+      while IFS= read -r m; do
+        # strip leading ./ if present
+        case "$m" in
+          ./*) m="${m#./}" ;;
+          . ) continue ;;
+        esac
+        [ -n "$m" ] || continue
+        case "$m" in
+          /*) echo "airapkg: reject absolute path '$m'" >&2; rm -rf "$tmp"; exit 1 ;;
+          ../*|*/../*|*"/.."|..) echo "airapkg: reject traversal '$m'" >&2; rm -rf "$tmp"; exit 1 ;;
+        esac
+        # reject any component exactly ".."
+        _old_ifs="$IFS"; IFS="/"
+        # shellcheck disable=SC2086
+        set -- $m
+        for _c in "$@"; do
+          if [ "$_c" = ".." ]; then echo "airapkg: reject traversal component '$m'" >&2; rm -rf "$tmp"; exit 1; fi
+        done
+        IFS="$_old_ifs"
+      done < "$tmp/members.txt"
+      # reject symlink/hardlink members via verbose listing (first char l or h)
+      if tar -tvzf "$f" 2>/dev/null | grep -Eq "^[lh]"; then
+        echo "airapkg: reject symlink/hardlink member" >&2; rm -rf "$tmp"; exit 1
+      fi
+    else
+      echo "invalid .apkg (tar list failed)" >&2; rm -rf "$tmp"; exit 1
+    fi
     tar -xzf "$f" -C "$tmp" || { echo "invalid .apkg (tar extract failed)" >&2; rm -rf "$tmp"; exit 1; }
     [ -f "$tmp/PKGINFO" ] || { echo "invalid .apkg (no PKGINFO)" >&2; rm -rf "$tmp"; exit 1; }
+    # reject any symlink that survived extraction (paranoid)
+    if find "$tmp" -type l 2>/dev/null | grep -q .; then
+      echo "airapkg: reject symlink in payload" >&2; rm -rf "$tmp"; exit 1
+    fi
     # shellcheck disable=SC1091
     NAME=""; VERSION=""; . "$tmp/PKGINFO"
     [ -n "${NAME:-}" ] && [ -n "${VERSION:-}" ] || { echo "invalid PKGINFO (need NAME+VERSION)" >&2; rm -rf "$tmp"; exit 1; }
@@ -117,34 +150,59 @@ case "$cmd" in
     for dep in ${DEPS:-}; do
       [ -d "$(pkgdir "$dep")" ] || echo "WARN: dependency $dep not installed"
     done
-    # install payload (everything except PKGINFO), record absolute paths (POSIX sh)
-    mkdir -p "$(pkgdir "$NAME")"
-    cp -f "$tmp/PKGINFO" "$(pkgdir "$NAME")/PKGINFO"
-    # back up files we are about to overwrite (for rollback)
-    rm -rf "$(pkgdir "$NAME")/backup"
-    mkdir -p "$(pkgdir "$NAME")/backup"
-    : > "$(pkgdir "$NAME")/files"
-    : > "$(pkgdir "$NAME")/backup-files"
-    (cd "$tmp" && find . -mindepth 1 -not -name PKGINFO) > "$tmp/list.txt"
+    # --- atomic transaction: stage DB then commit only on success ---
+    staged="$(mktemp -d)"
+    mkdir -p "$staged"
+    cp -f "$tmp/PKGINFO" "$staged/PKGINFO"
+    mkdir -p "$staged/backup"
+    : > "$staged/files"
+    : > "$staged/backup-files"
+    # If reinstalling, preserve previous backup if forced? start fresh.
+    (cd "$tmp" && find . -mindepth 1 -not -name PKGINFO -not -name members.txt) > "$tmp/list.txt"
+    _install_failed=0
     while IFS= read -r rel; do
       rel="${rel#./}"
       [ -n "$rel" ] || continue
+      # skip our own validation artifact if present
+      case "$rel" in
+        members.txt) continue ;;
+      esac
       src="$tmp/$rel"
       dest="/$rel"
       if [ -d "$src" ] && [ ! -L "$src" ]; then
-        mkdir -p "$dest"
+        mkdir -p "$dest" || { _install_failed=1; break; }
       else
-        mkdir -p "$(dirname "$dest")"
+        mkdir -p "$(dirname "$dest")" || { _install_failed=1; break; }
         if [ -e "$dest" ]; then
-          mkdir -p "$(pkgdir "$NAME")/backup/$(dirname "$rel")"
-          cp -f "$dest" "$(pkgdir "$NAME")/backup/$rel"
-          echo "$dest" >> "$(pkgdir "$NAME")/backup-files"
+          mkdir -p "$staged/backup/$(dirname "$rel")" 2>/dev/null
+          cp -f "$dest" "$staged/backup/$rel" 2>/dev/null
+          echo "$dest" >> "$staged/backup-files"
         fi
-        cp -f "$src" "$dest"
+        cp -f "$src" "$dest" || { _install_failed=1; break; }
         chmod +x "$dest" 2>/dev/null || true
-        echo "$dest" >> "$(pkgdir "$NAME")/files"
+        echo "$dest" >> "$staged/files"
       fi
     done < "$tmp/list.txt"
+    if [ "$_install_failed" = "1" ]; then
+      echo "airapkg: install failed, rolling back partial" >&2
+      # rollback partial copies using staged/files
+      if [ -f "$staged/files" ]; then
+        while IFS= read -r pf; do rm -f "$pf" 2>/dev/null || true; done < "$staged/files"
+      fi
+      # restore overwritten files from staged/backup
+      if [ -f "$staged/backup-files" ]; then
+        while IFS= read -r pf; do
+          rel="${pf#/}"
+          if [ -f "$staged/backup/$rel" ]; then cp -f "$staged/backup/$rel" "$pf" 2>/dev/null || true; fi
+        done < "$staged/backup-files"
+      fi
+      rm -rf "$staged" "$tmp"
+      exit 1
+    fi
+    # commit staged DB atomically
+    mkdir -p "$(dirname "$(pkgdir "$NAME")")"
+    rm -rf "$(pkgdir "$NAME")"
+    mv "$staged" "$(pkgdir "$NAME")"
     rm -rf "$tmp"
     echo "$NAME $VERSION installed"
     ;;

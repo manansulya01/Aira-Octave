@@ -87,7 +87,26 @@ echo "--- services ---"
 t "aira-init status" /sbin/aira-init status
 /sbin/aira-init status syslog > /tmp/svc.out 2>&1
 t_contains "syslog running" /tmp/svc.out "running"
+/sbin/aira-init status klog > /tmp/svc-klog.out 2>&1
+t_contains "klog running" /tmp/svc-klog.out "running"
+t "klog single instance" sh -c 'test "$(pidof klogd 2>/dev/null | wc -w)" -eq 1'
 t "service restart net" /sbin/aira-init restart net
+/sbin/aira-init status net > /tmp/svc-net.out 2>&1
+t_contains "net oneshot done" /tmp/svc-net.out "done"
+echo "--- starter trace ---"
+cat /var/log/airaos/trace.log 2>/dev/null
+echo "--- boot services.log ---"
+cat /var/log/airaos/services.log 2>/dev/null
+echo "--- syslogd instances ---"
+pidof syslogd 2>&1
+ps -o pid,ppid,args 2>/dev/null | grep -F syslogd | grep -v grep || ps 2>/dev/null | grep -F syslogd | grep -v grep
+echo "--- klogd instances (control) ---"
+pidof klogd 2>&1
+echo "--- starttime ticks (equal=same fork event) ---"
+for p in $(pidof syslogd 2>/dev/null); do
+  awk '{print $22}' /proc/$p/stat 2>/dev/null | xargs echo "pid $p starttick:"
+done
+t "no duplicate syslogd" sh -c 'test "$(pidof syslogd 2>/dev/null | wc -w)" -le 1'
 if /sbin/aira-init start no-such-service 2>/dev/null; then echo "GUEST-TEST FAIL: unknown service accepted"; PASS=0;
 else echo "GUEST-TEST OK: unknown service rejected"; fi
 printf 'DESC="autotest user service"\nCMD="touch /home/aira/svc-user-marker && sleep 30"\nDEPS=""\nUSER="aira"\n' > /etc/aira/services/autotest-user.conf
@@ -229,6 +248,31 @@ echo "corrupt-data" > /tmp/corrupt.apkg
 if airapkg install /tmp/corrupt.apkg 2>/dev/null; then echo "GUEST-TEST FAIL: corrupt package accepted"; PASS=0;
 else echo "GUEST-TEST OK: corrupt package rejected"; fi
 rm -f /tmp/corrupt.apkg
+# malicious archives (must be sandboxed)
+mkdir -p /tmp/mal-abs/usr/share
+printf 'NAME="mal-abs"\nVERSION="1.0"\nDESC="x"\nDEPS=""\n' > /tmp/mal-abs/PKGINFO
+echo "evil" > /tmp/mal-abs/usr/share/evil.txt
+# craft absolute-path archive (bypass airapkg build)
+tar -czf /tmp/mal-abs.apkg -C / -tmp/mal-abs/usr/share/evil.txt 2>/dev/null || true
+# Instead craft via explicit absolute member using python if available, else simulate via tar transform
+# Simpler: test the validation directly by crafting a tar with ../
+mkdir -p /tmp/mal-trav
+printf 'NAME="mal-trav"\nVERSION="1.0"\nDESC="x"\nDEPS=""\n' > /tmp/mal-trav/PKGINFO
+mkdir -p /tmp/mal-trav/payload
+echo "evil" > /tmp/mal-trav/payload/evil.txt
+# Create tar with traversal member
+tar -czf /tmp/mal-trav.apkg -C /tmp/mal-trav payload/evil.txt --transform 's,payload/,../,' 2>/dev/null || tar -czf /tmp/mal-trav.apkg -C /tmp payload 2>/dev/null || true
+if airapkg install /tmp/mal-trav.apkg 2>/dev/null; then echo "GUEST-TEST FAIL: traversal accepted"; PASS=0;
+else echo "GUEST-TEST OK: traversal rejected"; fi
+rm -rf /tmp/mal-abs /tmp/mal-abs.apkg /tmp/mal-trav /tmp/mal-trav.apkg
+# symlink escape: create pkg with symlink
+mkdir -p /tmp/mal-link
+printf 'NAME="mal-link"\nVERSION="1.0"\nDESC="x"\nDEPS=""\n' > /tmp/mal-link/PKGINFO
+ln -sf /etc/passwd /tmp/mal-link/evil-link 2>/dev/null || true
+tar -czf /tmp/mal-link.apkg -C /tmp/mal-link . 2>/dev/null || true
+if airapkg install /tmp/mal-link.apkg 2>/dev/null; then echo "GUEST-TEST FAIL: symlink accepted"; PASS=0;
+else echo "GUEST-TEST OK: symlink rejected"; fi
+rm -rf /tmp/mal-link /tmp/mal-link.apkg
 echo "--- rollback ---"
 mkdir -p /tmp/rbtest/usr/share/aira
 printf 'NAME="rbtest"\nVERSION="2.0"\nDESC="rollback test"\nDEPS=""\n' > /tmp/rbtest/PKGINFO

@@ -1,7 +1,15 @@
 #!/bin/sh
 # AiraOS service manager (lightweight, real supervision via pidfiles + run-parts style).
 # Usage: aira-init boot|shutdown|start|stop|restart|status|enable|disable [svc]
-# Service def: /etc/aira/services/<name>.conf  (CMD=..., DEPS=..., USER=root, DESC=...)
+# Service def: /etc/aira/services/<name>.conf
+#   CMD=...            command line to run
+#   TYPE=daemon|oneshot (default daemon)
+#   DEPS=...           space-separated service dependencies
+#   USER=root|...      unprivileged execution via su (oneshot or daemon)
+#   DESC=...           human description
+# Daemon CMD must be a plain command (no shell operators): it is exec'd so the
+# pidfile PID is the daemon itself (no wrapper orphans, no duplicate starts).
+# Oneshot CMD may use full shell syntax; it runs synchronously at start.
 # Boot starts only services linked in /etc/aira/enabled/<name> -> ../services/<name>.conf
 set -u
 ROOT_FS="/"
@@ -13,15 +21,21 @@ mkdir -p "$RUN_DIR" "$LOG_DIR" "$EN_DIR"
 
 svc_file() { echo "$SVC_DIR/$1.conf"; }
 pid_file() { echo "$RUN_DIR/$1.pid"; }
+done_file() { echo "$RUN_DIR/$1.done"; }
+failed_file() { echo "$RUN_DIR/$1.failed"; }
 
 load_svc() {
   local name="$1" f
   f="$(svc_file "$name")"
   [ -f "$f" ] || { echo "unknown service: $name" >&2; return 1; }
-  CMD=""; DEPS=""; DESC=""; RESPAWN="no"; USER="root"
+  CMD=""; DEPS=""; DESC=""; RESPAWN="no"; USER="root"; TYPE="daemon"
   # shellcheck disable=SC1090
   . "$f"
   [ -n "${CMD:-}" ] || { echo "service $name has no CMD" >&2; return 1; }
+  case "${TYPE:-daemon}" in
+    daemon|oneshot) ;;
+    *) echo "service $name has bad TYPE (want daemon|oneshot)" >&2; return 1 ;;
+  esac
 }
 
 is_running() {
@@ -38,34 +52,77 @@ is_failed() {
   ! is_running "$name"
 }
 
+run_cmd_as() {
+  # run_cmd_as <user> <logname> <cmd> — synchronous, returns CMD exit status.
+  # Args (not globals): load_svc/pid state must survive recursive dep calls.
+  local user="$1" logname="$2" runcmd="$3"
+  if [ "$user" = "root" ]; then
+    sh -c "$runcmd" >>"$LOG_DIR/$logname.log" 2>&1
+  else
+    su -s /bin/sh "$user" -c "$runcmd" >>"$LOG_DIR/$logname.log" 2>&1
+  fi
+}
+
 do_start_one() {
-  local name="$1" dep
+  # NOTE: load_svc sets GLOBALS; copy to locals FIRST because dependency
+  # recursion re-enters load_svc and would otherwise clobber our own CMD
+  # (historical bug: klog's dep call overwrote $CMD, launching syslogd twice
+  # and never starting klogd).
+  local name="$1" dep rc _cmd _deps _user _type
   load_svc "$name" || return 1
+  _cmd="$CMD"; _deps="$DEPS"; _user="${USER:-root}"; _type="${TYPE:-daemon}"
+  if [ "$_type" = "oneshot" ]; then
+    for dep in ${_deps:-}; do
+      if ! is_running "$dep"; then
+        echo "$name: starting dependency $dep"
+        do_start_one "$dep" || { echo "$name: dependency $dep failed" >&2; return 1; }
+      fi
+    done
+    rm -f "$(done_file "$name")" "$(failed_file "$name")"
+    echo "$name: running oneshot (as $_user)"
+    run_cmd_as "$_user" "$name" "$_cmd"
+    rc=$?
+    if [ "$rc" -eq 0 ]; then
+      touch "$(done_file "$name")"
+      echo "$name: done"
+      return 0
+    fi
+    echo "$rc" > "$(failed_file "$name")"
+    echo "$name: failed (rc $rc)" >&2
+    return 1
+  fi
   if is_running "$name"; then echo "$name: already running"; return 0; fi
   if is_failed "$name"; then echo "$name: clearing stale pid (previous failure)"; rm -f "$(pid_file "$name")"; fi
-  for dep in ${DEPS:-}; do
+  for dep in ${_deps:-}; do
     if ! is_running "$dep"; then
       echo "$name: starting dependency $dep"
       do_start_one "$dep" || { echo "$name: dependency $dep failed" >&2; return 1; }
     fi
   done
-  if [ "${USER:-root}" = "root" ]; then
-    echo "$name: starting (as root): $CMD"
-    setsid sh -c "$CMD" >>"$LOG_DIR/$name.log" 2>&1 &
+  # exec: pidfile PID IS the daemon (no wrapper left to orphan on stop).
+  if [ "$_user" = "root" ]; then
+    echo "$name: starting (as root): $_cmd"
+    # shellcheck disable=SC2086
+    setsid sh -c "exec $_cmd" >>"$LOG_DIR/$name.log" 2>&1 &
   else
-    echo "$name: starting (as $USER): $CMD"
-    setsid su -s /bin/sh "$USER" -c "$CMD" >>"$LOG_DIR/$name.log" 2>&1 &
+    echo "$name: starting (as $_user): $_cmd"
+    setsid su -s /bin/sh "$_user" -c "$_cmd" >>"$LOG_DIR/$name.log" 2>&1 &
   fi
   echo $! > "$(pid_file "$name")"
   sleep 0.3
   if is_running "$name"; then echo "$name: started pid $(cat "$(pid_file "$name")")"; return 0; fi
-  # Short-lived daemons (oneshot) may exit 0 immediately; treat as OK if log exists
-  echo "$name: process exited quickly (oneshot?)"
-  return 0
+  echo "$name: failed to stay up (see $LOG_DIR/$name.log)" >&2
+  return 1
 }
 
 do_stop_one() {
   local name="$1" pid
+  load_svc "$name" >/dev/null 2>&1 || { echo "unknown service: $name" >&2; return 1; }
+  if [ "$TYPE" = "oneshot" ]; then
+    if [ -f "$(done_file "$name")" ]; then echo "$name: nothing to stop (oneshot done)"; return 0; fi
+    if [ -f "$(failed_file "$name")" ]; then echo "$name: nothing to stop (oneshot failed)"; return 0; fi
+    echo "$name: not running"; return 0
+  fi
   if ! is_running "$name"; then echo "$name: not running"; rm -f "$(pid_file "$name")"; return 0; fi
   pid="$(cat "$(pid_file "$name")")"
   echo "$name: stopping pid $pid"
@@ -78,6 +135,13 @@ do_stop_one() {
 
 do_status_one() {
   local name="$1"
+  load_svc "$name" >/dev/null 2>&1 || { echo "$name: unknown"; return 1; }
+  if [ "$TYPE" = "oneshot" ]; then
+    if [ -f "$(done_file "$name")" ]; then echo "$name: done (oneshot)";
+    elif [ -f "$(failed_file "$name")" ]; then echo "$name: failed (oneshot rc $(cat "$(failed_file "$name")"))";
+    else echo "$name: stopped"; fi
+    return 0
+  fi
   if is_running "$name"; then echo "$name: running pid $(cat "$(pid_file "$name")")";
   elif is_failed "$name"; then echo "$name: failed (stale pid $(cat "$(pid_file "$name")"))";
   else echo "$name: stopped"; fi

@@ -25,6 +25,12 @@ run userspace-static bash scripts/test-userspace.sh
 [ -x scripts/test-network.sh ] && run network bash scripts/test-network.sh || echo "SKIP network (no script yet)" | tee -a "$LOG"
 [ -x scripts/test-gui.sh ] && run gui bash scripts/test-gui.sh || echo "SKIP gui (no script yet)" | tee -a "$LOG"
 [ -x scripts/test-demo.sh ] && run demo bash scripts/test-demo.sh || echo "SKIP demo (no script yet)" | tee -a "$LOG"
-[ -x scripts/test-iso.sh ] && run iso bash scripts/test-iso.sh 0.2.0 || echo "SKIP iso (no script yet)" | tee -a "$LOG"
+  if [ -x scripts/test-iso.sh ]; then
+    _iso="$(ls -t release/*.iso 2>/dev/null | head -n 1 | sed 's/.*aira-octave-//' | sed 's/\.iso//')"
+    [ -n "$_iso" ] || _iso="1.0.0"
+    run iso bash scripts/test-iso.sh "$_iso"
+  else
+    echo "SKIP iso (no script yet)" | tee -a "$LOG"
+  fi
 if [ "$OVERALL" = "0" ]; then echo "TEST-ALL PASS" | tee -a "$LOG"; else echo "TEST-ALL FAIL (see $LOG)" | tee -a "$LOG"; fi
 exit $OVERALL

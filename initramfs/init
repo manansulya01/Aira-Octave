@@ -27,9 +27,11 @@ if [ -f /etc/hostname ]; then
 fi
 
 # Device nodes (mdev if available, else static fallback already in initramfs/dev)
+# Note: the /proc/sys/kernel/hotplug helper was removed from modern kernels;
+# uevents arrive via netlink and devtmpfs already populates /dev, so a static
+# `mdev -s` scan is the correct call here (no hotplug-helper write).
 if [ -x /bin/mdev ]; then
   echo "[init] populating /dev via mdev"
-  echo /bin/mdev > /proc/sys/kernel/hotplug 2>/dev/null
   /bin/mdev -s 2>/dev/null
 fi
 
