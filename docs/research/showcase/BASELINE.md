@@ -1,28 +1,27 @@
-# Showcase Baseline (1.0.0 @ d3854000a, verified 2026-09-18)
+# Showcase Baseline — AiraOS-Octave 1.1.0 (2026-09-19)
 
-## WHAT WAS TESTED
-Full existing suite on the frozen tree (no source changes):
-test-all.sh → kernel, userspace-static, services, storage, network, gui,
-demo, iso.
+## Checkpoint
+- Safety branch: `checkpoint/showcase-start-20260919` (HEAD at start of work).
+- Working-tree patch preserved: `/tmp/opencode/checkpoint-showcase-start/working.diff`.
+- Classification of pre-existing working-tree changes:
+  - A) intended dev (PRESERVED): `gui/aira-jwmrc` (tray indicators, menu categories),
+    `gui/aira-session` (helper symlinks), `initramfs/init` (aira_gui auto-desktop),
+    `scripts/build-gui.sh` (indicator staging), new `gui/aira-net-indicator`,
+    `gui/aira-storage-indicator`.
+  - B) generated artifact (rebuilt, not hand-edited): `initramfs.cpio`.
+  - C/D/E) NOT committed: `logs/`, `release/`, `docs/research/2026-09-1*/`,
+    `.config`, `config_diff_*.txt` (logs/evidence/temp/release artifacts).
 
-## RESULT
-TEST-ALL PASS (8/8). Each suite PASS with serial-log evidence under
-logs/final-completion/ (2026-09-18 12:08–12:10 runs).
+## Baseline run (before source changes)
+- `bash scripts/test-all.sh` → TEST-ALL PASS (8/8: kernel, userspace-static,
+  services, storage, network, gui, demo, iso) on the frozen tree.
+- `initramfs.cpio` was IN-SYNC with `initramfs/init` (verified via cpio extract + diff).
+- Kernel: Linux 7.2.2 x86_64, bzImage `e198875c` (15M). QEMU 10.2.1, gcc 15.2.0.
+- Known 1.0.0 limitations carried in: airapkg unsandboxed paths / non-atomic /
+  blind +x (all FIXED in 1.1.0, see SECURITY_REPORT).
 
-## KNOWN FAILURES
-None reproducible at baseline: all suites pass. Two observations carried
-forward for investigation (mission §2 K/L): the `/proc/sys/kernel/hotplug`
-message and a prior inconsistent-service-state boot. Neither reproduced yet.
-
-## KNOWN LIMITATIONS (from 1.0.0 audit, still standing)
-- airapkg: no tar path sandboxing; non-atomic install; RAM-only DB.
-- test-all.sh pins stale 0.2.0 ISO.
-- Desktop/services run as root; file-mgr/settings click-through manual;
-  virtio-GPU/DRI path untested; physical HW untested; user-net only;
-  local package repo only.
-
-## CURRENT VERSION / COMMIT / ARTIFACTS
-- Version: 1.0.0 (os-release + aira VER). HEAD: d3854000a (docs only over ddce83dfd).
-- bzImage e198875c (15M), initramfs c7f1fd49 (2.2M), config 80a13a5f.
-- Release 1.0.0 tarball+ISO+sha256 present (boot-tested at release time).
-- Toolchain: gcc 15.2.0, ld 2.46, QEMU 10.2.1, x86_64.
+## Baseline version / artifacts (1.1.0 after bump)
+- Version 1.1.0 (`initramfs/etc/os-release`, `motd`, `aira VER`).
+- bzImage `e198875c`, initramfs `82a9588b`, rootfs `5569686e`, ISO `7e9c0821`,
+  tar `e7f195e1` (see `release/aira-octave-1.1.0.sha256`; working files match
+  release files byte-for-byte).

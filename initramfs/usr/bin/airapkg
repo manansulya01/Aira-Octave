@@ -73,8 +73,9 @@ case "$cmd" in
     any=0
     for d in "$DB"/installed/*/; do
       [ -f "$d/PKGINFO" ] || continue
-      n=""; v=""
-      . "$d/PKGINFO"
+      # parse-only (never source PKGINFO: untrusted content must not execute)
+      n="$(sed -n 's/^NAME="\(.*\)"/\1/p' "$d/PKGINFO" 2>/dev/null | head -n 1)"
+      v="$(sed -n 's/^VERSION="\(.*\)"/\1/p' "$d/PKGINFO" 2>/dev/null | head -n 1)"
       for p in "$REPO"/*.apkg; do
         [ -f "$p" ] || continue
         rv="$(tar -xzOf "$p" ./PKGINFO 2>/dev/null | sed -n 's/^VERSION="\(.*\)"/\1/p' | head -n 1)"
@@ -138,15 +139,19 @@ case "$cmd" in
     if find "$tmp" -type l 2>/dev/null | grep -q .; then
       echo "airapkg: reject symlink in payload" >&2; rm -rf "$tmp"; exit 1
     fi
-    # shellcheck disable=SC1091
-    NAME=""; VERSION=""; . "$tmp/PKGINFO"
+    # parse-only PKGINFO (never source: package content is untrusted and
+    # sourcing would execute embedded shell code)
+    NAME="$(sed -n 's/^NAME="\(.*\)"/\1/p' "$tmp/PKGINFO" 2>/dev/null | head -n 1)"
+    VERSION="$(sed -n 's/^VERSION="\(.*\)"/\1/p' "$tmp/PKGINFO" 2>/dev/null | head -n 1)"
+    # NAME/VERSION must be safe tokens (no paths, no shell metachars)
+    case "$NAME" in ""|*/*|*" "*|*'`'*|*'$'*|*';'*|*'"'*|*"$(printf '\n') "*) echo "invalid PKGINFO (bad NAME)" >&2; rm -rf "$tmp"; exit 1 ;; esac
+    case "$VERSION" in ""|*/*|*" "*) echo "invalid PKGINFO (bad VERSION)" >&2; rm -rf "$tmp"; exit 1 ;; esac
     [ -n "${NAME:-}" ] && [ -n "${VERSION:-}" ] || { echo "invalid PKGINFO (need NAME+VERSION)" >&2; rm -rf "$tmp"; exit 1; }
     if [ -d "$(pkgdir "$NAME")" ] && [ "$force" != "1" ]; then
       echo "$NAME already installed (use --force)" >&2; rm -rf "$tmp"; exit 1
     fi
     # dependency check (warn only in v1, do not auto-resolve)
-    # shellcheck disable=SC1091
-    DEPS=""; . "$tmp/PKGINFO"
+    DEPS="$(sed -n 's/^DEPS="\(.*\)"/\1/p' "$tmp/PKGINFO" 2>/dev/null | head -n 1)"
     for dep in ${DEPS:-}; do
       [ -d "$(pkgdir "$dep")" ] || echo "WARN: dependency $dep not installed"
     done
@@ -158,19 +163,22 @@ case "$cmd" in
     : > "$staged/files"
     : > "$staged/backup-files"
     # If reinstalling, preserve previous backup if forced? start fresh.
-    (cd "$tmp" && find . -mindepth 1 -not -name PKGINFO -not -name members.txt) > "$tmp/list.txt"
+    (cd "$tmp" && find . -mindepth 1 -not -name PKGINFO -not -name members.txt -not -name list.txt) > "$tmp/list.txt"
     _install_failed=0
     while IFS= read -r rel; do
       rel="${rel#./}"
       [ -n "$rel" ] || continue
-      # skip our own validation artifact if present
+      # skip our own validation artifacts if present
       case "$rel" in
-        members.txt) continue ;;
+        members.txt|list.txt) continue ;;
       esac
       src="$tmp/$rel"
       dest="/$rel"
       if [ -d "$src" ] && [ ! -L "$src" ]; then
         mkdir -p "$dest" || { _install_failed=1; break; }
+        # preserve directory mode when possible (busybox: no chmod --reference)
+        _sm="$(stat -c %a "$src" 2>/dev/null || true)"
+        [ -n "$_sm" ] && chmod "$_sm" "$dest" 2>/dev/null || true
       else
         mkdir -p "$(dirname "$dest")" || { _install_failed=1; break; }
         if [ -e "$dest" ]; then
@@ -178,8 +186,14 @@ case "$cmd" in
           cp -f "$dest" "$staged/backup/$rel" 2>/dev/null
           echo "$dest" >> "$staged/backup-files"
         fi
-        cp -f "$src" "$dest" || { _install_failed=1; break; }
-        chmod +x "$dest" 2>/dev/null || true
+        cp -p "$src" "$dest" 2>/dev/null || cp -f "$src" "$dest" || { _install_failed=1; break; }
+        # busybox chmod has no --reference: cp -p already preserved the mode;
+        # only repair the old blind-+x bug if mode looks wrong.
+        if [ -x "$src" ]; then
+          [ -x "$dest" ] || chmod 755 "$dest" 2>/dev/null || true
+        else
+          if [ -x "$dest" ]; then chmod 644 "$dest" 2>/dev/null || true; fi
+        fi
         echo "$dest" >> "$staged/files"
       fi
     done < "$tmp/list.txt"
@@ -201,8 +215,24 @@ case "$cmd" in
     fi
     # commit staged DB atomically
     mkdir -p "$(dirname "$(pkgdir "$NAME")")"
+    # remember previous file list so upgrade can drop stale files
+    _oldfiles=""
+    if [ -f "$(pkgdir "$NAME")/files" ]; then
+      _oldfiles="$(mktemp)"
+      cp -f "$(pkgdir "$NAME")/files" "$_oldfiles"
+    fi
     rm -rf "$(pkgdir "$NAME")"
     mv "$staged" "$(pkgdir "$NAME")"
+    # remove stale files present in old version but absent from new version
+    if [ -n "$_oldfiles" ] && [ -f "$_oldfiles" ]; then
+      while IFS= read -r _of; do
+        [ -n "$_of" ] || continue
+        if ! grep -Fxq "$_of" "$(pkgdir "$NAME")/files" 2>/dev/null; then
+          rm -f "$_of" 2>/dev/null && echo "removed stale $_of"
+        fi
+      done < "$_oldfiles"
+      rm -f "$_oldfiles"
+    fi
     rm -rf "$tmp"
     echo "$NAME $VERSION installed"
     ;;

@@ -35,7 +35,7 @@ chmod 1777 /tmp/.X11-unix 2>/dev/null || true
 rm -f "/tmp/.X${DISP#:}-lock" 2>/dev/null
 # X helpers expected at fixed /usr/bin paths (rootfs at /persist)
 mkdir -p /usr/bin 2>/dev/null
-for t in xkbcomp Xvfb Xorg jwm xterm xmessage xsetroot xwininfo xwd mc setxkbmap xauth; do
+for t in xkbcomp Xvfb Xorg jwm xterm xmessage xsetroot xwininfo xwd xload mc setxkbmap xauth aira-net-indicator aira-storage-indicator aira-clock; do
   if [ ! -x "/usr/bin/$t" ] && [ -x "/persist/usr/bin/$t" ]; then
     ln -sf "/persist/usr/bin/$t" "/usr/bin/$t" 2>/dev/null || true
   fi

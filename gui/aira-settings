@@ -13,8 +13,13 @@ menu() {
     echo "1) set hostname  2) renew DHCP eth0  3) system info  4) quit"
     printf "choice: "; read c
     case "$c" in
-      1) printf "new hostname: "; read h; [ -n "$h" ] && { echo "$h" > /etc/hostname; hostname "$h" 2>/dev/null; echo saved; }; read -p "enter..." x ;;
-      2) udhcpc -i eth0 -n -q -t 3 2>&1 | head; read -p "enter..." x ;;
+      1) printf "new hostname: "; read h; [ -n "$h" ] && { echo "$h" > /etc/hostname; hostname "$h" 2>/dev/null; echo saved; }; printf "enter..."; read x ;;
+      2) for _s in /usr/share/udhcpc/default.script /etc/udhcpc/default.script; do
+           if [ -x "$_s" ]; then _SCRIPT="$_s"; break; fi
+         done
+         if [ -n "${_SCRIPT:-}" ]; then udhcpc -i eth0 -n -q -t 3 -s "$_SCRIPT" 2>&1 | head;
+         else udhcpc -i eth0 -n -q -t 3 2>&1 | head; fi
+         printf "enter..."; read x ;;
       3) aira-sysinfo ;;
       4|q) break ;;
     esac

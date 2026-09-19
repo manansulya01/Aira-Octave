@@ -20,7 +20,12 @@ menu() {
     echo; echo "1) renew DHCP eth0  2) show again  3) quit"
     printf "choice: "; read c
     case "$c" in
-      1) udhcpc -i eth0 -n -q -t 3 2>&1 | head -n 10; printf "enter..."; read x ;;
+      1) for _s in /usr/share/udhcpc/default.script /etc/udhcpc/default.script; do
+           if [ -x "$_s" ]; then _SCRIPT="$_s"; break; fi
+         done
+         if [ -n "${_SCRIPT:-}" ]; then udhcpc -i eth0 -n -q -t 3 -s "$_SCRIPT" 2>&1 | head -n 10;
+         else udhcpc -i eth0 -n -q -t 3 2>&1 | head -n 10; fi
+         printf "enter..."; read x ;;
       2) continue ;;
       3|q) break ;;
     esac

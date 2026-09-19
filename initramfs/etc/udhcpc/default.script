@@ -1,0 +1,79 @@
+#!/bin/sh
+# udhcpc default.script — apply DHCP lease (bound/renew), remove on deconfig.
+# Called by busybox udhcpc as: default.script [bound|renew|deconfig|...]
+# Env from udhcpc: interface, ip, subnet, broadcast, router, dns, domain, mask.
+# Must be quiet, never fatal. Uses ip(8), falls back to ifconfig/route.
+IFACE="${interface:-eth0}"
+RESOLV="/etc/resolv.conf"
+
+mask_to_prefix() {
+  # $1 dotted mask -> prefix len; $1 numeric -> itself
+  case "$1" in
+    "") echo 24 ;;
+    *.*)
+      _p=0
+      _old="$IFS"; IFS="."
+      set -- $1
+      IFS="$_old"
+      for _o in "$1" "$2" "$3" "$4"; do
+        case "$_o" in
+          255) _p=$((_p+8)) ;;
+          254) _p=$((_p+7)) ;;
+          252) _p=$((_p+6)) ;;
+          248) _p=$((_p+5)) ;;
+          240) _p=$((_p+4)) ;;
+          224) _p=$((_p+3)) ;;
+          192) _p=$((_p+2)) ;;
+          128) _p=$((_p+1)) ;;
+          0) ;;
+          *) ;;
+        esac
+      done
+      echo "$_p"
+      ;;
+    *) echo "$1" ;;
+  esac
+}
+
+case "$1" in
+  bound|renew)
+    [ -n "${ip:-}" ] || exit 0
+    PREFIX="$(mask_to_prefix "${mask:-${subnet:-24}}")"
+    if command -v ip >/dev/null 2>&1; then
+      ip addr flush dev "$IFACE" 2>/dev/null
+      ip addr add "$ip/$PREFIX" dev "$IFACE" broadcast "${broadcast:-+}" 2>/dev/null
+      ip link set "$IFACE" up 2>/dev/null
+      if [ -n "${router:-}" ]; then
+        for _gw in $router; do
+          ip route del default 2>/dev/null
+          ip route add default via "$_gw" dev "$IFACE" 2>/dev/null
+          break
+        done
+      fi
+    elif command -v ifconfig >/dev/null 2>&1; then
+      ifconfig "$IFACE" "$ip" netmask "${subnet:-255.255.255.0}" broadcast "${broadcast:-}" up 2>/dev/null
+      if command -v route >/dev/null 2>&1 && [ -n "${router:-}" ]; then
+        for _gw in $router; do
+          route del default 2>/dev/null
+          route add default gw "$_gw" dev "$IFACE" 2>/dev/null
+          break
+        done
+      fi
+    fi
+    if [ -n "${dns:-}" ]; then
+      : > "$RESOLV" 2>/dev/null
+      for _ns in $dns; do
+        echo "nameserver $_ns" >> "$RESOLV" 2>/dev/null
+      done
+      [ -n "${domain:-}" ] && echo "search $domain" >> "$RESOLV" 2>/dev/null
+    fi
+    ;;
+  deconfig)
+    if command -v ip >/dev/null 2>&1; then
+      ip addr flush dev "$IFACE" 2>/dev/null
+    elif command -v ifconfig >/dev/null 2>&1; then
+      ifconfig "$IFACE" 0.0.0.0 down 2>/dev/null
+    fi
+    ;;
+esac
+exit 0

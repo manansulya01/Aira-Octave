@@ -6,7 +6,15 @@ echo "[net] lo up"
 if ip link show eth0 2>/dev/null | grep -q eth0; then
   echo "[net] eth0 found, trying DHCP"
   ip link set eth0 up 2>/dev/null
-  udhcpc -i eth0 -n -q -t 3 2>&1 | head -n 20 || echo "[net] DHCP failed or not available (static/user-net may be needed)"
+  # -s script applies the lease (without it udhcpc obtains but never configures IP).
+  for _s in /usr/share/udhcpc/default.script /etc/udhcpc/default.script; do
+    if [ -x "$_s" ]; then SCRIPT="$_s"; break; fi
+  done
+  if [ -n "${SCRIPT:-}" ]; then
+    udhcpc -i eth0 -n -q -t 3 -s "$SCRIPT" 2>&1 | head -n 20 || echo "[net] DHCP failed or not available (static/user-net may be needed)"
+  else
+    udhcpc -i eth0 -n -q -t 3 2>&1 | head -n 20 || echo "[net] DHCP failed or not available (static/user-net may be needed)"
+  fi
   ip addr show eth0 2>/dev/null
 else
   echo "[net] no eth0 (QEMU default e1000 should appear; try --net user for virtio-net)"

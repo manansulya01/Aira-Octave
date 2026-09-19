@@ -87,6 +87,21 @@ else
   echo "[init] /sbin/aira-init not found, skipping services"
 fi
 
+# Optional showcase auto-GUI: AFTER /persist mount + services so the
+# session binary (on /persist when using aira-rootfs.img) actually exists.
+# Runs in background so the serial recovery shell stays available.
+if grep -q "aira_gui=1" /proc/cmdline 2>/dev/null; then
+  echo "[init] aira_gui=1 — preparing auto desktop"
+  if [ -x /persist/usr/bin/aira-session ]; then
+    echo "[init] auto-starting AiraOS desktop (background)"
+    ( sleep 2; /persist/usr/bin/aira-session --display :0 2>&1 | logger -t aira-gui 2>/dev/null || true ) &
+  elif [ -x /usr/bin/aira-session ]; then
+    ( sleep 2; aira-session --display :0 2>&1 | logger -t aira-gui 2>/dev/null || true ) &
+  else
+    echo "[init] aira_gui requested but no session found (need -drive aira-rootfs.img)"
+  fi
+fi
+
 # Boot-time demo mode: cmdline contains aira_demo=1 (tour, then shell)
 if grep -q "aira_demo=1" /proc/cmdline 2>/dev/null; then
   echo "[init] aira_demo=1 detected, running guest demo"
