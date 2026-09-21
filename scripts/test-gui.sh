@@ -9,7 +9,7 @@ TS="$(date -u +%Y%m%d-%H%M%S)"
 LOG="$OUTDIR/gui-$TS.log"
 IMG="$ROOT/aira-rootfs.img"
 [ -f "$IMG" ] || { echo "building rootfs (need GUI)"; bash "$ROOT/scripts/build-gui.sh" || exit 1; bash "$ROOT/scripts/build-rootfs.sh" 512 || exit 1; }
-bash "$ROOT/scripts/boot-qemu.sh" --timeout 150 --log "$LOG" --drive "$IMG" --mem 1G --append "aira_autotest=1 aira_guitest=1"
+bash "$ROOT/scripts/boot-qemu.sh" --timeout 280 --log "$LOG" --drive "$IMG" --mem 1G --append "aira_autotest=1 aira_guitest=1"
 PASS=1
 grep -q "GUEST AUTOTEST PASS" "$LOG" || { echo "MISS guest autotest pass"; PASS=0; }
 if grep -q "aira_guitest=1" "$LOG" 2>/dev/null; then echo "INFO guitest flag seen"; fi

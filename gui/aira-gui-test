@@ -29,10 +29,15 @@ echo "--- launching apps ---"
 xterm -T "AiraTest-Term" -e sh -c 'sleep 90' &
 TPID=$!
 mkdir -p /persist/screenshots 2>/dev/null || true
-sh "$(command -v aira-sysinfo)" >/tmp/gui-sysinfo.log 2>&1 &
-SPID=$!
+# Graphical popup (contributes a real xmessage window) + deterministic stdout
+# capture. The popup runs in background; content is verified synchronously
+# below so slow IPC under TCG load cannot race the check.
+sh "$(command -v aira-sysinfo)" >/dev/null 2>&1 &
+SYSMSG_PID=$!
 sh "$(command -v aira-about)" >/tmp/gui-about.log 2>&1 &
 APID=$!
+# synchronous content probe (no xmessage, bounded time)
+timeout 60 sh "$(command -v aira-sysinfo)" --once >/tmp/gui-sysinfo.log 2>&1 || echo "GUI-TEST INFO: sysinfo --once rc=$? (content check below)"
 aira-sysmon --once > /tmp/gui-sysmon.log 2>&1 && grep -qi "cpu\|mem" /tmp/gui-sysmon.log && echo "GUI-TEST OK: sysmon data" || { echo "GUI-TEST FAIL: sysmon"; PASS=0; }
 aira-netman --once > /tmp/gui-netman.log 2>&1 && grep -qi "interface\|address" /tmp/gui-netman.log && echo "GUI-TEST OK: netman data" || { echo "GUI-TEST FAIL: netman"; PASS=0; }
 DISPLAY=:99 mc --version >/tmp/gui-mc.log 2>&1 && echo "GUI-TEST OK: mc present" || { echo "GUI-TEST FAIL: mc"; PASS=0; }
@@ -69,7 +74,7 @@ grep -qi "airaos-octave\|memtotal" /tmp/gui-sysinfo.log && echo "GUI-TEST OK: sy
 grep -qi "airaos-octave" /tmp/gui-about.log && echo "GUI-TEST OK: about content" || { echo "GUI-TEST FAIL: about content"; PASS=0; }
 xwd -root -out /tmp/aira-gui-shot.xwd 2>/dev/null && echo "GUI-TEST OK: screenshot $(wc -c < /tmp/aira-gui-shot.xwd) bytes" || echo "GUI-TEST INFO: xwd failed (non-fatal)"
 cp -f /tmp/aira-gui-shot.xwd /persist/screenshots/ 2>/dev/null || true
-kill $TPID $SPID $APID $TEPID $PCPID $NMPID 2>/dev/null
+kill $TPID $APID $TEPID $PCPID $NMPID ${SYSMSG_PID:-} 2>/dev/null
 # desktop must survive app exit
 sleep 1
 ps 2>/dev/null | grep -i jwm 2>/dev/null | head -n 5

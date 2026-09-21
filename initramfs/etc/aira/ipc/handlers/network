@@ -1,0 +1,10 @@
+#!/bin/sh
+# network — read-only network facts over the Aira IPC bus.
+# Methods: interfaces | routes | dns
+m="$1"; a="${2:-}"
+case "$m" in
+  interfaces) ip -o addr 2>/dev/null | tr '\n' ';' || ifconfig 2>/dev/null | tr '\n' ';' ;;
+  routes) ip route 2>/dev/null | tr '\n' ';' || route -n 2>/dev/null | tr '\n' ';' ;;
+  dns) cat /etc/resolv.conf 2>/dev/null | tr '\n' ';' || echo "no-resolv.conf" ;;
+  *) echo "unknown method: $m (want interfaces|routes|dns)"; exit 3 ;;
+esac

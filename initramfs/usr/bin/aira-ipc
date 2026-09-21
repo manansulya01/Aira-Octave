@@ -1,0 +1,77 @@
+#!/bin/sh
+# aira-ipc — client for the Aira IPC bus (protocol v1, 127.0.0.1:41234).
+# Real request/response over loopback TCP with timeouts and failure reporting.
+set -u
+HOST="127.0.0.1"
+PORT="${AIRA_IPC_PORT:-41234}"
+RUN_TOKEN="${AIRA_IPC_RUN:-/run/aira-ipc}/root.token"
+TIMEOUT="5"
+usage() {
+  cat <<'EOF'
+aira-ipc — Aira IPC bus client (protocol v1)
+  aira-ipc ping [msg]                    bus liveness
+  aira-ipc call <service> <method> [args...] [--timeout N]
+                                         request/response with timeout
+  aira-ipc list                          services on the bus
+  aira-ipc emit <topic> <message>        publish event
+  aira-ipc events [topic] [n]            read recent events
+Protocol: AIRA1|<id>|<sender>|<service>|<method>|<auth>|<args> over TCP.
+Privileged methods present the root token automatically when run as root.
+EOF
+}
+sender() { printf "%s:%s" "$(id -u 2>/dev/null || echo ?)" "$(id -un 2>/dev/null || echo ?)"; }
+auth() {
+  if [ "$(id -u 2>/dev/null)" = "0" ] && [ -f "$RUN_TOKEN" ]; then
+    printf "root:%s" "$(cat "$RUN_TOKEN" 2>/dev/null)"
+  else
+    printf "none"
+  fi
+}
+raw_call() { # $1=service $2=method $3=args $4=timeout
+  _id="c$$-$(date +%s 2>/dev/null || echo 0)"
+  _req="AIRA1|$_id|$(sender)|$1|$2|$(auth)|$3"
+  _resp=""
+  if command -v timeout >/dev/null 2>&1; then
+    _resp="$(printf "%s\n" "$_req" | timeout "$4" nc -w "$4" "$HOST" "$PORT" 2>&1)"
+    _rc="$?"
+  else
+    _resp="$(printf "%s\n" "$_req" | nc -w "$4" "$HOST" "$PORT" 2>&1)"
+    _rc="$?"
+  fi
+  if [ "$_rc" != "0" ]; then
+    echo "aira-ipc: bus unreachable (rc=$_rc; is aira-ipcd running? try: aira-init start ipc)" >&2
+    return 1
+  fi
+  _ver="$(printf "%s" "$_resp" | cut -d'|' -f1)"
+  _rid="$(printf "%s" "$_resp" | cut -d'|' -f2)"
+  _st="$(printf "%s" "$_resp" | cut -d'|' -f3)"
+  _pay="$(printf "%s" "$_resp" | cut -d'|' -f4-)"
+  [ "$_ver" = "AIRA1" ] || { echo "aira-ipc: bad response version: $_ver" >&2; return 1; }
+  [ "$_rid" = "$_id" ] || { echo "aira-ipc: id mismatch (want $_id got $_rid)" >&2; return 1; }
+  if [ "$_st" = "OK" ]; then
+    printf "%s\n" "$_pay" | tr ';' '\n'
+    return 0
+  fi
+  echo "aira-ipc: ERR $_pay" >&2
+  return 1
+}
+cmd="${1:-help}"
+case "$cmd" in
+  help|--help|-h) usage ;;
+  ping) raw_call bus ping "${2:-hello}" "$TIMEOUT" ;;
+  list) raw_call bus services "" "$TIMEOUT" | tr ' ' '\n' ;;
+  emit)
+    [ -n "${2:-}" ] && [ -n "${3:-}" ] || { echo "usage: aira-ipc emit <topic> <message>" >&2; exit 2; }
+    _t="$2"; shift 2; raw_call bus emit "$_t $*" "$TIMEOUT" ;;
+  events) raw_call bus events "${2:-} ${3:-}" "$TIMEOUT" ;;
+  call)
+    [ -n "${2:-}" ] && [ -n "${3:-}" ] || { echo "usage: aira-ipc call <service> <method> [args...]" >&2; exit 2; }
+    _s="$2"; _m="$3"; shift 3
+    _to="$TIMEOUT"; _args=""
+    while [ $# -gt 0 ]; do
+      case "$1" in --timeout) _to="${2:-5}"; shift 2;; *) _args="${_args:+$_args }$1"; shift;; esac
+    done
+    raw_call "$_s" "$_m" "$_args" "$_to"
+    ;;
+  *) echo "unknown: $cmd (try: aira-ipc help)" >&2; exit 2 ;;
+esac

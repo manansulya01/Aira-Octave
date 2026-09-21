@@ -1,0 +1,101 @@
+#!/bin/sh
+# aira-ipc-handle — per-connection request handler for the Aira IPC bus.
+# stdin/stdout = client socket (run by `nc -ll -p 41234 -e` from aira-ipcd).
+# Protocol v1, single line:
+#   REQ:  AIRA1|<id>|<sender>|<service>|<method>|<auth>|<args>
+#   RESP: AIRA1|<id>|OK|<payload>  |  AIRA1|<id>|ERR|<code>: <message>
+# Payloads are flattened to one line (no raw newlines on the wire).
+set -u
+RUN_DIR="${AIRA_IPC_RUN:-/run/aira-ipc}"
+HDIR="${AIRA_IPC_HDIR:-/etc/aira/ipc/handlers}"
+LOG="${AIRA_IPC_LOG:-/var/log/airaos/ipc.log}"
+MAX_LINE="8192"
+HANDLER_TIMEOUT="10"
+valid_token() {
+  _tok="${1#root:}"
+  [ "$1" != "$_tok" ] || return 1
+  [ -f "$RUN_DIR/root.token" ] || return 1
+  _want="$(cat "$RUN_DIR/root.token" 2>/dev/null)"
+  [ -n "$_want" ] && [ "$_tok" = "$_want" ]
+}
+flat() { tr '\n' ';' | tr -d '\r' | cut -c1-4000; }
+respond() { # $1=id $2=OK|ERR $3=text
+  _p="$(printf "%s" "$3" | flat)"
+  printf "AIRA1|%s|%s|%s\n" "$1" "$2" "$_p"
+}
+# Read exactly one request line (with timeout so stale half-open conns can't pile up).
+REQ=""
+if command -v timeout >/dev/null 2>&1; then
+  REQ="$(timeout 15 head -n 1 2>/dev/null || true)"
+else
+  REQ="$(head -n 1 2>/dev/null || true)"
+fi
+# length guard
+if [ "${#REQ}" -gt "$MAX_LINE" ]; then
+  respond "?" "ERR" "too-long: request exceeds $MAX_LINE bytes"
+  exit 0
+fi
+# Split on |: ver|id|sender|service|method|auth|args(rest, may contain |)
+VER="$(printf "%s" "$REQ" | cut -d'|' -f1)"
+ID="$(printf "%s" "$REQ" | cut -d'|' -f2)"
+SENDER="$(printf "%s" "$REQ" | cut -d'|' -f3)"
+SVC="$(printf "%s" "$REQ" | cut -d'|' -f4)"
+METHOD="$(printf "%s" "$REQ" | cut -d'|' -f5)"
+AUTH="$(printf "%s" "$REQ" | cut -d'|' -f6)"
+ARGS="$(printf "%s" "$REQ" | cut -d'|' -f7-)"
+fail() { respond "${ID:-?}" "ERR" "$1"; echo "[ipcd] REJECT $1 :: $(printf "%s" "$REQ" | cut -c1-120)" >>"$LOG" 2>/dev/null; exit 0; }
+[ "$VER" = "AIRA1" ] || fail "bad-version: want AIRA1"
+case "$ID" in ""|*[!A-Za-z0-9_-]*) fail "bad-request: id must match [A-Za-z0-9_-]{1,32}" ;; esac
+[ "${#ID}" -le 32 ] || fail "bad-request: id too long"
+case "$SENDER" in ""|*[!A-Za-z0-9_.@=:+_-]*|*..*) fail "bad-request: bad sender" ;; esac
+[ "${#SENDER}" -le 64 ] || fail "bad-request: sender too long"
+case "$SVC" in [a-z]*|"") : ;; *) fail "bad-request: bad service" ;; esac
+case "$SVC" in *[!a-z0-9_-]*) fail "bad-request: bad service" ;; esac
+[ "${#SVC}" -le 32 ] || fail "bad-request: service too long"
+case "$METHOD" in [a-z]*|"") : ;; *) fail "bad-request: bad method" ;; esac
+case "$METHOD" in *[!a-z0-9_-]*) fail "bad-request: bad method" ;; esac
+[ "${#METHOD}" -le 32 ] || fail "bad-request: method too long"
+[ -x "$HDIR/$SVC" ] || fail "unknown-service: $SVC"
+# Privilege gate: handler declares PRIV_METHODS="m1 m2"; those need root token.
+AUTHZ="denied"
+if valid_token "$AUTH"; then AUTHZ="granted"; fi
+export AIRA_IPC_SENDER="$SENDER" AIRA_IPC_AUTH="$AUTHZ" AIRA_IPC_ID="$ID"
+if grep -q "^PRIV_METHODS=" "$HDIR/$SVC" 2>/dev/null; then
+  _priv="$(sed -n 's/^PRIV_METHODS="\(.*\)"/\1/p' "$HDIR/$SVC" | head -n 1)"
+  for _m in $_priv; do
+    if [ "$_m" = "$METHOD" ] && [ "$AUTHZ" != "granted" ]; then
+      fail "denied: method $SVC.$METHOD requires root token"
+    fi
+  done
+fi
+# Dispatch with timeout; capture output to a temp file so the exit code is exact.
+TMP="$(mktemp /tmp/aira-ipc.XXXXXX 2>/dev/null || echo /tmp/aira-ipc.$$)"
+if command -v timeout >/dev/null 2>&1; then
+  timeout "$HANDLER_TIMEOUT" "$HDIR/$SVC" "$METHOD" "$ARGS" >"$TMP" 2>&1
+  RC="$?"
+else
+  "$HDIR/$SVC" "$METHOD" "$ARGS" >"$TMP" 2>&1
+  RC="$?"
+fi
+OUT="$(cat "$TMP" 2>/dev/null)"
+rm -f "$TMP"
+# GNU timeout exits 124 on timeout; busybox timeout exits 143 (SIGTERM) or
+# 137 (SIGKILL). Treat all three as handler timeout so the bus reports
+# "timeout:" regardless of which timeout implementation is on PATH.
+if [ "$RC" = "124" ] || [ "$RC" = "143" ] || [ "$RC" = "137" ]; then
+  respond "$ID" "ERR" "timeout: handler $SVC exceeded ${HANDLER_TIMEOUT}s"
+  echo "[ipcd] TIMEOUT $SVC.$METHOD id=$ID" >>"$LOG" 2>/dev/null
+  exit 0
+fi
+if [ "$RC" = "3" ]; then
+  respond "$ID" "ERR" "$(printf "%s" "$OUT" | head -n 3)"
+  exit 0
+fi
+if [ "$RC" != "0" ]; then
+  respond "$ID" "ERR" "handler-failed: $SVC exited $RC"
+  echo "[ipcd] FAIL $SVC.$METHOD rc=$RC id=$ID" >>"$LOG" 2>/dev/null
+  exit 0
+fi
+respond "$ID" "OK" "$OUT"
+echo "[ipcd] $SVC.$METHOD id=$ID sender=$SENDER auth=$AUTHZ" >>"$LOG" 2>/dev/null
+exit 0

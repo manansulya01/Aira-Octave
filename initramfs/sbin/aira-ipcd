@@ -1,0 +1,28 @@
+#!/bin/sh
+# aira-ipcd — Aira IPC bus daemon (protocol v1, loopback TCP).
+# Listens on 127.0.0.1:41234 via `nc -ll -p PORT -e handler` (persistent,
+# one handler process per connection). Never exits on client errors.
+# Isolation boundary: loopback-only bind. Peer authentication for privileged
+# methods uses a root-only token file (DAC), NOT the self-claimed sender field.
+set -u
+PORT="${AIRA_IPC_PORT:-41234}"
+RUN_DIR="${AIRA_IPC_RUN:-/run/aira-ipc}"
+LOG="${AIRA_IPC_LOG:-/var/log/airaos/ipc.log}"
+HANDLER="${AIRA_IPC_HANDLER:-/sbin/aira-ipc-handle}"
+mkdir -p "$RUN_DIR/handlers" "$(dirname "$LOG")"
+# Loopback must be up for clients to connect; best effort here (net service too).
+ip link set lo up 2>/dev/null
+ip addr add 127.0.0.1/8 dev lo 2>/dev/null
+# Root token: regenerated every daemon start, readable only by root.
+# A client proves uid-0 by presenting this token; non-root users cannot read it.
+if [ ! -x /bin/busybox ] && [ ! -x /usr/bin/sha256sum ] && [ ! -x /bin/sha256sum ]; then :; fi
+TOKEN="$(cat /proc/sys/kernel/random/uuid 2>/dev/null || echo "$RANDOM-$$-$(date +%s 2>/dev/null)")"
+printf "%s" "$TOKEN" | sha256sum 2>/dev/null | awk '{print $1}' > "$RUN_DIR/root.token" 2>/dev/null \
+  || printf "%s" "$TOKEN" > "$RUN_DIR/root.token"
+chmod 600 "$RUN_DIR/root.token" 2>/dev/null
+: > "$RUN_DIR/events.log" 2>/dev/null
+chmod 644 "$RUN_DIR/events.log" 2>/dev/null
+echo "[ipcd] starting Aira IPC bus v1 on 127.0.0.1:$PORT (pid $$)" >>"$LOG" 2>/dev/null
+logger -t aira-ipcd "starting bus v1 on 127.0.0.1:$PORT" 2>/dev/null || true
+# shellcheck disable=SC2093
+exec nc -ll -p "$PORT" -e "$HANDLER"

@@ -1,0 +1,50 @@
+#!/bin/sh
+# bus — meta service for the Aira IPC bus (protocol v1).
+# Methods: version | services | ping | emit | events
+# PRIV_METHODS: emit on system.* topics requires the root token.
+# Handler contract: $1=method $2=args-string; stdout=payload; exit 0=OK, 3=ERR.
+PRIV_METHODS=""
+RUN_DIR="${AIRA_IPC_RUN:-/run/aira-ipc}"
+HDIR="${AIRA_IPC_HDIR:-/etc/aira/ipc/handlers}"
+m="$1"; a="${2:-}"
+case "$m" in
+  version) echo "1" ;;
+  ping) echo "pong ${a:-empty}" ;;
+  services)
+    ls "$HDIR" 2>/dev/null | tr '\n' ' '
+    echo
+    ;;
+  emit)
+    topic="$(printf "%s" "$a" | awk '{print $1}')"
+    msg="$(printf "%s" "$a" | cut -d' ' -f2-)"
+    case "$topic" in ""|*[!a-z0-9_.-]*|.*|*..*) echo "bad topic"; exit 3 ;; esac
+    case "$topic" in [a-z]*) ;; *) echo "bad topic"; exit 3 ;; esac
+    # system.* topics are privileged: only a granted (root-token) caller may emit.
+    case "$topic" in
+      system.*) [ "$AIRA_IPC_AUTH" = "granted" ] || { echo "denied: topic $topic requires root token"; exit 3; } ;;
+    esac
+    [ -n "$msg" ] || { echo "empty message"; exit 3; }
+    printf "%s %s %s %s\n" "$(date +%s 2>/dev/null || echo 0)" "$topic" "${AIRA_IPC_SENDER:-?}" "$msg" >>"$RUN_DIR/events.log" 2>/dev/null
+    # cap event log (resource exhaustion guard): keep last 500 lines
+    if [ -f "$RUN_DIR/events.log" ]; then
+      _lc="$(wc -l < "$RUN_DIR/events.log" 2>/dev/null || echo 0)"
+      case "$_lc" in ''|*[!0-9]*) _lc=0 ;; esac
+      if [ "$_lc" -gt 600 ]; then
+        tail -n 500 "$RUN_DIR/events.log" > "$RUN_DIR/events.log.tmp" 2>/dev/null && mv -f "$RUN_DIR/events.log.tmp" "$RUN_DIR/events.log" 2>/dev/null
+      fi
+    fi
+    echo "emitted $topic"
+    ;;
+  events)
+    topic="$(printf "%s" "$a" | awk '{print $1}')"
+    n="$(printf "%s" "$a" | awk '{print $2}')"
+    case "$n" in ""|*[!0-9]*) n=10 ;; esac
+    [ "$n" -gt 50 ] && n=50
+    if [ -n "$topic" ]; then
+      grep -F " $topic " "$RUN_DIR/events.log" 2>/dev/null | tail -n "$n"
+    else
+      tail -n "$n" "$RUN_DIR/events.log" 2>/dev/null
+    fi
+    ;;
+  *) echo "unknown method: $m (want version|services|ping|emit|events)"; exit 3 ;;
+esac

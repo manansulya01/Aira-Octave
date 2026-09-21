@@ -7,7 +7,7 @@ OUTDIR="$ROOT/logs/final-completion/network"
 mkdir -p "$OUTDIR"
 TS="$(date -u +%Y%m%d-%H%M%S)"
 LOG="$OUTDIR/network-$TS.log"
-bash "$ROOT/scripts/boot-qemu.sh" --timeout 40 --log "$LOG" --net user --append "aira_autotest=1"
+bash "$ROOT/scripts/boot-qemu.sh" --timeout 220 --log "$LOG" --net user --append "aira_autotest=1"
 PASS=1
 grep -q "GUEST-TEST OK: ping loopback" "$LOG" || { echo "MISS loopback ping"; PASS=0; }
 grep -q "GUEST-TEST OK: ip link lo" "$LOG" || { echo "MISS lo"; PASS=0; }

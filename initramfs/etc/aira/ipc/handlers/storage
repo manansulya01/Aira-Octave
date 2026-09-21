@@ -1,0 +1,13 @@
+#!/bin/sh
+# storage — read-only storage facts over the Aira IPC bus.
+# Methods: usage | mounts | persist
+m="$1"; a="${2:-}"
+case "$m" in
+  usage) df -h 2>/dev/null | tr '\n' ';' ;;
+  mounts) mount 2>/dev/null | tr '\n' ';' | cut -c1-2000 ;;
+  persist)
+    if mount 2>/dev/null | grep -q " /persist "; then echo "mounted;$(df -h /persist 2>/dev/null | tail -n 1 | tr -s ' ' '_')";
+    else echo "not-mounted"; fi
+    ;;
+  *) echo "unknown method: $m (want usage|mounts|persist)"; exit 3 ;;
+esac

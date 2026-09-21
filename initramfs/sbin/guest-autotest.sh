@@ -196,6 +196,180 @@ else
 fi
 ip addr show eth0 2>/dev/null && echo "GUEST-TEST INFO: eth0 present" || echo "GUEST-TEST INFO: no eth0 (ok without --net)"
 
+echo "--- Aira IPC bus (protocol v1) ---"
+# Ensure daemon is running (earlier shutdown test stops all services).
+/sbin/aira-init start ipc >/dev/null 2>&1 || true
+sleep 1
+ipc_raw() { # $1=request-line -> stdout response, rc preserved
+  printf "%s\n" "$1" | timeout 5 nc -w 5 127.0.0.1 41234 2>/dev/null
+}
+if /sbin/aira-init status ipc 2>/dev/null | grep -q running; then
+  echo "GUEST-TEST OK: ipc daemon running"
+else
+  echo "GUEST-TEST FAIL: ipc daemon not running"; /sbin/aira-init status ipc 2>&1; PASS=0
+fi
+# token file: root-only, non-empty
+if [ -f /run/aira-ipc/root.token ]; then
+  if ls -l /run/aira-ipc/root.token 2>/dev/null | grep -q "^-rw-------"; then
+    echo "GUEST-TEST OK: ipc token 600"
+  else
+    echo "GUEST-TEST FAIL: ipc token perms"; ls -l /run/aira-ipc/root.token 2>&1; PASS=0
+  fi
+  if [ -s /run/aira-ipc/root.token ]; then echo "GUEST-TEST OK: ipc token non-empty";
+  else echo "GUEST-TEST FAIL: ipc token empty"; PASS=0; fi
+  if su aira -c 'cat /run/aira-ipc/root.token' >/dev/null 2>&1; then
+    echo "GUEST-TEST FAIL: non-root read ipc token"; PASS=0
+  else
+    echo "GUEST-TEST OK: ipc token root-only"
+  fi
+else
+  echo "GUEST-TEST FAIL: ipc token missing"; PASS=0
+fi
+t "ipc ping" aira-ipc ping hello-ipc-bus
+aira-ipc ping hello-ipc-bus > /tmp/ipc-ping.out 2>&1
+t_contains "ipc ping pong" /tmp/ipc-ping.out "pong"
+t "ipc list" aira-ipc list
+aira-ipc list > /tmp/ipc-list.out 2>&1
+t_contains "ipc list bus" /tmp/ipc-list.out "bus"
+t_contains "ipc list services" /tmp/ipc-list.out "services"
+t_contains "ipc list system" /tmp/ipc-list.out "system"
+t_contains "ipc list storage" /tmp/ipc-list.out "storage"
+t_contains "ipc list network" /tmp/ipc-list.out "network"
+t "ipc system version" aira-ipc call system version
+t "ipc system info" aira-ipc call system info
+t "ipc system uptime" aira-ipc call system uptime
+t "ipc system memory" aira-ipc call system memory
+t "ipc storage usage" aira-ipc call storage usage
+t "ipc storage mounts" aira-ipc call storage mounts
+t "ipc storage persist" aira-ipc call storage persist
+t "ipc network interfaces" aira-ipc call network interfaces
+t "ipc network routes" aira-ipc call network routes
+t "ipc network dns" aira-ipc call network dns
+t "ipc services status" aira-ipc call services status
+aira-ipc call services status > /tmp/ipc-svc.out 2>&1
+t_contains "ipc services shows syslog" /tmp/ipc-svc.out "syslog"
+# privileged lifecycle via bus (as root: token auto-presented)
+t "ipc services stop syslog" aira-ipc call services stop syslog
+if aira-ipc call services status syslog 2>/dev/null | grep -q "stopped"; then
+  echo "GUEST-TEST OK: ipc stop syslog effective"
+else
+  echo "GUEST-TEST FAIL: ipc stop syslog"; PASS=0
+fi
+t "ipc services start syslog" aira-ipc call services start syslog
+if aira-ipc call services status syslog 2>/dev/null | grep -q "running"; then
+  echo "GUEST-TEST OK: ipc start syslog effective"
+else
+  echo "GUEST-TEST FAIL: ipc start syslog"; PASS=0
+fi
+t "ipc services restart syslog" aira-ipc call services restart syslog
+# events: emit + retrieve
+t "ipc emit" aira-ipc emit test.topic hello-from-autotest
+t "ipc events" aira-ipc events
+aira-ipc events test.topic 5 > /tmp/ipc-events.out 2>&1
+t_contains "ipc event stored" /tmp/ipc-events.out "test.topic"
+# privileged emit denied without token (raw request, auth=none)
+_R="$(ipc_raw "AIRA1|t-priv1|0:nobody|bus|emit|none|system.reboot now" 2>/dev/null || true)"
+if printf "%s" "$_R" | grep -q "ERR.*denied"; then
+  echo "GUEST-TEST OK: ipc denied system.* emit without token"
+else
+  echo "GUEST-TEST FAIL: ipc system.* emit not denied: $_R"; PASS=0
+fi
+# privileged service op denied without token
+_R="$(ipc_raw "AIRA1|t-priv2|0:nobody|services|stop|none|syslog" 2>/dev/null || true)"
+if printf "%s" "$_R" | grep -q "ERR.*denied"; then
+  echo "GUEST-TEST OK: ipc denied services.stop without token"
+else
+  echo "GUEST-TEST FAIL: ipc services.stop not denied: $_R"; PASS=0
+fi
+# authorized privileged op (root token via client) already proven above by stop/start;
+# explicitly verify token path works for system.* emit
+t "ipc auth emit system topic" aira-ipc emit system.test autotest-priv-ok
+# malformed / protocol violations (must be ERR, daemon must survive)
+_R="$(ipc_raw "GARBAGE-NO-PIPES" 2>/dev/null || true)"
+if printf "%s" "$_R" | grep -q "ERR"; then echo "GUEST-TEST OK: ipc malformed rejected";
+else echo "GUEST-TEST FAIL: ipc malformed accepted: $_R"; PASS=0; fi
+_R="$(ipc_raw "BOGUS|t1|0:root|bus|ping|none|hi" 2>/dev/null || true)"
+if printf "%s" "$_R" | grep -q "bad-version"; then echo "GUEST-TEST OK: ipc bad version rejected";
+else echo "GUEST-TEST FAIL: ipc bad version: $_R"; PASS=0; fi
+_R="$(ipc_raw "AIRA1|bad id with spaces|0:root|bus|ping|none|hi" 2>/dev/null || true)"
+if printf "%s" "$_R" | grep -q "ERR"; then echo "GUEST-TEST OK: ipc bad id rejected";
+else echo "GUEST-TEST FAIL: ipc bad id: $_R"; PASS=0; fi
+_R="$(ipc_raw "AIRA1|t3|0:root|nosuchsvc|ping|none|hi" 2>/dev/null || true)"
+if printf "%s" "$_R" | grep -q "unknown-service"; then echo "GUEST-TEST OK: ipc unknown service rejected";
+else echo "GUEST-TEST FAIL: ipc unknown service: $_R"; PASS=0; fi
+_R="$(ipc_raw "AIRA1|t4|0:root|bus|nosuchmethod|none|hi" 2>/dev/null || true)"
+if printf "%s" "$_R" | grep -q "ERR"; then echo "GUEST-TEST OK: ipc unknown method rejected";
+else echo "GUEST-TEST FAIL: ipc unknown method: $_R"; PASS=0; fi
+_R="$(ipc_raw "AIRA1|t5|0:root|BAD-SVC!|ping|none|hi" 2>/dev/null || true)"
+if printf "%s" "$_R" | grep -q "ERR"; then echo "GUEST-TEST OK: ipc bad service name rejected";
+else echo "GUEST-TEST FAIL: ipc bad service name: $_R"; PASS=0; fi
+_R="$(ipc_raw "AIRA1|t6|0:root|bus|BAD-METHOD!|none|hi" 2>/dev/null || true)"
+if printf "%s" "$_R" | grep -q "ERR"; then echo "GUEST-TEST OK: ipc bad method rejected";
+else echo "GUEST-TEST FAIL: ipc bad method: $_R"; PASS=0; fi
+# oversized request (>8192) must be rejected, daemon survives
+_BIG="$(head -c 9000 /dev/zero 2>/dev/null | tr '\0' A 2>/dev/null || echo OVERSIZE-FALLBACK-PADDING-0123456789)"
+_R="$(printf "AIRA1|tbig|0:root|bus|ping|none|%s\n" "$_BIG" | timeout 5 nc -w 5 127.0.0.1 41234 2>/dev/null || true)"
+if printf "%s" "$_R" | grep -q "too-long"; then echo "GUEST-TEST OK: ipc oversized rejected";
+else echo "GUEST-TEST FAIL: ipc oversized: $(printf "%s" "$_R" | cut -c1-80)"; PASS=0; fi
+# daemon survives all abuse
+t "ipc ping after abuse" aira-ipc ping survive
+# repeated calls (10x)
+_RC=0; i=0; while [ "$i" -lt 10 ]; do aira-ipc ping "rep$i" >/dev/null 2>&1 || _RC=1; i=$((i+1)); done
+if [ "$_RC" = "0" ]; then echo "GUEST-TEST OK: ipc 10x repeated"; else echo "GUEST-TEST FAIL: ipc repeated"; PASS=0; fi
+# concurrent clients (5 parallel; bus serves sequentially via nc -ll, so allow
+# generous timeout under TCG load — still requires 5/5 success, just slower)
+rm -f /tmp/ipc-conc-*.out
+for k in 1 2 3 4 5; do ( aira-ipc call bus ping "conc$k" --timeout 20 >"/tmp/ipc-conc-$k.out" 2>&1 ) & done
+wait
+_COK=0; for k in 1 2 3 4 5; do grep -q pong "/tmp/ipc-conc-$k.out" 2>/dev/null && _COK=$((_COK+1)); done
+if [ "$_COK" = "5" ]; then echo "GUEST-TEST OK: ipc 5x concurrent";
+else echo "GUEST-TEST FAIL: ipc concurrent $_COK/5"; PASS=0; fi
+# event log limit: emit 60, retrieve capped at 50
+i=0; while [ "$i" -lt 60 ]; do aira-ipc emit flood.topic "msg$i" >/dev/null 2>&1 || true; i=$((i+1)); done
+_N="$(aira-ipc events flood.topic 60 2>/dev/null | wc -l)"
+if [ "$_N" -le 50 ] && [ "$_N" -ge 5 ]; then echo "GUEST-TEST OK: ipc event cap ($_N lines)";
+else echo "GUEST-TEST FAIL: ipc event cap ($_N)"; PASS=0; fi
+# handler timeout: temp slow handler (sleeps 12s > 10s handler timeout)
+printf '#!/bin/sh\nsleep 12\necho slow-done\n' > /etc/aira/ipc/handlers/slowtest
+chmod +x /etc/aira/ipc/handlers/slowtest
+_ST="$(date +%s 2>/dev/null || echo 0)"
+_R="$(printf "AIRA1|ttime|0:root|slowtest|run|none|x\n" | timeout 15 nc -w 15 127.0.0.1 41234 2>/dev/null || true)"
+_ET="$(date +%s 2>/dev/null || echo 0)"
+rm -f /etc/aira/ipc/handlers/slowtest
+if printf "%s" "$_R" | grep -q "timeout"; then echo "GUEST-TEST OK: ipc handler timeout";
+else echo "GUEST-TEST FAIL: ipc handler timeout: $(printf "%s" "$_R" | cut -c1-100)"; PASS=0; fi
+t "ipc ping after timeout" aira-ipc ping after-timeout
+# service failure: kill syslog, bus must report failed, restart recovers
+_SVCPID="$(cat /run/aira-services/syslog.pid 2>/dev/null)"
+if [ -n "$_SVCPID" ]; then
+  kill -9 "$_SVCPID" 2>/dev/null; sleep 0.5
+  if aira-ipc call services status syslog 2>/dev/null | grep -q "failed"; then
+    echo "GUEST-TEST OK: ipc reports crashed service as failed"
+  else
+    echo "GUEST-TEST FAIL: ipc crash not reported"; PASS=0
+  fi
+  t "ipc recover crashed service" aira-ipc call services restart syslog
+else
+  echo "GUEST-TEST FAIL: no syslog pid for crash test"; PASS=0
+fi
+# daemon failure + recovery
+_IPCPID="$(cat /run/aira-services/ipc.pid 2>/dev/null)"
+if [ -n "$_IPCPID" ]; then
+  kill -9 "$_IPCPID" 2>/dev/null; sleep 0.5
+  if aira-ipc ping 2>/dev/null; then echo "GUEST-TEST FAIL: ipc alive after kill"; PASS=0;
+  else echo "GUEST-TEST OK: ipc unreachable after kill"; fi
+  t "ipc daemon restart" /sbin/aira-init restart ipc
+  sleep 1
+  t "ipc ping after restart" aira-ipc ping revived
+else
+  echo "GUEST-TEST FAIL: no ipc pid"; PASS=0
+fi
+# real integration: aira status + doctor must use the bus
+/usr/bin/aira status > /tmp/aira-status-ipc.out 2>&1
+t_contains "aira status via IPC" /tmp/aira-status-ipc.out "via IPC bus"
+/usr/bin/aira doctor > /tmp/aira-doctor.out 2>&1 && echo "GUEST-TEST OK: aira doctor" || { echo "GUEST-TEST FAIL: aira doctor"; cat /tmp/aira-doctor.out 2>&1; PASS=0; }
+t_contains "doctor ipc" /tmp/aira-doctor.out "ipc(bus ping): PASS"
+
 echo "--- storage ---"
 df > /tmp/df.out 2>&1 && echo "GUEST-TEST OK: df works" || { echo "GUEST-TEST FAIL: df"; PASS=0; }
 if [ -b /dev/vda ]; then

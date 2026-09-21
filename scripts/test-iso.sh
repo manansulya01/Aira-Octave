@@ -12,7 +12,7 @@ LOG="$OUTDIR/iso-boot-$VER-$TS.log"
 [ -f "$ISO" ] || { echo "ERROR: ISO missing $ISO"; exit 2; }
 echo "Booting $ISO (grub, 60s)"
 set +e
-timeout 60 qemu-system-x86_64 -cdrom "$ISO" -boot d -m 512M -nographic -no-reboot > "$LOG" 2>&1
+timeout --foreground 60 qemu-system-x86_64 -cdrom "$ISO" -boot d -m 512M -nographic -serial stdio -monitor none -no-reboot </dev/null > "$LOG" 2>&1
 echo "QEMU done, analyzing $LOG"
 set -u
 PASS=1

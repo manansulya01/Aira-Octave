@@ -16,6 +16,16 @@ ip -o -4 addr show 2>/dev/null | head -n 5 || echo "(no ip)"
 ping -c1 -W2 127.0.0.1 2>&1 | tail -n 2
 sec "Services"
  /sbin/aira-init status 2>&1
+sec "IPC bus (AIRA1 over loopback)"
+if command -v aira-ipc >/dev/null 2>&1 && aira-ipc ping demo >/dev/null 2>&1; then
+  echo "bus: ALIVE"; aira-ipc list 2>&1
+  echo "--- system via bus ---"; aira-ipc call system version 2>&1
+  echo "--- services via bus ---"; aira-ipc call services status 2>&1 | tr ';' '\n' | head -n 8
+else
+  echo "bus: UNREACHABLE (aira-ipcd not running?)"
+fi
+sec "Health (aira doctor)"
+/usr/bin/aira doctor 2>&1 | head -n 15 || true
 sec "Packages"
 airapkg list 2>/dev/null
 sec "Users"

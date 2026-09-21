@@ -14,10 +14,10 @@ fi
 LOG1="$OUTDIR/storage-boot1-$TS.log"
 LOG2="$OUTDIR/storage-boot2-$TS.log"
 echo "=== boot1 (create marker) ==="
-bash "$ROOT/scripts/boot-qemu.sh" --timeout 40 --log "$LOG1" --drive "$IMG" --append "aira_autotest=1"
+bash "$ROOT/scripts/boot-qemu.sh" --timeout 220 --log "$LOG1" --drive "$IMG" --append "aira_autotest=1"
 grep -q "GUEST-TEST OK: persist write" "$LOG1" || { echo "FAIL boot1 persist write (see $LOG1)"; exit 1; }
 echo "=== boot2 (verify persists) ==="
-bash "$ROOT/scripts/boot-qemu.sh" --timeout 40 --log "$LOG2" --drive "$IMG" --append "aira_autotest=1"
+bash "$ROOT/scripts/boot-qemu.sh" --timeout 220 --log "$LOG2" --drive "$IMG" --append "aira_autotest=1"
 if grep -q "GUEST-TEST OK: persist-exists" "$LOG2"; then
   echo "STORAGE TEST PASS (persistence verified)"
   cp -f "$LOG2" "$OUTDIR/last.log"

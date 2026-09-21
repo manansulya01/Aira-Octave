@@ -59,7 +59,7 @@ if [ -z "$LOG" ]; then
 else
   mkdir -p "$(dirname "$LOG")"
   set +e
-  timeout "$TIMEOUT" qemu-system-x86_64 "${QEMU_ARGS[@]}" > "$LOG" 2>&1
+  timeout --foreground "$TIMEOUT" qemu-system-x86_64 "${QEMU_ARGS[@]}" -serial stdio -monitor none </dev/null > "$LOG" 2>&1
   RC=$?
   echo "QEMU_EXIT=$RC log=$LOG"
   # 124 = timeout killed (expected: guest idles at shell). 0/1 may occur on early exit.
