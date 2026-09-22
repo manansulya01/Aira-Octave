@@ -1,12 +1,19 @@
 #!/bin/sh
-# About AiraOS-Octave (real version from /etc/os-release).
-MSG="AiraOS-Octave
+# About AiraOS-Octave (real version from /etc/os-release + live kernel facts).
+VER="$(grep '^VERSION=' /etc/os-release 2>/dev/null | cut -d= -f2- | tr -d '\"')"
+[ -n "$VER" ] || VER="1.2.0"
+MSG="AiraOS-Octave $VER
+
 $(grep PRETTY_NAME /etc/os-release 2>/dev/null | cut -d= -f2- | tr -d '\"')
-Architecture: $(uname -m)
-Kernel: $(uname -r)
-Project: https://github.com/manansulya01/Aira-Octave
-Base: Linux 7.2.2 + AiraOS userspace + JWM desktop"
+Version: $VER
+Kernel: Linux $(uname -r 2>/dev/null)
+Architecture: $(uname -m 2>/dev/null)
+
+AiraOS-Octave is a small bootable x86_64 operating system:
+Linux kernel plus the Aira userspace with supervised
+services, a local IPC service bus, persistent storage,
+a package manager, and this JWM graphical desktop."
 echo "$MSG"
 if [ -n "${DISPLAY:-}" ] && command -v xmessage >/dev/null 2>&1; then
-  echo "$MSG" | xmessage -file - -buttons OK:0 -title "About AiraOS" 2>/dev/null
+  echo "$MSG" | xmessage -file - -buttons OK:0 -title "About AiraOS-Octave" 2>/dev/null
 fi

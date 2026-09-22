@@ -26,6 +26,7 @@ APPEND_EXTRA=""
 DRIVE="$ROOT/aira-rootfs.img"
 DISPLAY_BE="gtk,gl=off"
 NET="none"
+DEMO="no"
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -36,6 +37,7 @@ while [ $# -gt 0 ]; do
     --drive) DRIVE="$2"; shift 2;;
     --display) DISPLAY_BE="$2"; shift 2;;
     --net) NET="$2"; shift 2;;
+    --demo) DEMO="yes"; shift;;
     -h|--help)
       echo "Usage: boot-gui.sh [--mem 1G] [--timeout 0] [--log PATH] [--append EXTRA] [--drive FILE] [--display gtk,gl=off|vnc=:0|none] [--net none|user]"
       exit 0;;
@@ -49,6 +51,7 @@ command -v qemu-system-x86_64 >/dev/null 2>&1 || { echo "ERROR: qemu-system-x86_
 if [ "$DRIVE" != "none" ] && [ ! -f "$DRIVE" ]; then echo "ERROR: drive missing: $DRIVE" >&2; exit 1; fi
 
 APPEND="console=ttyS0 rdinit=/init loglevel=7 aira_gui=1"
+if [ "$DEMO" = "yes" ]; then APPEND="$APPEND aira_guidemo=1"; fi
 if [ -n "$APPEND_EXTRA" ]; then APPEND="$APPEND $APPEND_EXTRA"; fi
 
 QEMU_ARGS=(-kernel "$KERNEL" -initrd "$INITRAMFS" -append "$APPEND" -m "$MEM" -no-reboot)

@@ -2,7 +2,7 @@
 # Real file manager: mc in xterm (browse, open, copy, move, delete).
 export DISPLAY="${DISPLAY:-:99}"
 if command -v mc >/dev/null 2>&1; then
-  exec xterm -fa Monospace -fs 10 -T "AiraOS File Manager" -e mc ~ 2>/dev/null || mc ~ 
+  exec xterm -fa Monospace -fs 10 -bg "#0b1026" -fg "#e8ecff" -sb -T "AiraOS File Manager" -geometry 92x28+120+80 -e mc ~ 2>/dev/null || mc ~
 else
   exec xterm -T "AiraOS Files" -e sh -c 'ls -la ~; echo; echo "(mc not installed)"; read x'
 fi

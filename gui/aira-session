@@ -169,8 +169,9 @@ if [ "$USE_XVFB" = "no" ]; then
 else
   echo "[aira-session] headless Xvfb display ready on $DISPLAY"
 fi
-# Wallpaper (Aira blue)
-xsetroot -solid "#1d2a6b" 2>/dev/null || true
+# Wallpaper: Aira blue with a subtle woven texture (falls back to solid).
+xsetroot -mod 4 4 -fg "#24338a" -bg "#1d2a6b" 2>/dev/null || \
+  xsetroot -solid "#1d2a6b" 2>/dev/null || true
 # JWM with Aira config (rootfs at /persist when booted via initramfs)
 JWMRC="/persist/etc/jwm/aira-jwmrc"
 [ -f "$JWMRC" ] || JWMRC="/etc/jwm/aira-jwmrc"

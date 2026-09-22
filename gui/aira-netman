@@ -34,7 +34,7 @@ menu() {
 if [ "${1:-}" = "--once" ]; then once; exit 0; fi
 if [ "${1:-}" = "--menu" ]; then menu; exit 0; fi
 if command -v xterm >/dev/null 2>&1 && [ -n "${DISPLAY:-}" ]; then
-  exec xterm -fa Monospace -fs 10 -T "AiraOS Network Manager" -e sh "$0" --menu
+  exec xterm -fa Monospace -fs 10 -bg "#0b1026" -fg "#e8ecff" -sb -T "AiraOS Network Manager" -geometry 80x26+210+130 -e sh "$0" --menu
 else
   once
 fi

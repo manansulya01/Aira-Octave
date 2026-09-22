@@ -7,8 +7,8 @@ if [ -n "$F" ] && [ ! -e "$F" ]; then
   touch "$F" 2>/dev/null || F=""
 fi
 if command -v xterm >/dev/null 2>&1 && [ -n "${DISPLAY:-}" ]; then
-  if [ -n "$F" ]; then exec xterm -fa Monospace -fs 10 -T "AiraOS Editor - $F" -e vi "$F"
-  else exec xterm -fa Monospace -fs 10 -T "AiraOS Editor" -e sh -c 'printf "file to edit (empty=new): "; read f; [ -n "$f" ] && exec vi "$f" || exec vi'
+  if [ -n "$F" ]; then exec xterm -fa Monospace -fs 10 -bg "#0b1026" -fg "#e8ecff" -sb -T "AiraOS Editor - $F" -geometry 84x28+100+90 -e vi "$F"
+  else exec xterm -fa Monospace -fs 10 -bg "#0b1026" -fg "#e8ecff" -sb -T "AiraOS Editor" -geometry 84x28+100+90 -e sh -c 'printf "file to edit (empty=new): "; read f; [ -n "$f" ] && exec vi "$f" || exec vi'
   fi
 else
   exec vi ${F:+"$F"}

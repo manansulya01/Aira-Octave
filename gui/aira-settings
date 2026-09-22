@@ -1,14 +1,28 @@
 #!/bin/sh
-# Real settings: hostname, network (dhcp), display. Runs in xterm if no DISPLAY action.
+# AiraOS Settings: real system/network/display/storage state + real actions.
+# Sections show live values; actions (hostname, DHCP) actually apply.
 set -u
 if [ -z "${DISPLAY:-}" ]; then export DISPLAY=":99"; fi
+show_all() {
+  echo "=== AiraOS Settings ==="
+  echo "--- SYSTEM ---"
+  echo "os:      $(grep PRETTY_NAME /etc/os-release 2>/dev/null | cut -d= -f2- | tr -d '\"' || echo unknown)"
+  echo "kernel:  $(uname -r 2>/dev/null)  arch: $(uname -m 2>/dev/null)"
+  echo "cpu:     $(grep -m1 'model name' /proc/cpuinfo 2>/dev/null | cut -d: -f2- | sed 's/^ //')"
+  echo "ram:     $(awk '/MemTotal/{printf "%d MB",$2/1024}' /proc/meminfo 2>/dev/null) total"
+  echo "hostname: $(cat /etc/hostname 2>/dev/null)"
+  echo "--- DISPLAY ---"
+  echo "server:  $(ps 2>/dev/null | grep -q '[X]org' && echo 'Xorg (visible)' || ([ -n "${DISPLAY:-}" ] && echo "X on $DISPLAY" || echo unknown))"
+  echo "screen:  $(xrandr 2>/dev/null | grep -m1 'current' || echo unknown)"
+  echo "--- NETWORK ---"
+  ip -o -4 addr show 2>/dev/null | head -n 4 || echo "(no addresses)"
+  echo "--- STORAGE ---"
+  df -h /persist / 2>/dev/null | head -n 4 || df -h 2>/dev/null | head -n 4
+}
 menu() {
   while true; do
-    clear
-    echo "=== AiraOS Settings ==="
-    echo "hostname: $(cat /etc/hostname 2>/dev/null)"
-    echo "net: $(ip -o -4 addr show 2>/dev/null | head -n 3 || echo unknown)"
-    echo "display: ${DISPLAY} screen $(xrandr 2>/dev/null | grep -m1 current || echo unknown)"
+    clear 2>/dev/null || true
+    show_all
     echo
     echo "1) set hostname  2) renew DHCP eth0  3) system info  4) quit"
     printf "choice: "; read c
@@ -28,7 +42,7 @@ menu() {
 if [ "${1:-}" = "--noterm" ]; then
   menu
 elif [ -n "${DISPLAY:-}" ] && command -v xterm >/dev/null 2>&1; then
-  exec xterm -T "AiraOS Settings" -e sh "$0" --noterm
+  exec xterm -fa Monospace -fs 10 -bg "#0b1026" -fg "#e8ecff" -sb -T "AiraOS Settings" -geometry 80x26+150+100 -e sh "$0" --noterm
 else
   menu
 fi

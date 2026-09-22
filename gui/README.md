@@ -15,5 +15,7 @@
 - About: aira-about (xmessage, real version)
 - Wallpaper: xsetroot solid Aira blue
 - Session: /usr/bin/aira-session (starts X, JWM, panel, first-run apps)
+- Visible boot: `bash scripts/boot-gui.sh` (GTK window, virtio-gpu/Xorg/JWM);
+  `bash scripts/boot-gui.sh --demo` opens a tiled app showroom on boot.
 - Headless test: /usr/bin/aira-gui-test (Xvfb + jwm + apps + xwininfo + xwd screenshot)
 All actions real. No placeholders. Falls back to text shell if X fails.

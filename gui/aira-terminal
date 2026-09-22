@@ -1,0 +1,8 @@
+#!/bin/sh
+# AiraOS Terminal: intentional-looking shell window (Aira colors, 84x26).
+export DISPLAY="${DISPLAY:-:99}"
+if command -v xterm >/dev/null 2>&1 && [ -n "${DISPLAY:-}" ]; then
+  exec xterm -fa Monospace -fs 10 -bg "#0b1026" -fg "#e8ecff" -sb -T "AiraOS Terminal" -geometry 84x26+60+50 -e "${SHELL:-/bin/sh}"
+else
+  exec "${SHELL:-/bin/sh}"
+fi

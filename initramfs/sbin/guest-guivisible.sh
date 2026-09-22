@@ -59,38 +59,64 @@ else
   echo "GUIVIS INFO: modesetting not in Xorg log (trying vesa/fbdev fallback?)"
   head -n 30 /var/log/Xorg.0.log /tmp/Xorg.log 2>/dev/null
 fi
-echo "--- desktop + real app windows ---"
+echo "--- desktop + real app windows (full set) ---"
 sleep 3
 xwininfo -root 2>/dev/null | head -n 8 || { echo "GUIVIS FAIL: xwininfo root"; PASS=0; }
 xterm -T "AiraVisible-Term" -e sh -c 'sleep 120' &
 TPID=$!
-timeout 90 aira-textedit &
+timeout 120 aira-terminal &
+TTPID=$!
+timeout 120 aira-file-manager &
+FMPID=$!
+timeout 120 aira-sysmon &
+SMPID=$!
+timeout 120 aira-settings &
+STPID=$!
+timeout 120 aira-textedit &
 TEPID=$!
-# Poll until the named xterm window is actually mapped (up to ~90s).
-# Transient map counts are ignored; the named window is the real proof.
-found=0
+timeout 120 aira-pkgcenter &
+PCPID=$!
+timeout 120 aira-netman &
+NMPID=$!
+sh "$(command -v aira-sysinfo)" >/dev/null 2>&1 &
+SYSMSG_PID=$!
+sh "$(command -v aira-about)" >/dev/null 2>&1 &
+APID=$!
+# Poll until the named windows are mapped (up to ~120s).
+# Transient counts are ignored; named windows are the real proof.
+found_term=0
+found_apps=0
 i=0
-while [ "$i" -lt 45 ]; do
+while [ "$i" -lt 60 ]; do
   xwininfo -root -children 2>/dev/null > /tmp/guivisible-windows.log
   n=$(grep -c "0x[0-9a-f]* (" /tmp/guivisible-windows.log 2>/dev/null || true)
   [ -n "$n" ] || n=0
-  if grep -q "AiraVisible-Term" /tmp/guivisible-windows.log 2>/dev/null; then
-    echo "GUIVIS OK: named xterm window mapped after ~$((i*2))s ($n children)"
-    found=1
+  grep -q "AiraVisible-Term" /tmp/guivisible-windows.log 2>/dev/null && found_term=1
+  if grep -q "AiraOS Terminal" /tmp/guivisible-windows.log 2>/dev/null \
+    && grep -q "AiraOS File Manager" /tmp/guivisible-windows.log 2>/dev/null \
+    && grep -q "AiraOS System Monitor" /tmp/guivisible-windows.log 2>/dev/null; then
+    found_apps=1
+  fi
+  if [ "$found_term" = "1" ] && [ "$found_apps" = "1" ] && [ "$n" -ge 6 ]; then
+    echo "GUIVIS OK: app windows mapped after ~$((i*2))s ($n children)"
     break
   fi
   sleep 2
   i=$((i+1))
 done
+# Let windows finish mapping/resizing into their staggered geometries
+# before the screenshot + final listing (JWM under emulation is slow).
+sleep 8
+xwininfo -root -children 2>/dev/null > /tmp/guivisible-windows.log
 cat /tmp/guivisible-windows.log 2>/dev/null | head -n 40
 n=$(grep -c "0x[0-9a-f]* (" /tmp/guivisible-windows.log 2>/dev/null || true)
 [ -n "$n" ] || n=0
-if [ "$found" = "1" ] && [ "$n" -ge 3 ]; then echo "GUIVIS OK: JWM desktop + app windows visible ($n)";
-else echo "GUIVIS FAIL: only $n windows (need >=3 incl. named xterm)"; PASS=0; fi
-if [ "$found" = "1" ]; then
-  echo "GUIVIS OK: real xterm window present"
+if [ "$found_term" = "1" ] && [ "$found_apps" = "1" ] && [ "$n" -ge 6 ]; then echo "GUIVIS OK: JWM desktop + app windows visible ($n)";
+else echo "GUIVIS FAIL: only $n windows (need >=6 incl. named apps)"; PASS=0; fi
+if [ "$found_term" = "1" ] && [ "$found_apps" = "1" ]; then
+  echo "GUIVIS OK: real app windows present (terminal, files, monitor)"
 else
-  echo "GUIVIS FAIL: xterm window missing"; PASS=0
+  echo "GUIVIS FAIL: named app windows missing"; PASS=0
 fi
 xlsclients 2>/dev/null | tee /tmp/guivisible-clients.log | head -n 10
 if grep -qi "xterm" /tmp/guivisible-clients.log 2>/dev/null; then
@@ -110,7 +136,14 @@ fi
 echo "--- doctor (must still pass with visible desktop) ---"
 /usr/bin/aira doctor > /tmp/guivisible-doctor.log 2>&1 && echo "GUIVIS OK: aira doctor PASS" || { echo "GUIVIS FAIL: aira doctor"; cat /tmp/guivisible-doctor.log 2>&1; PASS=0; }
 grep -E "DOCTOR" /tmp/guivisible-doctor.log 2>/dev/null | head -n 2
-kill $TPID $TEPID $SESPID 2>/dev/null
+kill $TPID $TTPID $FMPID $SMPID $STPID $TEPID $PCPID $NMPID $APID ${SYSMSG_PID:-} $SESPID 2>/dev/null
+# desktop must survive app exit
+sleep 1
+if pidof jwm >/dev/null 2>&1 || ps 2>/dev/null | grep -q "[j]wm"; then
+  echo "GUIVIS OK: desktop survives apps"
+else
+  echo "GUIVIS FAIL: jwm died after app close"; PASS=0
+fi
 if [ "$PASS" = "1" ]; then echo "===== GUIVISIBLE PASS =====";
 else echo "===== GUIVISIBLE FAIL ====="; fi
 echo "powering off"

@@ -90,7 +90,8 @@ fi
 # Optional showcase auto-GUI: AFTER /persist mount + services so the
 # session binary (on /persist when using aira-rootfs.img) actually exists.
 # Runs in background so the serial recovery shell stays available.
-if grep -q "aira_gui=1" /proc/cmdline 2>/dev/null; then
+# (Skipped when aira_guidemo=1: the showroom starts its own session.)
+if grep -q "aira_gui=1" /proc/cmdline 2>/dev/null && ! grep -q "aira_guidemo=1" /proc/cmdline 2>/dev/null; then
   echo "[init] aira_gui=1 — preparing auto desktop"
   if [ -x /persist/usr/bin/aira-session ]; then
     echo "[init] auto-starting AiraOS desktop (background)"
@@ -112,6 +113,18 @@ if grep -q "aira_demo=1" /proc/cmdline 2>/dev/null; then
   fi
 fi
 
+if grep -q "aira_guidemo=1" /proc/cmdline 2>/dev/null; then
+  echo "[init] aira_guidemo=1 — desktop showroom (background) + serial shell"
+  if [ -x /persist/usr/bin/aira-session ]; then
+    ( sleep 2; /persist/usr/bin/aira-session --display :0 >/tmp/demo-session.log 2>&1 || true ) &
+    if [ -x /sbin/guest-guidemo.sh ]; then
+      ( sleep 4; /sbin/guest-guidemo.sh >/dev/console 2>&1 || true ) &
+    fi
+  else
+    echo "[init] demo requested but no session found (need -drive aira-rootfs.img)"
+  fi
+fi
+
 # Automated visible-desktop verification (for scripts/boot-gui.sh --append
 # aira_guivisible=1): same automatic desktop path, then proves the VISIBLE
 # Xorg backend + real app windows via serial markers. Poweroffs when done.
@@ -121,6 +134,16 @@ if grep -q "aira_guivisible=1" /proc/cmdline 2>/dev/null; then
     exec /sbin/guest-guivisible.sh
   else
     echo "[init] guest-guivisible.sh missing"
+  fi
+fi
+
+# File-operation verification (browse/create/rename/copy/move/delete).
+if grep -q "aira_fileops=1" /proc/cmdline 2>/dev/null; then
+  echo "[init] aira_fileops=1 detected, running file-operation verification"
+  if [ -x /sbin/guest-fileops.sh ]; then
+    exec /sbin/guest-fileops.sh
+  else
+    echo "[init] guest-fileops.sh missing"
   fi
 fi
 

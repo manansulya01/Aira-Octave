@@ -16,6 +16,14 @@ Desktop + tour (needs the GUI disk image):
 bash scripts/demo.sh --gui
 ```
 
+Visible graphical desktop (QEMU GTK window, Xorg + JWM):
+
+```sh
+bash scripts/boot-gui.sh          # interactive desktop, serial shell on stdio
+bash scripts/boot-gui.sh --demo   # desktop showroom: terminal, files,
+                                  # monitor, settings + about open on boot
+```
+
 Release ISO (exact shipped artifact):
 
 ```sh
@@ -31,10 +39,12 @@ bash scripts/demo.sh --iso
 3. **IPC bus (1:15–2:00).** Run `aira ipc ping hello`, `aira ipc list`,
    `aira doctor`. Doctor prints PASS per area (kernel, services, IPC,
    storage, network, users). All probes are live.
-4. **Desktop (2:00–3:30).** In GUI mode run `aira-session`, open the Aira
-   menu: System Information (shows `[via Aira IPC bus]`), File Manager,
-   System Monitor, Network Manager, Package Center, Text Editor, Terminal.
-   Open a file, check DHCP, list packages — all real backends.
+4. **Desktop (2:00–3:30).** In GUI mode the Aira taskbar (bottom: Aira
+    menu, Terminal/Files launchers, task list, pager, network/disk/load
+    indicators, clock) is already up. Open the Aira menu → Applications:
+    System Information (shows `[via Aira IPC bus]`), File Manager,
+    System Monitor, Network Manager, Package Center, Text Editor, Terminal.
+    Open a file, check DHCP, list packages — all real backends.
 5. **Packages + close (3:30–5:00).** `airapkg search hello`, install the
    sample, run it, remove it. Then `aira demo` for the guided tour and
    `aira shutdown --force` to power off cleanly.

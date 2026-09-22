@@ -19,7 +19,7 @@ menu() {
   done
 }
 if command -v xterm >/dev/null 2>&1 && [ -n "${DISPLAY:-}" ] && [ "${1:-}" != "--noterm" ]; then
-  exec xterm -fa Monospace -fs 10 -T "AiraOS Package Center" -e sh "$0" --noterm
+  exec xterm -fa Monospace -fs 10 -bg "#0b1026" -fg "#e8ecff" -sb -T "AiraOS Package Center" -geometry 84x26+240+150 -e sh "$0" --noterm
 else
   menu
 fi
