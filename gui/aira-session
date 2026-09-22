@@ -1,32 +1,69 @@
 #!/bin/sh
-# aira-session — start AiraOS desktop (Xvfb fallback + Xorg when available).
-# Usage: aira-session [--headless] [--display :99] [--screen 1024x768x24]
+# aira-session — start AiraOS desktop.
+# Auto-selects a VISIBLE Xorg desktop when graphical QEMU hardware is present
+# (virtio-gpu DRM, or std VGA via vesa/fbdev fallback), otherwise uses Xvfb
+# (headless/automated tests). Xvfb is kept as the headless fallback.
+# Usage: aira-session [--auto] [--xorg] [--xvfb] [--headless]
+#                     [--display :0] [--screen 1024x768x24]
 case ":$PATH:" in
   *:/persist/usr/bin:*) ;;
   *) export PATH=/persist/usr/bin:/persist/bin:/persist/sbin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin ;;
 esac
 export LD_LIBRARY_PATH=/persist/usr/lib/x86_64-linux-gnu:/persist/lib/x86_64-linux-gnu:/persist/usr/lib:/persist/lib:$LD_LIBRARY_PATH
-DISP=":99"
+DISP=":0"
 GEOM="1024x768x24"
 HEADLESS="no"
+MODE="auto"
 while [ $# -gt 0 ]; do
   case "$1" in
     --headless) HEADLESS="yes"; shift ;;
-    --display) DISP="${2:-:99}"; shift 2 ;;
+    --display) DISP="${2:-:0}"; shift 2 ;;
+    --screen) GEOM="${2:-1024x768x24}"; shift 2 ;;
+    --auto) MODE="auto"; shift ;;
+    --xorg) MODE="xorg"; shift ;;
+    --xvfb) MODE="xvfb"; shift ;;
+    --help|-h)
+      echo "Usage: aira-session [--auto|--xorg|--xvfb] [--headless] [--display :0] [--screen 1024x768x24]"
+      echo "  --auto: visible Xorg when a GPU is present (virtio-gpu DRM, std-VGA fbdev), else Xvfb"
+      echo "  --xorg/--xvfb: force backend; --headless: return after start (test harness)"
+      exit 0 ;;
     *) shift ;;
   esac
 done
-# Pick X server: real Xorg if virtio GPU present and not forced headless, else Xvfb
+# --- backend selection -------------------------------------------------------
+# Visible Xorg needs a real framebuffer: /dev/dri/card* (virtio-gpu +
+# modesetting, the reliable visible path) or a QEMU std-VGA PCI device
+# (vesa/fbdev fallback). Headless runs (-nographic, no GPU) have neither
+# usable target, so they stay on Xvfb. Explicit --xorg/--xvfb override.
 USE_XVFB="yes"
-if [ "$HEADLESS" = "no" ] && [ -e /dev/dri/card0 ] && command -v Xorg >/dev/null 2>&1; then
+if [ "$MODE" = "xvfb" ]; then
+  USE_XVFB="yes"
+elif [ "$MODE" = "xorg" ]; then
   USE_XVFB="no"
+elif [ "$HEADLESS" = "yes" ]; then
+  # Automated/headless tests: keep the proven invisible path.
+  USE_XVFB="yes"
+else
+  if [ -e /dev/dri/card0 ] || ls /dev/dri/card* >/dev/null 2>&1; then
+    USE_XVFB="no"
+  elif [ -e /dev/fb0 ]; then
+    USE_XVFB="no"
+  else
+    USE_XVFB="yes"
+  fi
 fi
-if ! command -v Xvfb >/dev/null 2>&1 && ! command -v Xorg >/dev/null 2>&1; then
-  echo "aira-session: no X server found (need Xvfb or Xorg)" >&2
-  exit 1
+if [ "$USE_XVFB" = "no" ] && ! command -v Xorg >/dev/null 2>&1; then
+  echo "[aira-session] Xorg requested but not installed, falling back to Xvfb" >&2
+  USE_XVFB="yes"
 fi
 if [ "$USE_XVFB" = "yes" ] && ! command -v Xvfb >/dev/null 2>&1; then
-  USE_XVFB="no"
+  if command -v Xorg >/dev/null 2>&1; then
+    echo "[aira-session] Xvfb missing, trying Xorg" >&2
+    USE_XVFB="no"
+  else
+    echo "aira-session: no X server found (need Xvfb or Xorg)" >&2
+    exit 1
+  fi
 fi
 export DISPLAY="$DISP"
 # Socket dir + stale lock (guest /tmp is fresh tmpfs)
@@ -40,6 +77,14 @@ for t in xkbcomp Xvfb Xorg jwm xterm xmessage xsetroot xwininfo xwd xload mc set
     ln -sf "/persist/usr/bin/$t" "/usr/bin/$t" 2>/dev/null || true
   fi
 done
+# Xorg module tree lives at /persist (Ubuntu-compiled paths are /usr/...).
+# Symlink it into place so the Xorg wrapper + drivers resolve.
+if [ -d /persist/usr/lib/xorg ]; then
+  mkdir -p /usr/lib 2>/dev/null
+  if [ ! -e /usr/lib/xorg ]; then
+    ln -sfn /persist/usr/lib/xorg /usr/lib/xorg 2>/dev/null || true
+  fi
+fi
 # fontconfig expects /etc/fonts + /usr/share/fonts (rootfs at /persist)
 if [ ! -e /etc/fonts/fonts.conf ] && [ -e /persist/etc/fonts/fonts.conf ]; then
   mkdir -p /etc 2>/dev/null
@@ -49,8 +94,13 @@ if [ ! -e /usr/share/fonts/truetype ] && [ -e /persist/usr/share/fonts/truetype 
   mkdir -p /usr/share 2>/dev/null
   ln -sfn /persist/usr/share/fonts /usr/share/fonts 2>/dev/null || true
 fi
+# XKB rules for Xorg autoconfig (rootfs at /persist)
+if [ ! -e /usr/share/X11/xkb/rules/evdev ] && [ -e /persist/usr/share/X11/xkb/rules/evdev ]; then
+  mkdir -p /usr/share/X11 2>/dev/null
+  ln -sfn /persist/usr/share/X11/xkb /usr/share/X11/xkb 2>/dev/null || true
+fi
 if [ "$USE_XVFB" = "yes" ]; then
-  echo "[aira-session] starting Xvfb $DISP $GEOM"
+  echo "[aira-session] starting Xvfb $DISP $GEOM (headless fallback)"
   # Explicit font + xkb paths (rootfs at /persist when booted via initramfs)
   FPDIR="/persist/usr/share/fonts/X11/misc"
   [ -d "$FPDIR" ] || FPDIR="/usr/share/fonts/X11/misc"
@@ -59,9 +109,44 @@ if [ "$USE_XVFB" = "yes" ]; then
   Xvfb "$DISP" -screen 0 "$GEOM" -fp "$FPDIR" -xkbdir "$XKBDIR" +extension RANDR +extension RENDER > /tmp/Xvfb.log 2>&1 &
   XPID=$!
 else
-  echo "[aira-session] starting Xorg $DISP (virtio-gpu)"
-  Xorg "$DISP" > /tmp/Xorg.log 2>&1 &
-  XPID=$!
+  # Visible Xorg path. Prefer modesetting on DRM (virtio-gpu); otherwise let
+  # Xorg autoconfig pick fbdev/vesa (QEMU std VGA).
+  XORG_CONF=""
+  if ls /dev/dri/card* >/dev/null 2>&1; then
+    W="${GEOM%%x*}"; REST="${GEOM#*x}"; H="${REST%%x*}"
+    [ -n "$W" ] || W="1024"; [ -n "$H" ] || H="768"
+    XORG_CONF="/tmp/xorg-visible.conf"
+    cat > "$XORG_CONF" <<EOF
+Section "Device"
+  Identifier "AiraGPU"
+  Driver "modesetting"
+  Option "AccelMethod" "none"
+EndSection
+Section "Monitor"
+  Identifier "AiraMonitor"
+EndSection
+Section "Screen"
+  Identifier "AiraScreen"
+  Device "AiraGPU"
+  Monitor "AiraMonitor"
+  DefaultDepth 24
+  SubSection "Display"
+    Depth 24
+    Modes "${W}x${H}"
+  EndSubSection
+EndSection
+Section "ServerFlags"
+  Option "AutoAddGPU" "off"
+EndSection
+EOF
+    echo "[aira-session] starting Xorg $DISP (modesetting, ${W}x${H})"
+    Xorg "$DISP" -config "$XORG_CONF" > /tmp/Xorg.log 2>&1 &
+    XPID=$!
+  else
+    echo "[aira-session] starting Xorg $DISP (autoconfig: fbdev/vesa fallback)"
+    Xorg "$DISP" > /tmp/Xorg.log 2>&1 &
+    XPID=$!
+  fi
 fi
 # Wait for socket (generous: QEMU TCG is slow)
 for i in $(seq 1 30); do
@@ -78,6 +163,11 @@ if [ ! -S "/tmp/.X11-unix/X${DISP#:}" ]; then
   cat /tmp/Xvfb.log /tmp/Xorg.log 2>/dev/null >&2
   kill $XPID 2>/dev/null
   exit 1
+fi
+if [ "$USE_XVFB" = "no" ]; then
+  echo "[aira-session] visible Xorg display ready on $DISPLAY"
+else
+  echo "[aira-session] headless Xvfb display ready on $DISPLAY"
 fi
 # Wallpaper (Aira blue)
 xsetroot -solid "#1d2a6b" 2>/dev/null || true

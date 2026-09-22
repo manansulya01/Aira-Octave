@@ -9,8 +9,8 @@
 | virtio-blk (/dev/vda) | VERIFIED | UNTESTED | ext4 persistence 2-boot verified |
 | ata_piix CD-ROM | VERIFIED | UNTESTED | sr0 in boot log |
 | i8042 kbd/mouse | VERIFIED | UNTESTED | AT kbd + PS/2 mouse in boot log; X input via XTEST (headless) |
-| virtio-gpu DRM | PARTIALLY VERIFIED | UNTESTED | driver built-in (VIRTIO_GPU=y); GUI tested via Xvfb, not via /dev/dri path |
-| virtio-input | UNTESTED | UNTESTED | driver built-in; headless test uses XTEST, not evdev |
+| virtio-gpu DRM | VERIFIED | UNTESTED | driver built-in (VIRTIO_GPU=y); Xorg modesetting 1024x768@60 depth 24 on /dev/dri/card0, JWM + xterm + Aira apps verified visible via screendump + xwd (see scripts/boot-gui.sh) |
+| virtio-input | VERIFIED | UNTESTED | driver built-in; Xorg libinput driver staged; cold-plugged virtio keyboard/mouse enumerated by Xorg |
 | Bochs VGA | UNSUPPORTED | N/A | no BOCHS DRM (by design, use virtio-gpu for real Xorg) |
 | USB/audio/PM | UNTESTED | UNTESTED | drivers present per config; no tests |
 

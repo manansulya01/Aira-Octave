@@ -1,5 +1,11 @@
 # AiraOS-Octave GUI (X11 + JWM, no compilation)
-- X server: Xvfb (headless, always works) + Xorg modesetting (virtio-gpu, when --gpu virtio)
+- X server: Xorg modesetting (VISIBLE desktop on virtio-gpu, auto-selected
+  when /dev/dri/card* exists) with vesa/fbdev fallback for std VGA, +
+  Xvfb (headless fallback for automated tests). See `aira-session --help`
+  flags: `--auto` (default), `--xorg`, `--xvfb`, `--headless`.
+- Visible boot: `bash scripts/boot-gui.sh` (QEMU `-vga virtio` + GTK window,
+  serial recovery shell stays on stdio). `-vga std` (Bochs VBE) has no
+  driver in this kernel/X stack, so it cannot show the desktop.
 - WM: JWM (real window management: focus, move, close, taskbar, pager)
 - Panel/clock/launcher: JWM tray + root menu (Aira branding via /etc/jwm/aira-jwmrc)
 - Terminal: xterm (real shell)

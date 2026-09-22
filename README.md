@@ -8,6 +8,7 @@ release.
 ## Quick start
 - Build: `bash scripts/build-samples.sh`, `bash scripts/build-initramfs.sh`, `bash scripts/build-gui.sh`, `bash scripts/build-rootfs.sh 512`
 - Boot text: `bash scripts/boot-qemu.sh --mem 512M --timeout 35 --log logs/boot.log`
+- Boot visible desktop: `bash scripts/boot-gui.sh` (QEMU GTK window, virtio-gpu + Xorg/JWM; serial shell stays on stdio)
 - Boot GUI/persist: add `--drive aira-rootfs.img --mem 1G`, in guest run `aira-session`
 - Demo: `bash scripts/demo.sh` (or `scripts/demo.sh --iso --gui`) — see `SHOWCASE_GUIDE.md`
 - IPC: in guest, `aira ipc ping hello`, `aira ipc list`, `aira doctor`

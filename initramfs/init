@@ -112,6 +112,18 @@ if grep -q "aira_demo=1" /proc/cmdline 2>/dev/null; then
   fi
 fi
 
+# Automated visible-desktop verification (for scripts/boot-gui.sh --append
+# aira_guivisible=1): same automatic desktop path, then proves the VISIBLE
+# Xorg backend + real app windows via serial markers. Poweroffs when done.
+if grep -q "aira_guivisible=1" /proc/cmdline 2>/dev/null; then
+  echo "[init] aira_guivisible=1 detected, running visible-desktop verification"
+  if [ -x /sbin/guest-guivisible.sh ]; then
+    exec /sbin/guest-guivisible.sh
+  else
+    echo "[init] guest-guivisible.sh missing"
+  fi
+fi
+
 # Automated in-guest test mode (for scripts/test-*.sh): cmdline contains aira_autotest=1
 if grep -q "aira_autotest=1" /proc/cmdline 2>/dev/null; then
   echo "[init] aira_autotest=1 detected, running guest autotest"
