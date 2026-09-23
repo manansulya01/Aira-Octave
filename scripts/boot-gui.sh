@@ -57,7 +57,9 @@ if [ -n "$APPEND_EXTRA" ]; then APPEND="$APPEND $APPEND_EXTRA"; fi
 QEMU_ARGS=(-kernel "$KERNEL" -initrd "$INITRAMFS" -append "$APPEND" -m "$MEM" -no-reboot)
 # Visible GPU the guest kernel already drives (DRM_VIRTIO_GPU + Xorg modesetting).
 QEMU_ARGS+=(-vga virtio)
-QEMU_ARGS+=(-device virtio-keyboard-pci -device virtio-mouse-pci)
+# GTK display forwards input to PS/2 (i8042) by default; virtio input devices
+# are not wired to the GTK backend. Rely on built-in PS/2 keyboard/mouse.
+# QEMU_ARGS+=(-device virtio-keyboard-pci -device virtio-mouse-pci)
 if [ "$DRIVE" != "none" ]; then
   QEMU_ARGS+=(-drive "file=$DRIVE,if=virtio,format=raw")
 fi

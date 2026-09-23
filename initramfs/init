@@ -90,8 +90,8 @@ fi
 # Optional showcase auto-GUI: AFTER /persist mount + services so the
 # session binary (on /persist when using aira-rootfs.img) actually exists.
 # Runs in background so the serial recovery shell stays available.
-# (Skipped when aira_guidemo=1: the showroom starts its own session.)
-if grep -q "aira_gui=1" /proc/cmdline 2>/dev/null && ! grep -q "aira_guidemo=1" /proc/cmdline 2>/dev/null; then
+# (Skipped when aira_guidemo=1 or test modes: the test starts its own session.)
+if grep -q "aira_gui=1" /proc/cmdline 2>/dev/null && ! grep -q "aira_guidemo=1" /proc/cmdline 2>/dev/null && ! grep -q "aira_inputtest=1" /proc/cmdline 2>/dev/null && ! grep -q "aira_guivisible=1" /proc/cmdline 2>/dev/null; then
   echo "[init] aira_gui=1 — preparing auto desktop"
   if [ -x /persist/usr/bin/aira-session ]; then
     echo "[init] auto-starting AiraOS desktop (background)"
@@ -134,6 +134,16 @@ if grep -q "aira_guivisible=1" /proc/cmdline 2>/dev/null; then
     exec /sbin/guest-guivisible.sh
   else
     echo "[init] guest-guivisible.sh missing"
+  fi
+fi
+
+# Input verification (Xorg keyboard/pointer + real injected events).
+if grep -q "aira_inputtest=1" /proc/cmdline 2>/dev/null; then
+  echo "[init] aira_inputtest=1 detected, running input verification"
+  if [ -x /sbin/guest-inputtest.sh ]; then
+    exec /sbin/guest-inputtest.sh
+  else
+    echo "[init] guest-inputtest.sh missing"
   fi
 fi
 

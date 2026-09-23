@@ -111,12 +111,64 @@ if [ "$USE_XVFB" = "yes" ]; then
 else
   # Visible Xorg path. Prefer modesetting on DRM (virtio-gpu); otherwise let
   # Xorg autoconfig pick fbdev/vesa (QEMU std VGA).
+  # Input: Xorg's udev backend finds nothing in this minimal guest (no udev
+  # daemon), and the libinput driver refuses non-udev-initialized nodes, so
+  # discover evdev nodes via sysfs and pin them with static evdev(4)
+  # InputDevice sections (the evdev driver opens /dev/input/eventN
+  # directly, no udev needed). Attach EVERY keyboard and pointer found
+  # (AT/PS/2 + virtio): QEMU/GTK/monitor may deliver through any of them.
+  KBD_LIST=""; PTR_LIST=""
+  for ev in /dev/input/event*; do
+    [ -e "$ev" ] || continue
+    n="${ev##*/}"; num="${n#event}"
+    sys="/sys/class/input/event$num/device"
+    nm="$(cat "$sys/name" 2>/dev/null || echo ?)"
+    case "$nm" in
+      *[Kk]eyboard*)
+        case "$nm" in
+          *AT*|*Translated*) KBD_LIST="$ev $KBD_LIST" ;;
+          *) KBD_LIST="$KBD_LIST $ev" ;;
+        esac
+        ;;
+    esac
+    case "$nm" in
+      *[Mm]ouse*|*PS/2*)
+        case "$nm" in
+          *PS/2*) PTR_LIST="$ev $PTR_LIST" ;;
+          *) PTR_LIST="$PTR_LIST $ev" ;;
+        esac
+        ;;
+    esac
+  done
+  # Capability fallback if name matching found nothing.
+  if [ -z "$KBD_LIST" ] || [ -z "$PTR_LIST" ]; then
+    for ev in /dev/input/event*; do
+      [ -e "$ev" ] || continue
+      n="${ev##*/}"; num="${n#event}"
+      evcap="$(cat /sys/class/input/event$num/device/capabilities/ev 2>/dev/null || echo 0)"
+      evcap="${evcap%% *}"
+      if [ "$((0x$evcap & 2))" -ne 0 ] 2>/dev/null; then
+        keycap="$(cat /sys/class/input/event$num/device/capabilities/key 2>/dev/null || echo)"
+        case "$keycap" in *[!0\ ]*)
+          case " $KBD_LIST " in *" $ev "*) ;; *) KBD_LIST="$KBD_LIST $ev" ;; esac ;;
+        esac
+      fi
+      if [ "$((0x$evcap & 12))" -ne 0 ] 2>/dev/null; then
+        case " $PTR_LIST " in *" $ev "*) ;; *) PTR_LIST="$PTR_LIST $ev" ;; esac
+      fi
+    done
+  fi
+  # Cap at two of each (primary + spare); AT/PS/2 were prepended = primary.
+  KBD_LIST="$(echo $KBD_LIST | cut -d' ' -f1-2)"
+  PTR_LIST="$(echo $PTR_LIST | cut -d' ' -f1-2)"
+  echo "[aira-session] input nodes: kbd=[$KBD_LIST] ptr=[$PTR_LIST]"
   XORG_CONF=""
   if ls /dev/dri/card* >/dev/null 2>&1; then
     W="${GEOM%%x*}"; REST="${GEOM#*x}"; H="${REST%%x*}"
     [ -n "$W" ] || W="1024"; [ -n "$H" ] || H="768"
     XORG_CONF="/tmp/xorg-visible.conf"
-    cat > "$XORG_CONF" <<EOF
+    {
+    cat <<EOF
 Section "Device"
   Identifier "AiraGPU"
   Driver "modesetting"
@@ -139,6 +191,53 @@ Section "ServerFlags"
   Option "AutoAddGPU" "off"
 EndSection
 EOF
+    if [ -n "$KBD_LIST" ]; then
+      i=0
+      for kn in $KBD_LIST; do
+        i=$((i+1))
+        cat <<EOF
+Section "InputDevice"
+  Identifier "AiraKeyboard$i"
+  Driver "evdev"
+  Option "Device" "$kn"
+  Option "XkbLayout" "us"
+  Option "XkbRules" "evdev"
+EndSection
+EOF
+      done
+    fi
+    if [ -n "$PTR_LIST" ]; then
+      i=0
+      for pn in $PTR_LIST; do
+        i=$((i+1))
+        cat <<EOF
+Section "InputDevice"
+  Identifier "AiraPointer$i"
+  Driver "evdev"
+  Option "Device" "$pn"
+EndSection
+EOF
+      done
+    fi
+    if [ -n "$KBD_LIST" ] || [ -n "$PTR_LIST" ]; then
+      {
+      echo 'Section "ServerLayout"'
+      echo '  Identifier "AiraLayout"'
+      echo '  Screen "AiraScreen"'
+      i=0
+      for kn in $KBD_LIST; do
+        i=$((i+1))
+        echo "  InputDevice \"AiraKeyboard$i\" \"CoreKeyboard\""
+      done
+      i=0
+      for pn in $PTR_LIST; do
+        i=$((i+1))
+        echo "  InputDevice \"AiraPointer$i\" \"CorePointer\""
+      done
+      echo 'EndSection'
+      }
+    fi
+    } > "$XORG_CONF"
     echo "[aira-session] starting Xorg $DISP (modesetting, ${W}x${H})"
     Xorg "$DISP" -config "$XORG_CONF" > /tmp/Xorg.log 2>&1 &
     XPID=$!
@@ -166,8 +265,14 @@ if [ ! -S "/tmp/.X11-unix/X${DISP#:}" ]; then
 fi
 if [ "$USE_XVFB" = "no" ]; then
   echo "[aira-session] visible Xorg display ready on $DISPLAY"
+  echo "=== /var/log/Xorg.0.log ===" >&2
+  cat /var/log/Xorg.0.log >&2 2>/dev/null
+  echo "=== END /var/log/Xorg.0.log ===" >&2
 else
   echo "[aira-session] headless Xvfb display ready on $DISPLAY"
+  echo "=== Xvfb.log ===" >&2
+  cat /tmp/Xvfb.log >&2 2>/dev/null
+  echo "=== END Xvfb.log ===" >&2
 fi
 # Wallpaper: Aira blue with a subtle woven texture (falls back to solid).
 xsetroot -mod 4 4 -fg "#24338a" -bg "#1d2a6b" 2>/dev/null || \
