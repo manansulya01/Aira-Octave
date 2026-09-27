@@ -1,40 +1,93 @@
 #!/bin/sh
-# AiraOS Network Manager: real interface/IP state + DHCP renew (xterm UI or --once dump).
-export DISPLAY="${DISPLAY:-:99}"
-once() {
-  echo "=== AiraOS Network Manager ==="
-  echo "hostname: $(hostname 2>/dev/null)"
-  echo "--- interfaces ---"
-  ip -o link show 2>/dev/null || ifconfig -a 2>/dev/null || echo "(no interface tool)"
-  echo "--- addresses ---"
-  ip -o -4 addr show 2>/dev/null || echo "(no addresses)"
-  echo "--- routes ---"
-  ip route 2>/dev/null || echo "(no routes)"
-  echo "--- dns ---"
-  cat /etc/resolv.conf 2>/dev/null || echo "(no /etc/resolv.conf)"
-}
-menu() {
-  while true; do
-    clear 2>/dev/null
-    once
-    echo; echo "1) renew DHCP eth0  2) show again  3) quit"
-    printf "choice: "; read c
-    case "$c" in
-      1) for _s in /usr/share/udhcpc/default.script /etc/udhcpc/default.script; do
-           if [ -x "$_s" ]; then _SCRIPT="$_s"; break; fi
-         done
-         if [ -n "${_SCRIPT:-}" ]; then udhcpc -i eth0 -n -q -t 3 -s "$_SCRIPT" 2>&1 | head -n 10;
-         else udhcpc -i eth0 -n -q -t 3 2>&1 | head -n 10; fi
-         printf "enter..."; read x ;;
-      2) continue ;;
-      3|q) break ;;
-    esac
-  done
-}
-if [ "${1:-}" = "--once" ]; then once; exit 0; fi
-if [ "${1:-}" = "--menu" ]; then menu; exit 0; fi
-if command -v xterm >/dev/null 2>&1 && [ -n "${DISPLAY:-}" ]; then
-  exec xterm -fa Monospace -fs 10 -bg "#0b1026" -fg "#e8ecff" -sb -T "AiraOS Network Manager" -geometry 80x26+210+130 -e sh "$0" --menu
+# AiraOS Network Manager - real interface/IP state + DHCP renew + diagnostics.
+export DISPLAY="${DISPLAY:-:0}"
+
+if [ "${1:-}" = "--once" ]; then
+    echo "=== AiraOS Network Manager ==="
+    echo "hostname: $(hostname 2>/dev/null)"
+    echo "--- interfaces ---"
+    ip -o link show 2>/dev/null | while IFS= read -r line; do
+        echo "  $line"
+    done || ifconfig -a 2>/dev/null || echo "  (no interface tool)"
+    echo "--- addresses ---"
+    ip -o -4 addr show 2>/dev/null | while IFS= read -r line; do
+        echo "  $line"
+    done || echo "  (no addresses)"
+    echo "--- routes ---"
+    ip route 2>/dev/null | while IFS= read -r line; do
+        echo "  $line"
+    done || echo "  (no routes)"
+    echo "--- dns ---"
+    cat /etc/resolv.conf 2>/dev/null | while IFS= read -r line; do
+        echo "  $line"
+    done || echo "  (no /etc/resolv.conf)"
+    echo "--- statistics ---"
+    cat /proc/net/dev 2>/dev/null | head -n 10 || echo "  (no statistics)"
+    exit 0
+fi
+
+if [ "${1:-}" = "--menu" ]; then
+    while true; do
+        clear
+        "$0" --once
+        echo
+        echo "Actions:"
+        echo "  1) Renew DHCP (eth0)    2) Show interface details    3) Ping test"
+        echo "  4) Show routing table     5) Show DNS config           q) Quit"
+        echo
+        printf "Choice: "
+        read choice
+        case "$choice" in
+            1)
+                for _s in /usr/share/udhcpc/default.script /etc/udhcpc/default.script; do
+                    if [ -x "$_s" ]; then _SCRIPT="$_s"; break; fi
+                done
+                echo "Renewing DHCP on eth0..."
+                if [ -n "${_SCRIPT:-}" ]; then
+                    udhcpc -i eth0 -n -q -t 3 -s "$_SCRIPT" 2>&1 | head -n 15
+                else
+                    udhcpc -i eth0 -n -q -t 3 2>&1 | head -n 15
+                fi
+                printf "Press Enter..."; read _
+                ;;
+            2)
+                echo "--- Interface Details ---"
+                ip -d link show 2>/dev/null | head -n 30
+                printf "Press Enter..."; read _
+                ;;
+            3)
+                echo "--- Ping Test ---"
+                ping -c 4 8.8.8.8 2>&1 | tail -n 10
+                echo
+                ping -c 4 1.1.1.1 2>&1 | tail -n 10
+                printf "Press Enter..."; read _
+                ;;
+            4)
+                echo "--- Routing Table ---"
+                ip route show 2>/dev/null
+                printf "Press Enter..."; read _
+                ;;
+            5)
+                echo "--- DNS Configuration ---"
+                cat /etc/resolv.conf 2>/dev/null
+                printf "Press Enter..."; read _
+                ;;
+            q|Q) break ;;
+        esac
+    done
+    exit 0
+fi
+
+# Graphical mode
+if [ -n "${DISPLAY:-}" ] && command -v xterm >/dev/null 2>&1; then
+    exec xterm \
+        -fa "Monospace" -fs 10 \
+        -bg "#0b1026" -fg "#e8ecff" \
+        -sb -sl 500 \
+        -T "AiraOS Network Manager" \
+        -geometry 90x36+210+130 \
+        -name aira-netman \
+        -e "$0" --menu
 else
-  once
+    "$0" --once
 fi

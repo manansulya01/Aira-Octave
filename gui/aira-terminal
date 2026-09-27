@@ -1,8 +1,29 @@
 #!/bin/sh
-# AiraOS Terminal: intentional-looking shell window (Aira colors, 84x26).
-export DISPLAY="${DISPLAY:-:99}"
-if command -v xterm >/dev/null 2>&1 && [ -n "${DISPLAY:-}" ]; then
-  exec xterm -fa Monospace -fs 10 -bg "#0b1026" -fg "#e8ecff" -sb -T "AiraOS Terminal" -geometry 84x26+60+50 -e "${SHELL:-/bin/sh}"
-else
-  exec "${SHELL:-/bin/sh}"
-fi
+# AiraOS Terminal - improved terminal with Aira styling, proper keyboard handling,
+# copy/paste support, multiple window support, and shell environment integration.
+export DISPLAY="${DISPLAY:-:0}"
+
+# Determine shell
+SHELL="${SHELL:-/bin/sh}"
+[ -x "$SHELL" ] || SHELL="/bin/sh"
+
+# Working directory
+CWD="${1:-$HOME}"
+
+# Launch xterm with Aira styling and proper terminal features
+exec xterm \
+    -fa "Monospace" -fs 11 \
+    -bg "#0b1026" -fg "#e8ecff" \
+    -sb -sl 2000 -rightbar \
+    -T "AiraOS Terminal" \
+    -geometry 90x30+60+50 \
+    -name aira-terminal \
+    -xrm "XTerm*selectToClipboard: true" \
+    -xrm "XTerm*VT100*translations: #override \\n\
+        Ctrl Shift <Key>C: copy-selection(CLIPBOARD) \\n\
+        Ctrl Shift <Key>V: insert-selection(CLIPBOARD, PRIMARY) \\n\
+        Shift <Key>Insert: insert-selection(CLIPBOARD, PRIMARY) \\n\
+        Ctrl Shift <Key>X: cut-selection(CLIPBOARD) \\n\
+        <Btn1Up>: select-end(CLIPBOARD, PRIMARY) \\n\
+        <Btn2Up>: insert-selection(CLIPBOARD, PRIMARY)" \
+    -e sh -c "cd '$CWD' && exec $SHELL"

@@ -1,0 +1,185 @@
+#!/bin/sh
+# AiraOS SDK - development environment setup and tools.
+# Usage: aira-sdk {setup|build|package|clean|info}
+
+set -u
+
+CMD="${1:-info}"
+SDK_DIR="/opt/aira-sdk"
+BUILD_DIR="/tmp/aira-build"
+
+usage() {
+    cat <<'EOF'
+aira-sdk — AiraOS Development SDK
+  aira-sdk setup                 Install SDK headers, libraries, tools
+  aira-sdk build <dir>           Build project in directory
+  aira-sdk package <dir>         Create .apkg from build directory
+  aira-sdk clean                 Clean build directory
+  aira-sdk info                  Show SDK information
+
+Environment:
+  AIRA_SDK_DIR    SDK installation directory (default: /opt/aira-sdk)
+  CC              C compiler (default: gcc)
+  CFLAGS          Compiler flags
+  LDFLAGS         Linker flags
+EOF
+}
+
+setup_sdk() {
+    echo "[sdk] Setting up AiraOS SDK in $SDK_DIR..."
+    mkdir -p "$SDK_DIR"/{include,lib,bin,share,examples}
+    
+    # Copy kernel headers
+    if [ -d /usr/include ]; then
+        cp -r /usr/include/* "$SDK_DIR/include/" 2>/dev/null
+    fi
+    if [ -d /lib/modules/$(uname -r)/build/include ]; then
+        cp -r /lib/modules/$(uname -r)/build/include/* "$SDK_DIR/include/" 2>/dev/null
+    fi
+    
+    # Copy libraries
+    if [ -d /usr/lib ]; then
+        cp -r /usr/lib/* "$SDK_DIR/lib/" 2>/dev/null
+    fi
+    if [ -d /lib ]; then
+        cp -r /lib/* "$SDK_DIR/lib/" 2>/dev/null
+    fi
+    
+    # Create pkg-config files
+    mkdir -p "$SDK_DIR/lib/pkgconfig"
+    
+    # Create example project
+    cat > "$SDK_DIR/examples/hello.c" <<'HELLO_EOF'
+#include <stdio.h>
+#include <aira.h>
+
+int main() {
+    printf("Hello from AiraOS!\n");
+    printf("Version: %s\n", AIRA_VERSION);
+    return 0;
+}
+HELLO_EOF
+    
+    # Create aira.h header
+    cat > "$SDK_DIR/include/aira.h" <<'AIRA_H_EOF'
+#ifndef AIRA_H
+#define AIRA_H
+
+#define AIRA_VERSION "1.5.0"
+
+// IPC client functions
+int aira_ipc_call(const char *service, const char *method, const char *args, char **result);
+int aira_ipc_emit(const char *topic, const char *message);
+
+// Service functions
+int aira_service_start(const char *name);
+int aira_service_stop(const char *name);
+int aira_service_status(const char *name);
+
+// System info
+const char *aira_get_version(void);
+const char *aira_get_kernel_version(void);
+
+#endif
+AIRA_H_EOF
+    
+    # Create simple Makefile template
+    cat > "$SDK_DIR/examples/Makefile" <<'MAKE_EOF'
+CC = gcc
+CFLAGS = -I/opt/aira-sdk/include -Wall -Wextra -O2
+LDFLAGS = -L/opt/aira-sdk/lib
+TARGET = hello
+
+all: $(TARGET)
+
+$(TARGET): hello.c
+	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
+
+clean:
+	rm -f $(TARGET)
+
+install:
+	cp $(TARGET) /usr/local/bin/
+
+package:
+	@echo "Use aira-sdk package to create .apkg"
+MAKE_EOF
+    
+    echo "[sdk] SDK setup complete"
+    echo "Headers: $SDK_DIR/include"
+    echo "Libraries: $SDK_DIR/lib"
+    echo "Examples: $SDK_DIR/examples"
+}
+
+build_project() {
+    PROJ_DIR="${2:-$BUILD_DIR}"
+    [ -d "$PROJ_DIR" ] || { echo "Project directory not found: $PROJ_DIR"; exit 1; }
+    
+    echo "[sdk] Building project in $PROJ_DIR..."
+    cd "$PROJ_DIR"
+    
+    if [ -f Makefile ]; then
+        make
+    elif [ -f meson.build ]; then
+        meson setup builddir && ninja -C builddir
+    elif [ -f CMakeLists.txt ]; then
+        cmake -B build && cmake --build build
+    else
+        echo "No build system detected (Makefile, meson.build, or CMakeLists.txt)"
+        exit 1
+    fi
+}
+
+package_project() {
+    PROJ_DIR="${2:-$BUILD_DIR}"
+    OUT="${3:-/tmp/aira-package.apkg}"
+    [ -d "$PROJ_DIR" ] || { echo "Project directory not found: $PROJ_DIR"; exit 1; }
+    
+    echo "[sdk] Creating package from $PROJ_DIR..."
+    
+    # Create PKGINFO
+    NAME=$(basename "$PROJ_DIR")
+    cat > "$PROJ_DIR/PKGINFO" <<EOF
+NAME="$NAME"
+VERSION="1.0.0"
+DESC="AiraOS application: $NAME"
+DEPS=""
+EOF
+    
+    airapkg build "$PROJ_DIR" "$OUT"
+}
+
+clean_build() {
+    echo "[sdk] Cleaning $BUILD_DIR..."
+    rm -rf "$BUILD_DIR"
+    mkdir -p "$BUILD_DIR"
+}
+
+show_info() {
+    echo "=== AiraOS SDK ==="
+    echo "SDK Directory: $SDK_DIR"
+    echo "Build Directory: $BUILD_DIR"
+    echo "Compiler: ${CC:-gcc}"
+    echo "CFLAGS: ${CFLAGS:-}"
+    echo "LDFLAGS: ${LDFLAGS:-}"
+    echo
+    if [ -d "$SDK_DIR/include" ]; then
+        echo "Headers installed: $(find $SDK_DIR/include -name '*.h' | wc -l)"
+    fi
+    if [ -d "$SDK_DIR/lib" ]; then
+        echo "Libraries installed: $(find $SDK_DIR/lib -name '*.so*' -o -name '*.a' | wc -l)"
+    fi
+    echo
+    echo "Available tools:"
+    which gcc make cmake meson ninja pkg-config 2>/dev/null | sed 's/^/  /'
+}
+
+case "$CMD" in
+    setup) setup_sdk ;;
+    build) build_project "$@" ;;
+    package) package_project "$@" ;;
+    clean) clean_build ;;
+    info) show_info ;;
+    help|--help|-h) usage ;;
+    *) echo "Unknown command: $CMD"; usage; exit 1 ;;
+esac

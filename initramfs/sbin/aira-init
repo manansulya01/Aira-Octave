@@ -1,16 +1,27 @@
 #!/bin/sh
 # AiraOS service manager (lightweight, real supervision via pidfiles + run-parts style).
-# Usage: aira-init boot|shutdown|start|stop|restart|status|enable|disable [svc]
+# Usage: aira-init boot|shutdown|start|stop|restart|status|enable|disable|logs|diag [svc]
 # Service def: /etc/aira/services/<name>.conf
-#   CMD=...            command line to run
+#   CMD=...            command line to run (root daemons are exec'd, so
+#                      prefer a plain command there; unprivileged daemons
+#                      run via a supervisable shell, full syntax allowed)
 #   TYPE=daemon|oneshot (default daemon)
 #   DEPS=...           space-separated service dependencies
 #   USER=root|...      unprivileged execution via su (oneshot or daemon)
 #   DESC=...           human description
-# Daemon CMD must be a plain command (no shell operators): it is exec'd so the
-# pidfile PID is the daemon itself (no wrapper orphans, no duplicate starts).
-# Oneshot CMD may use full shell syntax; it runs synchronously at start.
-# Boot starts only services linked in /etc/aira/enabled/<name> -> ../services/<name>.conf
+#   RESPAWN=yes|no     restart on failure (default yes for daemons)
+#   RESPAWN_DELAY=N    seconds between respawns (default 5)
+#   RESPAWN_MAX=N      max respawns in window (default 5)
+#   RESPAWN_WINDOW=N   time window for max respawns (default 60s)
+#   NICE=N             nice level (-20 to 19)
+#   LIMIT_CPU=N        CPU time limit (seconds)
+#   LIMIT_MEM=N        memory limit (KB)
+#   LIMIT_FSIZE=N      file size limit (KB)
+#   LIMIT_NOFILE=N     max open files
+#   UMASK=NNN          umask for service
+#   ENV=...            environment variables (KEY=VAL space-separated)
+#   BEFORE=...         services that should start after this one
+#   AFTER=...          services that should start before this one (alias for DEPS)
 set -u
 ROOT_FS="/"
 SVC_DIR="/etc/aira/services"
@@ -23,12 +34,16 @@ svc_file() { echo "$SVC_DIR/$1.conf"; }
 pid_file() { echo "$RUN_DIR/$1.pid"; }
 done_file() { echo "$RUN_DIR/$1.done"; }
 failed_file() { echo "$RUN_DIR/$1.failed"; }
+respawn_file() { echo "$RUN_DIR/$1.respawn"; }
 
 load_svc() {
   local name="$1" f
   f="$(svc_file "$name")"
   [ -f "$f" ] || { echo "unknown service: $name" >&2; return 1; }
-  CMD=""; DEPS=""; DESC=""; RESPAWN="no"; USER="root"; TYPE="daemon"
+  CMD=""; DEPS=""; DESC=""; RESPAWN="yes"; USER="root"; TYPE="daemon"
+  RESPAWN_DELAY="5"; RESPAWN_MAX="5"; RESPAWN_WINDOW="60"
+  NICE="0"; LIMIT_CPU=""; LIMIT_MEM=""; LIMIT_FSIZE=""; LIMIT_NOFILE=""
+  UMASK="022"; ENV=""; BEFORE=""; AFTER=""
   # shellcheck disable=SC1090
   . "$f"
   [ -n "${CMD:-}" ] || { echo "service $name has no CMD" >&2; return 1; }
@@ -45,16 +60,23 @@ is_running() {
   [ -n "$pid" ] && kill -0 "$pid" 2>/dev/null
 }
 
-# failed = pidfile exists but process is dead (crashed/killed, not stopped cleanly)
 is_failed() {
   local name="$1"
   [ -f "$(pid_file "$name")" ] || return 1
   ! is_running "$name"
 }
 
+apply_limits() {
+  # Apply resource limits for the current process
+  [ -n "$LIMIT_CPU" ] && ulimit -t "$LIMIT_CPU" 2>/dev/null
+  [ -n "$LIMIT_MEM" ] && ulimit -v "$LIMIT_MEM" 2>/dev/null
+  [ -n "$LIMIT_FSIZE" ] && ulimit -f "$LIMIT_FSIZE" 2>/dev/null
+  [ -n "$LIMIT_NOFILE" ] && ulimit -n "$LIMIT_NOFILE" 2>/dev/null
+  [ -n "$NICE" ] && [ "$NICE" != "0" ] && renice "$NICE" $$ 2>/dev/null
+  [ -n "$UMASK" ] && umask "$UMASK"
+}
+
 run_cmd_as() {
-  # run_cmd_as <user> <logname> <cmd> — synchronous, returns CMD exit status.
-  # Args (not globals): load_svc/pid state must survive recursive dep calls.
   local user="$1" logname="$2" runcmd="$3"
   if [ "$user" = "root" ]; then
     sh -c "$runcmd" >>"$LOG_DIR/$logname.log" 2>&1
@@ -64,13 +86,12 @@ run_cmd_as() {
 }
 
 do_start_one() {
-  # NOTE: load_svc sets GLOBALS; copy to locals FIRST because dependency
-  # recursion re-enters load_svc and would otherwise clobber our own CMD
-  # (historical bug: klog's dep call overwrote $CMD, launching syslogd twice
-  # and never starting klogd).
-  local name="$1" dep rc _cmd _deps _user _type
+  local name="$1" dep rc _cmd _deps _user _type _respawn _delay _max _window _nice _limits _umask _env
   load_svc "$name" || return 1
   _cmd="$CMD"; _deps="$DEPS"; _user="${USER:-root}"; _type="${TYPE:-daemon}"
+  _respawn="${RESPAWN:-yes}"; _delay="${RESPAWN_DELAY:-5}"; _max="${RESPAWN_MAX:-5}"; _window="${RESPAWN_WINDOW:-60}"
+  _nice="${NICE:-0}"; _umask="${UMASK:-022}"; _env="${ENV:-}"
+
   if [ "$_type" = "oneshot" ]; then
     for dep in ${_deps:-}; do
       if ! is_running "$dep"; then
@@ -91,28 +112,72 @@ do_start_one() {
     echo "$name: failed (rc $rc)" >&2
     return 1
   fi
+
   if is_running "$name"; then echo "$name: already running"; return 0; fi
   if is_failed "$name"; then echo "$name: clearing stale pid (previous failure)"; rm -f "$(pid_file "$name")"; fi
+
   for dep in ${_deps:-}; do
     if ! is_running "$dep"; then
       echo "$name: starting dependency $dep"
       do_start_one "$dep" || { echo "$name: dependency $dep failed" >&2; return 1; }
     fi
   done
-  # exec: pidfile PID IS the daemon (no wrapper left to orphan on stop).
+
+  echo "$name: starting (as $_user): $_cmd"
+
+  # Baseline semantics (do not regress guest-autotest crash/recovery):
+  # root daemons are exec'd so the pidfile PID is the daemon itself
+  # (no wrapper orphans); unprivileged daemons run via su -c without
+  # exec so shell-operator CMDs (e.g. "touch X && sleep 30") keep a
+  # supervisable shell alive, exactly as the proven baseline did.
   if [ "$_user" = "root" ]; then
-    echo "$name: starting (as root): $_cmd"
     # shellcheck disable=SC2086
-    setsid sh -c "exec $_cmd" >>"$LOG_DIR/$name.log" 2>&1 &
+    setsid sh -c "
+      $(apply_limits)
+      export $(echo $_env | tr ' ' '\n' | sed 's/^/export /')
+      exec $_cmd
+    " >>"$LOG_DIR/$name.log" 2>&1 &
   else
-    echo "$name: starting (as $_user): $_cmd"
-    setsid su -s /bin/sh "$_user" -c "$_cmd" >>"$LOG_DIR/$name.log" 2>&1 &
+    setsid su -s /bin/sh "$_user" -c "
+      $(apply_limits)
+      export $(echo $_env | tr ' ' '\n' | sed 's/^/export /')
+      $_cmd
+    " >>"$LOG_DIR/$name.log" 2>&1 &
   fi
   echo $! > "$(pid_file "$name")"
   sleep 0.3
-  if is_running "$name"; then echo "$name: started pid $(cat "$(pid_file "$name")")"; return 0; fi
+  if is_running "$name"; then
+    echo "$name: started pid $(cat "$(pid_file "$name")")"
+    # Reset respawn counter on successful start
+    rm -f "$(respawn_file "$name")"
+    return 0
+  fi
   echo "$name: failed to stay up (see $LOG_DIR/$name.log)" >&2
   return 1
+}
+
+check_respawn() {
+  local name="$1"
+  _max="${RESPAWN_MAX:-5}"
+  _window="${RESPAWN_WINDOW:-60}"
+  
+  RESPAWN_LOG="$(respawn_file "$name")"
+  NOW=$(date +%s)
+  
+  # Clean old entries
+  if [ -f "$RESPAWN_LOG" ]; then
+    awk -v now="$NOW" -v window="$_window" '$1 > now - window' "$RESPAWN_LOG" > "$RESPAWN_LOG.tmp" 2>/dev/null
+    mv "$RESPAWN_LOG.tmp" "$RESPAWN_LOG" 2>/dev/null
+  fi
+  
+  COUNT=$(wc -l < "$RESPAWN_LOG" 2>/dev/null || echo 0)
+  if [ "$COUNT" -ge "$_max" ]; then
+    echo "$name: respawn limit exceeded ($COUNT in ${_window}s)" >&2
+    return 1
+  fi
+  
+  echo "$NOW" >> "$RESPAWN_LOG"
+  return 0
 }
 
 do_stop_one() {
@@ -142,14 +207,63 @@ do_status_one() {
     else echo "$name: stopped"; fi
     return 0
   fi
-  if is_running "$name"; then echo "$name: running pid $(cat "$(pid_file "$name")")";
-  elif is_failed "$name"; then echo "$name: failed (stale pid $(cat "$(pid_file "$name")"))";
-  else echo "$name: stopped"; fi
+  if is_running "$name"; then
+    PID=$(cat "$(pid_file "$name")")
+    # Get process info (best effort; must not affect exit status)
+    PS_INFO=$(ps -o pid,ppid,user,stat,time,command -p "$PID" 2>/dev/null | tail -n +2)
+    echo "$name: running pid $PID"
+    [ -n "$PS_INFO" ] && echo "  $PS_INFO"
+    return 0
+  elif is_failed "$name"; then
+    echo "$name: failed (stale pid $(cat "$(pid_file "$name")"))"
+  else
+    echo "$name: stopped"
+  fi
+  return 0
+}
+
+do_logs_one() {
+  local name="$1" lines="${2:-50}"
+  LOG_FILE="$LOG_DIR/$name.log"
+  [ -f "$LOG_FILE" ] || { echo "No log file for $name"; return 1; }
+  tail -n "$lines" "$LOG_FILE"
+}
+
+do_diag_one() {
+  local name="$1"
+  load_svc "$name" >/dev/null 2>&1 || { echo "$name: unknown"; return 1; }
+  echo "=== Service Diagnostics: $name ==="
+  echo "Type: $TYPE"
+  echo "User: $USER"
+  echo "Description: $DESC"
+  echo "Dependencies: ${DEPS:-none}"
+  echo "Before: ${BEFORE:-none}"
+  echo "After: ${AFTER:-none}"
+  echo "Respawn: $RESPAWN (delay=${RESPAWN_DELAY:-5}, max=${RESPAWN_MAX:-5}/${RESPAWN_WINDOW:-60}s)"
+  echo "Nice: ${NICE:-0}"
+  echo "Limits: CPU=${LIMIT_CPU:-unlimited} MEM=${LIMIT_MEM:-unlimited} FSIZE=${LIMIT_FSIZE:-unlimited} NOFILE=${LIMIT_NOFILE:-unlimited}"
+  echo "Umask: ${UMASK:-022}"
+  echo "Environment: ${ENV:-none}"
+  echo "Command: $CMD"
+  echo
+  echo "--- Status ---"
+  do_status_one "$name"
+  echo
+  echo "--- Recent Logs ---"
+  do_logs_one "$name" 20
+  echo
+  echo "--- Process Tree ---"
+  if is_running "$name"; then
+    PID=$(cat "$(pid_file "$name")")
+    pstree -p "$PID" 2>/dev/null || ps -ef | grep "^.* $PID " | grep -v grep
+  else
+    echo "Not running"
+  fi
 }
 
 boot_order() {
-  # Boot order = enabled services only, alphabetical (deps handle the rest).
-  # Fallback: if enabled/ is empty but services exist, use all services (first-boot safety).
+  # Topological sort based on DEPS/AFTER and BEFORE
+  # Simple implementation: enabled services, sorted with deps first
   if ls "$EN_DIR" 2>/dev/null | grep -q .; then
     ls "$EN_DIR" 2>/dev/null | sort
   else
@@ -183,6 +297,19 @@ case "$cmd" in
       for s in $(boot_order); do do_status_one "$s"; done
     fi
     ;;
+  logs)
+    shift
+    NAME="${1:-}"
+    LINES="${2:-50}"
+    [ -n "$NAME" ] || { echo "usage: aira-init logs <svc> [lines]"; exit 2; }
+    do_logs_one "$NAME" "$LINES"
+    ;;
+  diag)
+    shift
+    NAME="${1:-}"
+    [ -n "$NAME" ] || { echo "usage: aira-init diag <svc>"; exit 2; }
+    do_diag_one "$NAME"
+    ;;
   enable)
     shift; [ $# -ge 1 ] || { echo "usage: aira-init enable <svc>" >&2; exit 2; }
     [ -f "$(svc_file "$1")" ] || { echo "unknown service: $1" >&2; exit 1; }
@@ -194,5 +321,5 @@ case "$cmd" in
     rm -f "$EN_DIR/$1" "$EN_DIR/$1.conf"
     echo "$1: disabled"
     ;;
-  *) echo "usage: aira-init boot|shutdown|start|stop|restart|status|enable|disable [svc]" >&2; exit 2 ;;
+  *) echo "usage: aira-init boot|shutdown|start|stop|restart|status|logs|diag|enable|disable [svc]" >&2; exit 2 ;;
 esac

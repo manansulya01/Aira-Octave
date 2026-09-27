@@ -1,0 +1,65 @@
+#!/bin/sh
+# AiraOS Display Manager - simple graphical login for X11.
+# Shows user list, prompts for password, starts session.
+
+export DISPLAY="${DISPLAY:-:0}"
+
+# Wait for X server
+for i in $(seq 1 30); do
+    [ -S "/tmp/.X11-unix/X${DISPLAY#:}" ] && break
+    sleep 1
+done
+
+# Get list of users (UID >= 1000, not nobody)
+USERS=$(awk -F: '$3 >= 1000 && $3 < 65534 && $1 != "nobody" {print $1}' /etc/passwd)
+
+if [ -z "$USERS" ]; then
+    # No regular users, start as root
+    exec aira-session
+fi
+
+# Build user selection dialog
+CHOICE=""
+for u in $USERS; do
+    CHOICE="$CHOICE $u"
+done
+
+SELECTED=$(echo "$CHOICE" | xargs -n1 | xmessage -file - -buttons "Login:0,Cancel:1" -title "AiraOS Login" -center -print 2>/dev/null)
+
+if [ "$SELECTED" = "Cancel" ] || [ -z "$SELECTED" ]; then
+    # Fallback to root session
+    exec aira-session
+fi
+
+USERNAME="$SELECTED"
+
+# Get password
+PASSWORD=$(xmessage -file - -buttons "OK:0,Cancel:1" -title "Password for $USERNAME" -center -print 2>/dev/null <<EOF
+Enter password for $USERNAME:
+EOF
+)
+
+if [ "$PASSWORD" = "Cancel" ] || [ -z "$PASSWORD" ]; then
+    exec aira-session
+fi
+
+# Verify password
+PASS_HASH=$(grep "^$USERNAME:" /etc/shadow | cut -d: -f2)
+if [ "$PASS_HASH" != "*" ]; then
+    INPUT_HASH=$(echo -n "$PASSWORD" | sha256sum 2>/dev/null | cut -d' ' -f1)
+    [ "$INPUT_HASH" = "$PASS_HASH" ] || { echo "Invalid password"; sleep 2; exec "$0"; }
+fi
+
+# Start user session
+UID=$(grep "^$USERNAME:" /etc/passwd | cut -d: -f3)
+GID=$(grep "^$USERNAME:" /etc/passwd | cut -d: -f4)
+HOME=$(grep "^$USERNAME:" /etc/passwd | cut -d: -f6)
+SHELL=$(grep "^$USERNAME:" /etc/passwd | cut -d: -f7)
+
+export HOME="$HOME"
+export USER="$USERNAME"
+export LOGNAME="$USERNAME"
+export SHELL="$SHELL"
+
+# Start session as user
+exec su -s "$SHELL" -c "aira-session" "$USERNAME"

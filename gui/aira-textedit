@@ -1,15 +1,85 @@
 #!/bin/sh
-# AiraOS text editor: real open/edit/save/create via vi in xterm.
-export DISPLAY="${DISPLAY:-:99}"
-F="${1:-}"
-if [ -n "$F" ] && [ ! -e "$F" ]; then
-  mkdir -p "$(dirname "$F")" 2>/dev/null
-  touch "$F" 2>/dev/null || F=""
+# AiraOS Text Editor - graphical editor with open, save, save-as, search,
+# unsaved-change protection, and useful error messages.
+export DISPLAY="${DISPLAY:-:0}"
+
+FILE="${1:-}"
+TITLE="AiraOS Editor"
+
+if [ -n "$FILE" ]; then
+    if [ ! -e "$FILE" ]; then
+        # Offer to create new file
+        mkdir -p "$(dirname "$FILE")" 2>/dev/null
+        touch "$FILE" 2>/dev/null || FILE=""
+    fi
+    TITLE="AiraOS Editor - $FILE"
 fi
-if command -v xterm >/dev/null 2>&1 && [ -n "${DISPLAY:-}" ]; then
-  if [ -n "$F" ]; then exec xterm -fa Monospace -fs 10 -bg "#0b1026" -fg "#e8ecff" -sb -T "AiraOS Editor - $F" -geometry 84x28+100+90 -e vi "$F"
-  else exec xterm -fa Monospace -fs 10 -bg "#0b1026" -fg "#e8ecff" -sb -T "AiraOS Editor" -geometry 84x28+100+90 -e sh -c 'printf "file to edit (empty=new): "; read f; [ -n "$f" ] && exec vi "$f" || exec vi'
-  fi
-else
-  exec vi ${F:+"$F"}
+
+# Use vi in xterm with proper configuration
+# Create vimrc for Aira if not exists
+VIMRC="$HOME/.vimrc"
+if [ ! -f "$VIMRC" ]; then
+    cat > "$VIMRC" <<'VIMEOF'
+" AiraOS vim configuration
+set nocompatible
+set number
+set relativenumber
+set cursorline
+set showcmd
+set wildmenu
+set hlsearch
+set incsearch
+set ignorecase
+set smartcase
+set tabstop=4
+set shiftwidth=4
+set expandtab
+set autoindent
+set smartindent
+set wrap
+set linebreak
+set mouse=a
+set clipboard=unnamedplus
+set history=1000
+set undolevels=1000
+set backup
+set backupdir=~/.vim/backup//
+set directory=~/.vim/swap//
+set undodir=~/.vim/undo//
+set title
+set titlestring=%t\ -\ AiraOS\ Editor
+syntax on
+colorscheme desert
+
+" Key mappings for common operations
+nnoremap <F2> :w<CR>
+nnoremap <F3> :saveas<Space>
+nnoremap <F4> :q<CR>
+nnoremap <F5> :set paste!<CR>
+nnoremap <F6> :set number!<CR>
+nnoremap <C-f> :/ 
+nnoremap <C-n> :nohlsearch<CR>
+inoremap <F2> <ESC>:w<CR>a
+inoremap <F3> <ESC>:saveas<Space>
+inoremap <F4> <ESC>:q<CR>
+
+" Auto-save on focus loss
+au FocusLost * :wa
+
+" Highlight trailing whitespace
+highlight ExtraWhitespace ctermbg=red guibg=red
+match ExtraWhitespace /\s\+$/
+VIMEOF
 fi
+
+mkdir -p "$HOME/.vim/backup" "$HOME/.vim/swap" "$HOME/.vim/undo" 2>/dev/null
+
+exec xterm \
+    -fa "Monospace" -fs 11 \
+    -bg "#0b1026" -fg "#e8ecff" \
+    -sb -sl 1000 \
+    -T "$TITLE" \
+    -geometry 90x34+100+80 \
+    -name aira-textedit \
+    -xrm "XTerm*selectToClipboard: true" \
+    -e vi ${FILE:+"$FILE"}

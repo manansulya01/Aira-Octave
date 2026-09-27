@@ -1,0 +1,118 @@
+#!/bin/sh
+# AiraOS Device Setup - discover and initialize hardware devices.
+# Runs at boot to populate /sys, /dev with device information.
+
+echo "[device] Starting device discovery..."
+
+# Ensure mdev populates /dev
+if [ -x /bin/mdev ]; then
+    /bin/mdev -s 2>/dev/null
+    echo "[device] mdev populated /dev"
+fi
+
+# Load kernel modules for detected hardware
+echo "[device] Loading kernel modules..."
+
+# PCI devices
+if [ -d /sys/bus/pci/devices ]; then
+    for dev in /sys/bus/pci/devices/*; do
+        [ -e "$dev/vendor" ] || continue
+        VENDOR=$(cat "$dev/vendor" 2>/dev/null)
+        DEVICE=$(cat "$dev/device" 2>/dev/null)
+        CLASS=$(cat "$dev/class" 2>/dev/null)
+        
+        # Try to load appropriate module based on class
+        case "$CLASS" in
+            0x01*) # Mass storage
+                modprobe -q virtio_blk 2>/dev/null || true
+                modprobe -q ahci 2>/dev/null || true
+                modprobe -q ata_piix 2>/dev/null || true
+                ;;
+            0x02*) # Network
+                modprobe -q virtio_net 2>/dev/null || true
+                modprobe -q e1000 2>/dev/null || true
+                modprobe -q e1000e 2>/dev/null || true
+                ;;
+            0x03*) # Display
+                modprobe -q virtio_gpu 2>/dev/null || true
+                modprobe -q bochs_drm 2>/dev/null || true
+                modprobe -q vga16fb 2>/dev/null || true
+                ;;
+            0x04*) # Multimedia
+                modprobe -q snd_virtio 2>/dev/null || true
+                modprobe -q snd_intel8x0 2>/dev/null || true
+                ;;
+            0x0c*) # Serial/parallel
+                modprobe -q virtio_console 2>/dev/null || true
+                modprobe -q 8250 2>/dev/null || true
+                ;;
+        esac
+    done
+fi
+
+# USB devices
+if [ -d /sys/bus/usb/devices ]; then
+    for dev in /sys/bus/usb/devices/*/; do
+        [ -e "$dev/idVendor" ] || continue
+        VENDOR=$(cat "$dev/idVendor" 2>/dev/null)
+        PRODUCT=$(cat "$dev/idProduct" 2>/dev/null)
+        echo "[device] USB device: $VENDOR:$PRODUCT"
+    done
+fi
+
+# Input devices
+if [ -d /sys/class/input ]; then
+    for dev in /sys/class/input/*/; do
+        [ -e "$dev/name" ] || continue
+        NAME=$(cat "$dev/name" 2>/dev/null)
+        echo "[device] Input: $NAME"
+    done
+fi
+
+# VirtIO devices
+if [ -d /sys/bus/virtio/devices ]; then
+    for dev in /sys/bus/virtio/devices/*/; do
+        [ -e "$dev/device" ] || continue
+        DEV_TYPE=$(cat "$dev/device" 2>/dev/null)
+        case "$DEV_TYPE" in
+            1) echo "[device] VirtIO network device" ;;
+            2) echo "[device] VirtIO block device" ;;
+            3) echo "[device] VirtIO console" ;;
+            4) echo "[device] VirtIO entropy" ;;
+            5) echo "[device] VirtIO balloon" ;;
+            6) echo "[device] VirtIO IO memory" ;;
+            7) echo "[device] VirtIO RPMB" ;;
+            10) echo "[device] VirtIO GPU" ;;
+            11) echo "[device] VirtIO input" ;;
+            *) echo "[device] VirtIO device type $DEV_TYPE" ;;
+        esac
+    done
+fi
+
+# Create device info file for GUI/tools
+mkdir -p /run/aira
+cat > /run/aira/devices.info <<EOF
+# AiraOS Device Information
+# Generated at $(date)
+
+PCI_DEVICES=$(find /sys/bus/pci/devices -name "vendor" 2>/dev/null | wc -l)
+USB_DEVICES=$(find /sys/bus/usb/devices -name "idVendor" 2>/dev/null | wc -l)
+INPUT_DEVICES=$(ls /sys/class/input/ 2>/dev/null | wc -l)
+VIRTIO_DEVICES=$(ls /sys/bus/virtio/devices/ 2>/dev/null | wc -l)
+
+# Block devices
+BLOCK_DEVICES=$(ls /sys/block/ 2>/dev/null | grep -v "^loop\|^ram" | tr '\n' ' ')
+
+# Network interfaces
+NET_INTERFACES=$(ip -o link show 2>/dev/null | awk -F': ' '{print $2}' | tr '\n' ' ')
+
+echo "pci=$PCI_DEVICES"
+echo "usb=$USB_DEVICES"
+echo "input=$INPUT_DEVICES"
+echo "virtio=$VIRTIO_DEVICES"
+echo "block=$BLOCK_DEVICES"
+echo "net=$NET_INTERFACES"
+EOF
+
+echo "[device] Device discovery complete"
+cat /run/aira/devices.info

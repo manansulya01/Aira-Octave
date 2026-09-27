@@ -1,0 +1,29 @@
+#!/bin/sh
+# user — user information over the Aira IPC bus.
+# Methods: list | current | info <name> | groups <name>
+PRIV_METHODS=""
+m="$1"; a="${2:-}"
+case "$m" in
+  list)
+    awk -F: '$3 >= 1000 && $3 < 65534 && $1 != "nobody" {print $1":"$3":"$4":"$5":"$6":"$7}' /etc/passwd | tr '\n' ';'
+    ;;
+  current)
+    echo "$(whoami):$(id -u):$(id -g)"
+    ;;
+  info)
+    name="$a"
+    [ -n "$name" ] || { echo "need username"; exit 3; }
+    grep "^$name:" /etc/passwd | awk -F: '{print "name="$1" uid="$3" gid="$4" gecos="$5" home="$6" shell="$7}' | tr '\n' ';'
+    ;;
+  groups)
+    name="${a:-$(whoami)}"
+    if ! grep -q "^$name:" /etc/passwd; then
+        echo "user not found"; exit 3
+    fi
+    gid=$(grep "^$name:" /etc/passwd | cut -d: -f4)
+    primary=$(grep ":$gid:" /etc/group | cut -d: -f1)
+    extra=$(awk -F: -v user="$name" '$4 ~ user {print $1}' /etc/group | tr '\n' ',')
+    echo "primary=$primary${extra:+,}$extra"
+    ;;
+  *) echo "unknown method: $m (want list|current|info|groups)"; exit 3 ;;
+esac

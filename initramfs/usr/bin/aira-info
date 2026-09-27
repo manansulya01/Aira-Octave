@@ -1,0 +1,130 @@
+#!/bin/sh
+# AiraOS Info - detailed system information.
+# Usage: aira-info [--json] [category]
+
+set -u
+
+JSON=0
+CATEGORY="${1:-all}"
+
+case "$1" in
+    --json) JSON=1; CATEGORY="${2:-all}" ;;
+esac
+
+output_json() {
+    if [ "$JSON" = "1" ]; then
+        # Would output JSON format
+        cat <<EOF
+{
+  "os": "$(cat /etc/os-release 2>/dev/null | grep PRETTY_NAME | cut -d= -f2 | tr -d '\"')",
+  "version": "$(grep VERSION /etc/os-release | cut -d= -f2 | tr -d '\"')",
+  "kernel": "$(uname -r)",
+  "arch": "$(uname -m)",
+  "hostname": "$(hostname)",
+  "uptime_seconds": $(cat /proc/uptime | awk '{print int($1)}'),
+  "cpu": "$(grep -m1 'model name' /proc/cpuinfo | cut -d: -f2 | sed 's/^ //')",
+  "cpus": $(grep -c '^processor' /proc/cpuinfo),
+  "memory_total_kb": $(grep MemTotal /proc/meminfo | awk '{print $2}'),
+  "memory_free_kb": $(grep MemFree /proc/meminfo | awk '{print $2}'),
+  "memory_available_kb": $(grep MemAvailable /proc/meminfo | awk '{print $2}'),
+  "disk_usage": "$(df -h / | tail -1 | awk '{print $3\"/\"$2\" (\"$5\")\"}')",
+  "persist_mounted": $(mount | grep -q " /persist " && echo true || echo false)
+}
+EOF
+        exit 0
+    fi
+}
+
+show_all() {
+    echo "=== AiraOS System Information ==="
+    echo
+    echo "OS: $(cat /etc/os-release 2>/dev/null | grep PRETTY_NAME | cut -d= -f2 | tr -d '\"')"
+    echo "Version: $(grep VERSION /etc/os-release | cut -d= -f2 | tr -d '\"')"
+    echo "Kernel: $(uname -a)"
+    echo "Architecture: $(uname -m)"
+    echo "Hostname: $(hostname)"
+    echo
+    echo "--- CPU ---"
+    grep -m1 "model name" /proc/cpuinfo | cut -d: -f2 | sed 's/^ //'
+    echo "CPUs: $(grep -c '^processor' /proc/cpuinfo)"
+    echo
+    echo "--- Memory ---"
+    free -h
+    echo
+    echo "--- Uptime ---"
+    awk '{d=int($1/86400);h=int(($1%86400)/3600);m=int(($1%3600)/60);printf "%dd %02d:%02d\n",d,h,m}' /proc/uptime
+    echo
+    echo "--- Disk ---"
+    df -h
+    echo
+    if mount | grep -q " /persist "; then
+        echo "Persistence: MOUNTED"
+        df -h /persist
+    else
+        echo "Persistence: NOT MOUNTED"
+    fi
+    echo
+    echo "--- Network ---"
+    ip -o -4 addr show | head -n 10
+    echo
+    echo "--- Services ---"
+    /sbin/aira-init status
+}
+
+show_kernel() {
+    echo "=== Kernel Information ==="
+    uname -a
+    echo
+    cat /proc/version
+    echo
+    echo "Command line: $(cat /proc/cmdline)"
+}
+
+show_hardware() {
+    echo "=== Hardware Information ==="
+    echo
+    echo "--- CPU ---"
+    grep -E "model name|cpu MHz|cpu cores|flags" /proc/cpuinfo | head -n 8
+    echo
+    echo "--- PCI ---"
+    if [ -d /sys/bus/pci/devices ]; then
+        for d in /sys/bus/pci/devices/*; do
+            [ -e "$d/vendor" ] || continue
+            printf "%s vendor=%s device=%s class=%s\n" "$(basename "$d")" "$(cat "$d/vendor" 2>/dev/null)" "$(cat "$d/device" 2>/dev/null)" "$(cat "$d/class" 2>/dev/null)"
+        done 2>/dev/null | head -n 20
+    fi
+    echo
+    echo "--- USB ---"
+    lsusb 2>/dev/null || cat /sys/bus/usb/devices/*/idVendor 2>/dev/null | paste - /sys/bus/usb/devices/*/idProduct 2>/dev/null | sed 's/^/  /' | head -n 10
+    echo
+    echo "--- Block Devices ---"
+    lsblk 2>/dev/null || ls -la /dev/vd* /dev/sd* /dev/sr* 2>/dev/null
+}
+
+show_network() {
+    echo "=== Network Information ==="
+    echo
+    echo "--- Interfaces ---"
+    ip -o link show | sed 's/^/  /'
+    echo
+    echo "--- Addresses ---"
+    ip -o -4 addr show | sed 's/^/  /'
+    echo
+    echo "--- Routes ---"
+    ip route | sed 's/^/  /'
+    echo
+    echo "--- DNS ---"
+    cat /etc/resolv.conf | sed 's/^/  /'
+}
+
+case "$CATEGORY" in
+    all) show_all ;;
+    kernel) show_kernel ;;
+    hardware) show_hardware ;;
+    network) show_network ;;
+    json) output_json ;;
+    help|--help|-h)
+        echo "Usage: aira-info [--json] [all|kernel|hardware|network]"
+        ;;
+    *) echo "Unknown category: $CATEGORY"; echo "Usage: aira-info [--json] [all|kernel|hardware|network]"; exit 1 ;;
+esac

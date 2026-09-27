@@ -1,0 +1,142 @@
+#!/bin/sh
+# AiraOS Power Management - shutdown, reboot, suspend, hibernate.
+# Usage: aira-power {shutdown|reboot|suspend|hibernate|status|acpi}
+
+set -u
+
+CMD="${1:-status}"
+
+usage() {
+    cat <<'EOF'
+aira-power — AiraOS power management
+  aira-power shutdown            Power off system
+  aira-power reboot              Reboot system
+  aira-power suspend             Suspend to RAM (S3)
+  aira-power hibernate           Hibernate to disk (S4)
+  aira-power status              Show power status
+  aira-power acpi                Show ACPI information
+EOF
+}
+
+shutdown_system() {
+    echo "[power] Shutting down..."
+    /sbin/aira-init shutdown 2>&1
+    sync
+    echo "[power] Stopping all processes..."
+    killall5 -15 2>/dev/null
+    sleep 2
+    killall5 -9 2>/dev/null
+    sync
+    echo "[power] Powering off..."
+    poweroff -f
+}
+
+reboot_system() {
+    echo "[power] Rebooting..."
+    /sbin/aira-init shutdown 2>&1
+    sync
+    echo "[power] Stopping all processes..."
+    killall5 -15 2>/dev/null
+    sleep 2
+    killall5 -9 2>/dev/null
+    sync
+    echo "[power] Rebooting..."
+    reboot -f
+}
+
+suspend_system() {
+    echo "[power] Suspending to RAM..."
+    # Check if suspend is supported
+    if [ -f /sys/power/state ]; then
+        grep -q mem /sys/power/state || { echo "Suspend not supported"; exit 1; }
+    fi
+    
+    /sbin/aira-init shutdown 2>&1
+    sync
+    
+    echo "mem" > /sys/power/state 2>/dev/null || { echo "Suspend failed"; exit 1; }
+    
+    # Resume point
+    echo "[power] Resumed from suspend"
+    /sbin/aira-init boot 2>&1
+}
+
+hibernate_system() {
+    echo "[power] Hibernating to disk..."
+    if [ -f /sys/power/state ]; then
+        grep -q disk /sys/power/state || { echo "Hibernate not supported"; exit 1; }
+    fi
+    
+    /sbin/aira-init shutdown 2>&1
+    sync
+    
+    echo "disk" > /sys/power/state 2>/dev/null || { echo "Hibernate failed"; exit 1; }
+    
+    # Resume point (handled by kernel initrd)
+    echo "[power] Resumed from hibernate"
+    /sbin/aira-init boot 2>&1
+}
+
+status_power() {
+    echo "=== Power Status ==="
+    echo "ACPI: $( [ -d /sys/firmware/acpi ] && echo "Available" || echo "Not available" )"
+    echo
+    echo "--- Power states ---"
+    [ -f /sys/power/state ] && cat /sys/power/state | sed 's/^/  /' || echo "  Not available"
+    echo
+    echo "--- Battery ---"
+    if [ -d /sys/class/power_supply ]; then
+        for bat in /sys/class/power_supply/BAT*; do
+            [ -e "$bat" ] || continue
+            echo "  $(basename $bat):"
+            cat "$bat"/capacity 2>/dev/null | sed 's/^/    Capacity: /'
+            cat "$bat"/status 2>/dev/null | sed 's/^/    Status: /'
+        done
+    else
+        echo "  No battery information"
+    fi
+    echo
+    echo "--- AC Adapter ---"
+    if [ -d /sys/class/power_supply ]; then
+        for ac in /sys/class/power_supply/AC* /sys/class/power_supply/ADP*; do
+            [ -e "$ac" ] || continue
+            cat "$ac"/online 2>/dev/null | sed 's/^/  Online: /'
+        done
+    fi
+    echo
+    echo "--- Thermal ---"
+    for tz in /sys/class/thermal/thermal_zone*; do
+        [ -e "$tz" ] || continue
+        temp=$(cat "$tz/temp" 2>/dev/null)
+        type=$(cat "$tz/type" 2>/dev/null)
+        if [ -n "$temp" ]; then
+            echo "  $type: $((temp / 1000))°C"
+        fi
+    done
+}
+
+acpi_info() {
+    echo "=== ACPI Information ==="
+    echo "--- Tables ---"
+    ls /sys/firmware/acpi/tables/ 2>/dev/null | sed 's/^/  /' || echo "  Not available"
+    echo
+    echo "--- DSDT ---"
+    [ -f /sys/firmware/acpi/tables/DSDT ] && echo "  Present" || echo "  Not available"
+    echo
+    echo "--- FADT ---"
+    [ -f /sys/firmware/acpi/tables/FADT ] && echo "  Present" || echo "  Not available"
+    echo
+    echo "--- Wakeup devices ---"
+    cat /proc/acpi/wakeup 2>/dev/null | head -n 20 || echo "  Not available"
+}
+
+case "$CMD" in
+    shutdown) shutdown_system ;;
+    reboot) reboot_system ;;
+    suspend) suspend_system ;;
+    hibernate) hibernate_system ;;
+    status) status_power ;;
+    acpi) acpi_info ;;
+    help|--help|-h) usage ;;
+    *) echo "Unknown command: $CMD"; usage; exit 1 ;;
+esac

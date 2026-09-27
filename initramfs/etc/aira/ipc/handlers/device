@@ -1,0 +1,56 @@
+#!/bin/sh
+# device — device information over the Aira IPC bus.
+# Methods: list | pci | usb | input | virtio | block | net | info
+m="$1"; a="${2:-}"
+case "$m" in
+  list)
+    if [ -f /run/aira/devices.info ]; then
+        cat /run/aira/devices.info
+    else
+        echo "device info not available"
+    fi
+    ;;
+  pci)
+    if [ -d /sys/bus/pci/devices ]; then
+        for d in /sys/bus/pci/devices/*; do
+            [ -e "$d/vendor" ] || continue
+            printf "%s vendor=%s device=%s class=%s\n" "$(basename "$d")" "$(cat "$d/vendor" 2>/dev/null)" "$(cat "$d/device" 2>/dev/null)" "$(cat "$d/class" 2>/dev/null)"
+        done 2>/dev/null | tr '\n' ';'
+    fi
+    ;;
+  usb)
+    if [ -d /sys/bus/usb/devices ]; then
+        for d in /sys/bus/usb/devices/*/; do
+            [ -e "$d/idVendor" ] || continue
+            printf "vendor=%s product=%s\n" "$(cat "$d/idVendor" 2>/dev/null)" "$(cat "$d/idProduct" 2>/dev/null)"
+        done 2>/dev/null | tr '\n' ';'
+    fi
+    ;;
+  input)
+    if [ -d /sys/class/input ]; then
+        for d in /sys/class/input/*/; do
+            [ -e "$d/name" ] || continue
+            printf "%s\n" "$(cat "$d/name" 2>/dev/null)"
+        done 2>/dev/null | tr '\n' ';'
+    fi
+    ;;
+  virtio)
+    if [ -d /sys/bus/virtio/devices ]; then
+        for d in /sys/bus/virtio/devices/*/; do
+            [ -e "$d/device" ] || continue
+            DEV_TYPE=$(cat "$d/device" 2>/dev/null)
+            printf "%s type=%s\n" "$(basename "$d")" "$DEV_TYPE"
+        done 2>/dev/null | tr '\n' ';'
+    fi
+    ;;
+  block)
+    ls /sys/block/ 2>/dev/null | grep -v "^loop\|^ram" | tr '\n' ';'
+    ;;
+  net)
+    ip -o link show 2>/dev/null | awk -F': ' '{print $2}' | tr '\n' ';'
+    ;;
+  info)
+    cat /run/aira/devices.info 2>/dev/null || echo "device info not available"
+    ;;
+  *) echo "unknown method: $m (want list|pci|usb|input|virtio|block|net|info)"; exit 3 ;;
+esac

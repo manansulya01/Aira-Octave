@@ -1,8 +1,8 @@
 NAME="AiraOS-Octave"
-VERSION="1.2.0"
+VERSION="1.5.0"
 ID=aira-octave
-VERSION_ID=1.2.0
-PRETTY_NAME="AiraOS-Octave 1.2.0 (Linux 7.2.2)"
+VERSION_ID=1.5.0
+PRETTY_NAME="AiraOS-Octave 1.5.0 (Linux 7.2.2)"
 HOME_URL="https://github.com/manansulya01/Aira-Octave"
 SUPPORT_URL="https://github.com/manansulya01/Aira-Octave"
 BUG_REPORT_URL="https://github.com/manansulya01/Aira-Octave/issues"

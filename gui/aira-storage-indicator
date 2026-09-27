@@ -1,13 +1,17 @@
 #!/bin/sh
 # AiraOS storage status indicator for JWM tray (swallowed xterm).
 while true; do
-  if mount 2>/dev/null | grep -q " /persist "; then
-    use="$(df -h /persist 2>/dev/null | awk 'NR==2{print $5}')"
-    S="DSK:${use:-ok}"
-  else
-    S="DSK:ram"
-  fi
-  clear 2>/dev/null || printf '\n\n\n\n\n\n\n\n'
-  echo "$S"
-  sleep 10
+    if mount 2>/dev/null | grep -q " /persist "; then
+        use="$(df -h /persist 2>/dev/null | awk 'NR==2{print $5}')"
+        avail="$(df -h /persist 2>/dev/null | awk 'NR==2{print $4}')"
+        S="DSK: $avail free ($use used)"
+    else
+        # Show RAM disk usage
+        use="$(df -h / 2>/dev/null | awk 'NR==2{print $5}')"
+        avail="$(df -h / 2>/dev/null | awk 'NR==2{print $4}')"
+        S="RAM: $avail free ($use used)"
+    fi
+    clear 2>/dev/null || printf '\n\n\n\n\n\n\n\n'
+    echo "$S"
+    sleep 10
 done

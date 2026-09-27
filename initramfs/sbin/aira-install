@@ -1,0 +1,188 @@
+#!/bin/sh
+# AiraOS Installer - install AiraOS to a target disk.
+# Usage: aira-install [--target /dev/vda] [--size 512M] [--hostname aira] [--user aira] [--password-file /path]
+
+set -u
+
+TARGET=""
+SIZE="512M"
+HOSTNAME="aira"
+USERNAME="aira"
+PASSWORD_FILE=""
+
+usage() {
+    cat <<'EOF'
+aira-install — Install AiraOS to disk
+  aira-install [options]
+Options:
+  --target DEVICE       Target block device (e.g., /dev/vda)
+  --size SIZE           Root filesystem size (default: 512M)
+  --hostname NAME       System hostname (default: aira)
+  --user NAME           Username to create (default: aira)
+  --password-file FILE  File containing password for user
+  --auto                Non-interactive mode (use defaults)
+  --help                Show this help
+
+Example:
+  aira-install --target /dev/vda --size 2G --user myuser --password-file /tmp/pass.txt
+EOF
+}
+
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --target) TARGET="$2"; shift 2 ;;
+        --size) SIZE="$2"; shift 2 ;;
+        --hostname) HOSTNAME="$2"; shift 2 ;;
+        --user) USERNAME="$2"; shift 2 ;;
+        --password-file) PASSWORD_FILE="$2"; shift 2 ;;
+        --auto) AUTO=1; shift ;;
+        --help|-h) usage; exit 0 ;;
+        *) echo "Unknown option: $1"; usage; exit 1 ;;
+    esac
+done
+
+[ -n "$TARGET" ] || { echo "Error: --target required"; usage; exit 1; }
+[ -b "$TARGET" ] || { echo "Error: $TARGET is not a block device"; exit 1; }
+
+# Confirm unless --auto
+if [ -z "${AUTO:-}" ]; then
+    echo "WARNING: This will ERASE all data on $TARGET"
+    echo "Target: $TARGET"
+    echo "Size: $SIZE"
+    echo "Hostname: $HOSTNAME"
+    echo "User: $USERNAME"
+    echo -n "Continue? (yes/no): "
+    read -r confirm
+    [ "$confirm" = "yes" ] || { echo "Aborted"; exit 1; }
+fi
+
+echo "[install] Installing AiraOS to $TARGET..."
+
+# Partition the disk
+echo "[install] Partitioning $TARGET..."
+(
+    echo "o"      # New DOS partition table
+    echo "n"      # New partition
+    echo "p"      # Primary
+    echo "1"      # Partition 1
+    echo ""      # Default start
+    echo ""      # Default end (full disk)
+    echo "w"      # Write
+) | fdisk "$TARGET" >/dev/null 2>&1 || { echo "Partitioning failed"; exit 1; }
+
+sleep 1
+
+# Get partition
+PART="${TARGET}1"
+[ -b "$PART" ] || PART="${TARGET}p1"
+[ -b "$PART" ] || { echo "Partition not found"; exit 1; }
+
+# Create filesystem
+echo "[install] Creating ext4 filesystem on $PART..."
+mkfs.ext4 -L AIRA_ROOT "$PART" >/dev/null 2>&1 || { echo "Filesystem creation failed"; exit 1; }
+
+# Mount target
+TARGET_MNT="/mnt/aira-install"
+mkdir -p "$TARGET_MNT"
+mount "$PART" "$TARGET_MNT" || { echo "Mount failed"; exit 1; }
+
+# Copy rootfs (from /persist if available, else from initramfs)
+if [ -d /persist ] && mount | grep -q " /persist "; then
+    SOURCE="/persist"
+else
+    SOURCE="/"
+fi
+
+echo "[install] Copying system files from $SOURCE..."
+# Copy essential directories
+for dir in bin sbin etc lib lib64 usr var root home opt; do
+    [ -d "$SOURCE/$dir" ] && cp -a "$SOURCE/$dir" "$TARGET_MNT/" 2>/dev/null
+done
+
+# Create necessary directories
+mkdir -p "$TARGET_MNT"/{proc,sys,dev,run,tmp,mnt,media}
+chmod 1777 "$TARGET_MNT/tmp"
+
+# Set hostname
+echo "$HOSTNAME" > "$TARGET_MNT/etc/hostname"
+
+# Configure fstab
+cat > "$TARGET_MNT/etc/fstab" <<EOF
+# AiraOS fstab
+LABEL=AIRA_ROOT  /          ext4  defaults  0  1
+proc             /proc      proc  defaults  0  0
+sysfs            /sys       sysfs defaults  0  0
+devtmpfs         /dev       devtmpfs defaults  0  0
+tmpfs            /tmp       tmpfs defaults  0  0
+tmpfs            /run       tmpfs defaults  0  0
+EOF
+
+# Create user if not root
+if [ "$USERNAME" != "root" ]; then
+    # Add user to passwd/shadow
+    UID=1000
+    GID=1000
+    # Find next available UID
+    while grep -q ":$UID:" "$TARGET_MNT/etc/passwd" 2>/dev/null; do
+        UID=$((UID+1))
+    done
+    while grep -q ":$GID:" "$TARGET_MNT/etc/group" 2>/dev/null; do
+        GID=$((GID+1))
+    done
+    
+    echo "$USERNAME:x:$UID:$GID:$USERNAME:/home/$USERNAME:/bin/sh" >> "$TARGET_MNT/etc/passwd"
+    echo "$USERNAME:x:$GID:" >> "$TARGET_MNT/etc/group"
+    echo "$USERNAME:*:19000:0:99999:7:::" >> "$TARGET_MNT/etc/shadow"
+    
+    mkdir -p "$TARGET_MNT/home/$USERNAME"
+    chown "$UID:$GID" "$TARGET_MNT/home/$USERNAME"
+    chmod 755 "$TARGET_MNT/home/$USERNAME"
+    
+    # Set password if provided
+    if [ -n "$PASSWORD_FILE" ] && [ -f "$PASSWORD_FILE" ]; then
+        PASS=$(cat "$PASSWORD_FILE")
+        HASH=$(echo -n "$PASS" | sha256sum | cut -d' ' -f1)
+        sed -i "s|^$USERNAME:\*:|$USERNAME:$HASH:|" "$TARGET_MNT/etc/shadow"
+    fi
+fi
+
+# Install bootloader (GRUB for BIOS, or just kernel for direct boot)
+echo "[install] Installing bootloader..."
+if command -v grub-install >/dev/null 2>&1; then
+    grub-install --target=i386-pc --boot-directory="$TARGET_MNT/boot" "$TARGET" 2>/dev/null
+    # Create grub.cfg
+    mkdir -p "$TARGET_MNT/boot/grub"
+    cat > "$TARGET_MNT/boot/grub/grub.cfg" <<EOF
+set timeout=5
+set default=0
+
+menuentry "AiraOS-Octave" {
+    linux /boot/bzImage root=LABEL=AIRA_ROOT ro quiet
+    initrd /boot/initramfs.cpio
+}
+EOF
+    # Copy kernel and initramfs
+    cp /boot/bzImage "$TARGET_MNT/boot/" 2>/dev/null || cp /airaos-bzImage "$TARGET_MNT/boot/bzImage" 2>/dev/null
+    cp /initramfs.cpio "$TARGET_MNT/boot/" 2>/dev/null
+else
+    echo "[install] GRUB not available, copying kernel/initramfs for direct boot..."
+    mkdir -p "$TARGET_MNT/boot"
+    cp /boot/bzImage "$TARGET_MNT/boot/" 2>/dev/null || cp /airaos-bzImage "$TARGET_MNT/boot/bzImage" 2>/dev/null
+    cp /initramfs.cpio "$TARGET_MNT/boot/" 2>/dev/null
+fi
+
+# Write initramfs to boot
+if [ -f /initramfs.cpio ]; then
+    cp /initramfs.cpio "$TARGET_MNT/boot/initramfs.cpio"
+fi
+
+# Create boot marker
+echo "airaos-installed=$(date -u +%Y%m%d-%H%M%S)" > "$TARGET_MNT/etc/aira-install.info"
+echo "version=$(grep VERSION /etc/os-release | cut -d= -f2 | tr -d '\"')" >> "$TARGET_MNT/etc/aira-install.info"
+
+# Unmount
+umount "$TARGET_MNT"
+
+echo "[install] Installation complete!"
+echo "You can now reboot and boot from $TARGET"
+echo "Note: For QEMU, use -drive file=<disk.img>,format=raw"

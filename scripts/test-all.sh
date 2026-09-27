@@ -27,7 +27,7 @@ run userspace-static bash scripts/test-userspace.sh
 [ -x scripts/test-demo.sh ] && run demo bash scripts/test-demo.sh || echo "SKIP demo (no script yet)" | tee -a "$LOG"
   if [ -x scripts/test-iso.sh ]; then
     _iso="$(ls -t release/*.iso 2>/dev/null | head -n 1 | sed 's/.*aira-octave-//' | sed 's/\.iso//')"
-    [ -n "$_iso" ] || _iso="1.0.0"
+    [ -n "$_iso" ] || _iso="1.5.0"
     run iso bash scripts/test-iso.sh "$_iso"
   else
     echo "SKIP iso (no script yet)" | tee -a "$LOG"

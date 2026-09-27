@@ -1,7 +1,6 @@
 #!/bin/sh
 # services — service state over the Aira IPC bus.
-# Methods: status (read-only, open) | start|stop|restart (PRIVILEGED: root token).
-# Single-service target only: args = "<name>".
+# Methods: status (read-only, open) | start|stop|restart (PRIVILEGED: root token) | logs <name> [lines] | diag <name>
 PRIV_METHODS="start stop restart"
 INIT="${AIRA_INIT:-/sbin/aira-init}"
 m="$1"; a="${2:-}"
@@ -20,5 +19,19 @@ case "$m" in
     case "$name" in *[!a-z0-9_-]*) echo "bad service name"; exit 3 ;; esac
     $INIT "$m" "$name" 2>&1 | tr '\n' ';'
     ;;
-  *) echo "unknown method: $m (want status|start|stop|restart)"; exit 3 ;;
+  logs)
+    name="$(printf "%s" "$a" | awk '{print $1}')"
+    lines="$(printf "%s" "$a" | awk '{print $2}')"
+    [ -n "$name" ] || { echo "need service name"; exit 3; }
+    case "$name" in *[!a-z0-9_-]*) echo "bad service name"; exit 3 ;; esac
+    [ -n "$lines" ] || lines=50
+    $INIT logs "$name" "$lines" 2>&1 | tr '\n' ';'
+    ;;
+  diag)
+    name="$(printf "%s" "$a" | awk '{print $1}')"
+    [ -n "$name" ] || { echo "need service name"; exit 3; }
+    case "$name" in *[!a-z0-9_-]*) echo "bad service name"; exit 3 ;; esac
+    $INIT diag "$name" 2>&1 | tr '\n' ';'
+    ;;
+  *) echo "unknown method: $m (want status|start|stop|restart|logs|diag)"; exit 3 ;;
 esac

@@ -1,25 +1,97 @@
 #!/bin/sh
-# AiraOS package center: GUI frontend for airapkg (local repo).
-export DISPLAY="${DISPLAY:-:99}"
-menu() {
-  while true; do
-    clear 2>/dev/null
-    echo "=== AiraOS Package Center (local repo) ==="
-    echo "installed:"; airapkg list 2>/dev/null
-    echo; echo "1) search  2) info  3) install .apkg  4) remove  5) update-check  6) quit"
-    printf "choice: "; read c
-    case "$c" in
-      1) printf "term: "; read t; airapkg search "$t" 2>&1 | head -n 20; printf "enter..."; read x ;;
-      2) printf "name: "; read n; airapkg info "$n" 2>&1 | head -n 30; printf "enter..."; read x ;;
-      3) printf "path to .apkg: "; read p; airapkg install "$p" 2>&1 | head -n 10; printf "enter..."; read x ;;
-      4) printf "name: "; read n; airapkg remove "$n" 2>&1 | head -n 5; printf "enter..."; read x ;;
-      5) airapkg update-check 2>&1 | head -n 20; printf "enter..."; read x ;;
-      6|q) break ;;
-    esac
-  done
-}
-if command -v xterm >/dev/null 2>&1 && [ -n "${DISPLAY:-}" ] && [ "${1:-}" != "--noterm" ]; then
-  exec xterm -fa Monospace -fs 10 -bg "#0b1026" -fg "#e8ecff" -sb -T "AiraOS Package Center" -geometry 84x26+240+150 -e sh "$0" --noterm
+# AiraOS Package Center - GUI frontend for airapkg with search, info, install, remove, update.
+export DISPLAY="${DISPLAY:-:0}"
+
+if [ "${1:-}" = "--text" ]; then
+    # Text mode for xterm
+    while true; do
+        clear
+        echo "╔═════════════════════════════════════════════════════════════════════════════╗"
+        echo "║                        AiraOS Package Center                                ║"
+        echo "╚═════════════════════════════════════════════════════════════════════════════╝"
+        echo
+        echo "Installed packages:"
+        airapkg list 2>/dev/null | while IFS= read -r pkg; do
+            echo "  $pkg"
+        done
+        if ! airapkg list 2>/dev/null | grep -q .; then
+            echo "  (none)"
+        fi
+        echo
+        echo "Repository: /var/lib/airapkg/repo"
+        ls -1 /var/lib/airapkg/repo/*.apkg 2>/dev/null | while IFS= read -r pkg; do
+            echo "  $(basename "$pkg")"
+        done
+        if ! ls /var/lib/airapkg/repo/*.apkg 2>/dev/null | grep -q .; then
+            echo "  (empty)"
+        fi
+        echo
+        echo "Actions:"
+        echo "  1) Search packages          2) Package info"
+        echo "  3) Install .apkg file       4) Remove package"
+        echo "  5) Update check             6) Verify package"
+        echo "  7) Rollback package         q) Quit"
+        echo
+        printf "Choice: "
+        read choice
+        case "$choice" in
+            1)
+                printf "Search term: "
+                read term
+                echo "--- Searching installed ---"
+                airapkg search "$term" 2>&1 | head -n 20
+                printf "Press Enter..."; read _
+                ;;
+            2)
+                printf "Package name: "
+                read name
+                airapkg info "$name" 2>&1 | head -n 40
+                printf "Press Enter..."; read _
+                ;;
+            3)
+                printf "Path to .apkg file: "
+                read path
+                airapkg install "$path" 2>&1 | head -n 20
+                printf "Press Enter..."; read _
+                ;;
+            4)
+                printf "Package name to remove: "
+                read name
+                airapkg remove "$name" 2>&1
+                printf "Press Enter..."; read _
+                ;;
+            5)
+                airapkg update-check 2>&1 | head -n 20
+                printf "Press Enter..."; read _
+                ;;
+            6)
+                printf "Package name to verify: "
+                read name
+                airapkg verify "$name" 2>&1
+                printf "Press Enter..."; read _
+                ;;
+            7)
+                printf "Package name to rollback: "
+                read name
+                airapkg rollback "$name" 2>&1
+                printf "Press Enter..."; read _
+                ;;
+            q|Q) break ;;
+        esac
+    done
+    exit 0
+fi
+
+# Graphical mode
+if [ -n "${DISPLAY:-}" ] && command -v xterm >/dev/null 2>&1; then
+    exec xterm \
+        -fa "Monospace" -fs 10 \
+        -bg "#0b1026" -fg "#e8ecff" \
+        -sb -sl 1000 \
+        -T "AiraOS Package Center" \
+        -geometry 90x38+240+150 \
+        -name aira-pkgcenter \
+        -e "$0" --text
 else
-  menu
+    "$0" --text
 fi

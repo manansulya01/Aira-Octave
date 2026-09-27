@@ -1,0 +1,224 @@
+#!/bin/sh
+# AiraOS Recovery System - diagnose and fix common issues.
+# Usage: aira-recovery {check|fix|shell} [component]
+
+set -u
+
+cmd="${1:-check}"
+component="${2:-all}"
+
+check_services() {
+    echo "=== Service Check ==="
+    /sbin/aira-init status
+    echo
+}
+
+check_storage() {
+    echo "=== Storage Check ==="
+    df -h
+    echo
+    mount | grep -E "persist|vda|root" || echo "No persistent mounts"
+    echo
+    # Check filesystem health
+    for dev in /dev/vda /dev/sda; do
+        if [ -b "$dev" ]; then
+            echo "Checking $dev..."
+            fsck.ext4 -n "$dev" 2>/dev/null || echo "  fsck not available or not ext4"
+        fi
+    done
+    echo
+}
+
+check_network() {
+    echo "=== Network Check ==="
+    ip addr
+    echo
+    ip route
+    echo
+    cat /etc/resolv.conf
+    echo
+    ping -c1 -W2 127.0.0.1 >/dev/null 2>&1 && echo "Loopback: OK" || echo "Loopback: FAIL"
+    ping -c1 -W2 8.8.8.8 >/dev/null 2>&1 && echo "Internet: OK" || echo "Internet: FAIL"
+    echo
+}
+
+check_ipc() {
+    echo "=== IPC Check ==="
+    if command -v aira-ipc >/dev/null 2>&1 && aira-ipc ping >/dev/null 2>&1; then
+        echo "IPC Bus: RUNNING"
+        aira-ipc list
+    else
+        echo "IPC Bus: NOT RUNNING"
+    fi
+    echo
+}
+
+check_packages() {
+    echo "=== Package Check ==="
+    airapkg list
+    echo
+    airapkg update-check
+    echo
+    # Verify all installed packages
+    for pkg in $(airapkg list 2>/dev/null); do
+        airapkg verify "$pkg" 2>&1 | grep -E "OK|FAIL|MISSING"
+    done
+    echo
+}
+
+check_graphics() {
+    echo "=== Graphics Check ==="
+    ls -l /dev/dri /dev/fb0 2>&1
+    dmesg | grep -i -E "drm|vga|virtio.*gpu|fb" | head -n 10
+    echo
+    if [ -S "/tmp/.X11-unix/X0" ]; then
+        echo "X Server: RUNNING"
+        xwininfo -root 2>/dev/null | head -n 5
+    else
+        echo "X Server: NOT RUNNING"
+    fi
+    echo
+}
+
+check_boot() {
+    echo "=== Boot Check ==="
+    tail -n 50 /var/log/airaos/boot.log 2>/dev/null || echo "No boot log"
+    echo
+    dmesg | grep -i -E "error|fail|warn" | head -n 20
+    echo
+}
+
+fix_services() {
+    echo "=== Fixing Services ==="
+    # Restart failed services
+    /sbin/aira-init status 2>/dev/null | grep -E "failed|stopped" | while read line; do
+        svc=$(echo "$line" | awk '{print $1}')
+        echo "Restarting $svc..."
+        /sbin/aira-init restart "$svc" 2>&1
+    done
+    # Ensure critical services are running
+    for svc in syslog klog ipc; do
+        if ! /sbin/aira-init status "$svc" 2>/dev/null | grep -q "running"; then
+            echo "Starting critical service: $svc"
+            /sbin/aira-init start "$svc" 2>&1
+        fi
+    done
+}
+
+fix_storage() {
+    echo "=== Fixing Storage ==="
+    # Remount persist if needed
+    if ! mount | grep -q " /persist "; then
+        if [ -b /dev/vda ]; then
+            mount -t ext4 /dev/vda /persist 2>/dev/null && echo "Remounted /persist"
+        fi
+    fi
+    # Fix permissions
+    chmod 755 /persist 2>/dev/null
+    chmod 755 /home/aira 2>/dev/null
+    mkdir -p /var/log/airaos /run/aira-services /run/aira-ipc
+    chmod 755 /var/log/airaos /run/aira-services /run/aira-ipc
+}
+
+fix_network() {
+    echo "=== Fixing Network ==="
+    ip link set lo up 2>/dev/null
+    ip addr add 127.0.0.1/8 dev lo 2>/dev/null
+    if ip link show eth0 2>/dev/null | grep -q eth0; then
+        ip link set eth0 up 2>/dev/null
+        for _s in /usr/share/udhcpc/default.script /etc/udhcpc/default.script; do
+            if [ -x "$_s" ]; then SCRIPT="$_s"; break; fi
+        done
+        if [ -n "${SCRIPT:-}" ]; then
+            udhcpc -i eth0 -n -q -t 3 -s "$SCRIPT" 2>&1 | head -n 10
+        else
+            udhcpc -i eth0 -n -q -t 3 2>&1 | head -n 10
+        fi
+    fi
+}
+
+fix_ipc() {
+    echo "=== Fixing IPC ==="
+    if ! command -v aira-ipc >/dev/null 2>&1 || ! aira-ipc ping >/dev/null 2>&1; then
+        echo "Restarting IPC bus..."
+        /sbin/aira-init restart ipc 2>&1
+        sleep 2
+    fi
+}
+
+fix_packages() {
+    echo "=== Fixing Packages ==="
+    # Verify and attempt to fix broken packages
+    for pkg in $(airapkg list 2>/dev/null); do
+        if ! airapkg verify "$pkg" >/dev/null 2>&1; then
+            echo "Package $pkg has issues, attempting rollback..."
+            airapkg rollback "$pkg" 2>&1
+        fi
+    done
+}
+
+fix_graphics() {
+    echo "=== Fixing Graphics ==="
+    # Restart X if needed
+    if [ -f /tmp/aira-X.pid ]; then
+        XPID=$(cat /tmp/aira-X.pid)
+        if ! kill -0 "$XPID" 2>/dev/null; then
+            echo "X server died, restarting..."
+            aira-session --headless --display :0 2>&1 &
+        fi
+    fi
+}
+
+case "$cmd" in
+    check)
+        case "$component" in
+            services) check_services ;;
+            storage) check_storage ;;
+            network) check_network ;;
+            ipc) check_ipc ;;
+            packages) check_packages ;;
+            graphics) check_graphics ;;
+            boot) check_boot ;;
+            all)
+                check_services
+                check_storage
+                check_network
+                check_ipc
+                check_packages
+                check_graphics
+                check_boot
+                ;;
+            *) echo "Unknown component: $component"; exit 1 ;;
+        esac
+        ;;
+    fix)
+        case "$component" in
+            services) fix_services ;;
+            storage) fix_storage ;;
+            network) fix_network ;;
+            ipc) fix_ipc ;;
+            packages) fix_packages ;;
+            graphics) fix_graphics ;;
+            all)
+                fix_services
+                fix_storage
+                fix_network
+                fix_ipc
+                fix_packages
+                fix_graphics
+                ;;
+            *) echo "Unknown component: $component"; exit 1 ;;
+        esac
+        ;;
+    shell)
+        echo "=== Recovery Shell ==="
+        echo "Available commands:"
+        echo "  aira-recovery check [component]"
+        echo "  aira-recovery fix [component]"
+        echo "  aira-init status|start|stop|restart"
+        echo "  airapkg verify|rollback"
+        echo "  fsck, mount, ip, ping, etc."
+        exec /bin/sh
+        ;;
+    *) echo "Usage: aira-recovery {check|fix|shell} [component]"; exit 1 ;;
+esac

@@ -1,0 +1,68 @@
+#!/bin/sh
+# AiraOS getty/login - simple login prompt for serial/console.
+# Supports username/password authentication.
+
+PORT="${1:-/dev/console}"
+BAUD="${2:-115200}"
+
+# Set up terminal
+stty -F "$PORT" "$BAUD" cs8 -cstopb -parenb 2>/dev/null || true
+
+while true; do
+    echo
+    echo "AiraOS-Octave login:"
+    echo -n "Username: "
+    read -r USERNAME < "$PORT"
+    
+    [ -n "$USERNAME" ] || continue
+    
+    # Check if user exists
+    if ! grep -q "^$USERNAME:" /etc/passwd; then
+        echo "Login incorrect"
+        continue
+    fi
+    
+    # Check if account is locked
+    PASS_HASH=$(grep "^$USERNAME:" /etc/shadow | cut -d: -f2)
+    if [ "$PASS_HASH" = "!" ] || [ "$PASS_HASH" = "!!" ]; then
+        echo "Account locked"
+        continue
+    fi
+    
+    echo -n "Password: "
+    stty -echo < "$PORT"
+    read -r PASSWORD < "$PORT"
+    stty echo < "$PORT"
+    echo
+    
+    # Verify password (simple hash comparison)
+    if [ "$PASS_HASH" = "*" ]; then
+        # No password set - allow login
+        :
+    else
+        # Check hash
+        INPUT_HASH=$(echo -n "$PASSWORD" | sha256sum 2>/dev/null | cut -d' ' -f1)
+        [ "$INPUT_HASH" = "$PASS_HASH" ] || { echo "Login incorrect"; continue; }
+    fi
+    
+    # Login successful
+    UID=$(grep "^$USERNAME:" /etc/passwd | cut -d: -f3)
+    GID=$(grep "^$USERNAME:" /etc/passwd | cut -d: -f4)
+    HOME=$(grep "^$USERNAME:" /etc/passwd | cut -d: -f6)
+    SHELL=$(grep "^$USERNAME:" /etc/passwd | cut -d: -f7)
+    
+    export HOME="$HOME"
+    export USER="$USERNAME"
+    export LOGNAME="$USERNAME"
+    export SHELL="$SHELL"
+    export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+    
+    # Set groups
+    GROUPS=$(aira-user groups "$USERNAME" 2>/dev/null | tr ',' ' ')
+    export GROUPS
+    
+    cd "$HOME"
+    
+    # Execute shell
+    exec su -s "$SHELL" "$USERNAME" < "$PORT" > "$PORT" 2>&1
+done

@@ -1,0 +1,119 @@
+#!/bin/sh
+# AiraOS Help Viewer - built-in help system for users.
+# Shows documentation for system commands and applications.
+
+HELP_DIR="/usr/share/aira/help"
+mkdir -p "$HELP_DIR" 2>/dev/null
+
+# Generate help content if not exists
+if [ ! -f "$HELP_DIR/index.txt" ]; then
+    cat > "$HELP_DIR/index.txt" <<'HELPEOF'
+AiraOS-Octave Help System
+=========================
+
+MAIN COMMANDS
+-------------
+aira help              - This help system
+aira info              - OS/kernel/architecture info
+aira version           - AiraOS version
+aira system            - Kernel + CPU + memory + disk summary
+aira status            - Services + key mounts (via IPC when available)
+aira services          - Service management (start/stop/restart/status/enable/disable)
+aira network           - Network interfaces, routes, DNS (+ DHCP renew)
+aira platform          - CPU/SMP/PCI/VirtIO/input/graphics
+aira storage           - Disks, mounts, usage, persistence status
+aira users             - Users, groups, ownership
+aira packages          - Package management (list/search/info/install/remove)
+aira diagnose          - Full diagnostic dump
+aira doctor            - Health check via IPC bus + direct probes
+aira ipc               - IPC bus client (ping/list/call/emit/events)
+aira demo              - Guided live demo (real system data)
+aira shutdown --force  - Power off
+aira reboot --force    - Reboot
+aira update --check    - Show version (no self-modify)
+
+BUILT-IN APPLICATIONS
+---------------------
+Terminal (Alt+F2)     - Command-line shell with copy/paste
+Files (Alt+F3)        - Graphical file manager (Midnight Commander)
+Editor (Alt+F4)       - Text editor (vi with Aira config)
+Settings (Alt+F5)     - System configuration (system/display/network/storage/users/security/apps/about)
+Monitor (Alt+F6)      - Real-time CPU/memory/process/storage/network
+Network (Alt+F7)      - Network interfaces, DHCP, routes, DNS
+Packages (Alt+F8)     - Package center (search/info/install/remove/update/verify/rollback)
+About (Alt+F9)        - System information and version
+
+KEYBOARD SHORTCUTS
+------------------
+Alt+F1                - Main menu (or Ctrl+Esc)
+Alt+F2                - Terminal
+Alt+F3                - File Manager
+Alt+F4                - Text Editor / Close window
+Alt+F5                - Settings
+Alt+F6                - System Monitor
+Alt+F7                - Network Manager
+Alt+F8                - Package Center
+Alt+F9                - About
+Alt+Tab               - Switch between windows
+Right-click desktop   - Application menu
+
+FILE MANAGER (mc) KEYS
+----------------------
+F1  Help              F2  Save/Menu       F3  View            F4  Edit
+F5  Copy              F6  Move/Rename     F7  New Folder      F8  Delete
+F9  Menu              F10 Quit            Tab  Switch panels  Enter Open
+Ctrl+O  Toggle shell  Ctrl+X  Quick cd    Ctrl+V  View        Ctrl+U  Swap panels
+
+EDITOR (vi) KEYS
+----------------
+i  Insert mode        ESC Normal mode     :w  Save            :q  Quit
+:wq Save & quit       :q! Force quit      /text Search        n Next match
+yy Yank line          p  Paste            u  Undo             Ctrl+r Redo
+F2  Save (mapped)     F3  Save as         F4  Quit            F5  Toggle paste
+
+SYSTEM CONCEPTS
+---------------
+Persistence: Boot with -drive aira-rootfs.img to save changes to disk.
+             Without it, all changes are lost on reboot.
+
+Services: Managed by aira-init (boot/shutdown/start/stop/restart/status/enable/disable).
+          Core services: syslog, klog, net, persist, ipc.
+
+IPC Bus: Local service bus (AIRA1 protocol) on 127.0.0.1:41234.
+         Services: system, storage, network, services, bus.
+         Use: aira ipc call <service> <method> [args]
+
+Packages: Local .apkg format (gzipped tar with PKGINFO).
+          Repo at /var/lib/airapkg/repo/, DB at /var/lib/airapkg/installed/.
+          Commands: airapkg list/search/info/install/remove/verify/rollback/build/update-check
+
+Security: Runs as root in current version (single-user).
+          IPC privileged methods require root token.
+          Package manager validates paths, rejects symlinks/traversal.
+
+TROUBLESHOOTING
+---------------
+No network?      → Settings → Renew DHCP, or: aira network dhcp eth0
+No GUI?          → Check Xorg/Xvfb: aira-session --xorg or --xvfb
+No persistence?  → Boot with QEMU: -drive file=aira-rootfs.img,format=raw
+Package failed?  → Check /var/log/airaos/airapkg.log, use airapkg verify
+Services down?   → aira status, aira-init status, check /var/log/airaos/*.log
+
+GETTING MORE HELP
+-----------------
+aira diagnose      - Full system state dump
+aira doctor        - Quick health check
+/var/log/airaos/   - All system logs
+aira demo          - Interactive system tour
+HELPEOF
+fi
+
+# Display help
+if [ $# -eq 0 ]; then
+    # Show index
+    cat "$HELP_DIR/index.txt" | less -R 2>/dev/null || cat "$HELP_DIR/index.txt"
+else
+    # Search for topic
+    TOPIC="$1"
+    grep -i -A 5 -B 2 "$TOPIC" "$HELP_DIR/index.txt" | head -n 30
+fi

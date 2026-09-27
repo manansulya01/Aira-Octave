@@ -1,4 +1,4 @@
-# AiraOS-Octave Showcase (1.2.0)
+# AiraOS-Octave Showcase (1.5.0)
 
 ## What is it?
 A bootable x86_64 OS: Linux 7.2.2 foundation + AiraOS userspace, supervised
@@ -36,5 +36,5 @@ release) on a stable Linux foundation instead of reimplementing kernels.
 
 ## Build/test/release
 `scripts/build-*.sh` → `scripts/test-all.sh` (8 suites incl. demo+ISO) →
-`scripts/test-release.sh 1.2.0`.
+`scripts/test-release.sh 1.5.0`.
 See `SHOWCASE_GUIDE.md` for the 3–5 minute live demo.

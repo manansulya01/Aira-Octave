@@ -1,17 +1,23 @@
 #!/bin/sh
 # AiraOS network status indicator for JWM tray (swallowed xterm).
-# Clears each cycle so the tray shows one live status line.
+# Shows one live status line with network state.
 while true; do
-  if ip -o link show 2>/dev/null | grep -q "state UP"; then
-    if ip -o -4 addr show 2>/dev/null | grep -q "inet "; then
-      S="NET:up"
+    if ip -o link show 2>/dev/null | grep -q "state UP"; then
+        if ip -o -4 addr show 2>/dev/null | grep -q "inet "; then
+            # Get the primary IP
+            IP=$(ip -o -4 addr show scope global 2>/dev/null | head -1 | awk '{print $4}' | cut -d/ -f1)
+            if [ -n "$IP" ]; then
+                S="NET: $IP"
+            else
+                S="NET: up"
+            fi
+        else
+            S="NET: link only"
+        fi
     else
-      S="NET:link"
+        S="NET: down"
     fi
-  else
-    S="NET:--"
-  fi
-  clear 2>/dev/null || printf '\n\n\n\n\n\n\n\n'
-  echo "$S"
-  sleep 5
+    clear 2>/dev/null || printf '\n\n\n\n\n\n\n\n'
+    echo "$S"
+    sleep 5
 done

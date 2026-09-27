@@ -1,0 +1,43 @@
+#!/bin/sh
+# AiraOS notify-send compatible notification sender.
+# Usage: aira-notify [--urgency=low|normal|critical] [--expire-time=ms] <title> [<message>]
+
+NOTIFY_FIFO="/tmp/aira-notify-fifo"
+URGENCY="normal"
+TIMEOUT=5000
+
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --urgency=*)
+            URGENCY="${1#--urgency=}"
+            shift
+            ;;
+        --expire-time=*)
+            TIMEOUT="${1#--expire-time=}"
+            shift
+            ;;
+        -u)
+            URGENCY="$2"
+            shift 2
+            ;;
+        -t)
+            TIMEOUT="$2"
+            shift 2
+            ;;
+        *)
+            break
+            ;;
+    esac
+done
+
+TITLE="${1:-Notification}"
+MESSAGE="${2:-}"
+
+# Ensure FIFO exists
+[ -p "$NOTIFY_FIFO" ] || mkfifo "$NOTIFY_FIFO" 2>/dev/null
+
+# Send notification (timeout in seconds for xmessage)
+TIMEOUT_SEC=$((TIMEOUT / 1000))
+[ "$TIMEOUT_SEC" -lt 1 ] && TIMEOUT_SEC=1
+
+echo "$URGENCY|$TITLE|$MESSAGE|$TIMEOUT_SEC" > "$NOTIFY_FIFO" 2>/dev/null &

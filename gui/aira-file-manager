@@ -1,8 +1,148 @@
 #!/bin/sh
-# Real file manager: mc in xterm (browse, open, copy, move, delete).
-export DISPLAY="${DISPLAY:-:99}"
-if command -v mc >/dev/null 2>&1; then
-  exec xterm -fa Monospace -fs 10 -bg "#0b1026" -fg "#e8ecff" -sb -T "AiraOS File Manager" -geometry 92x28+120+80 -e mc ~ 2>/dev/null || mc ~
-else
-  exec xterm -T "AiraOS Files" -e sh -c 'ls -la ~; echo; echo "(mc not installed)"; read x'
-fi
+# AiraOS File Manager - genuine graphical file management using mc (Midnight Commander)
+# Configured for AiraOS with proper theme, keybindings, and integration.
+export DISPLAY="${DISPLAY:-:0}"
+
+# Create mc config directory and configuration for Aira theme
+MC_CONFIG_DIR="$HOME/.config/mc"
+mkdir -p "$MC_CONFIG_DIR"
+
+# Aira-themed mc configuration
+cat > "$MC_CONFIG_DIR/ini" <<'MCEOF'
+[Midnight-Commander]
+auto_save_setup=true
+auto_save_dir_history=true
+confirm_delete=true
+safe_delete=false
+show_hidden_files=false
+panel_filter="*"
+panel_hl_search=true
+case_sensitive=false
+verbose=true
+compute_totals=true
+auto_menu=true
+mouse_repeat_rate=300
+double_click_speed=400
+skin=aira
+
+[Layout]
+menu_visible=true
+keybar_visible=true
+hint_visible=true
+xterm_title=true
+command_prompt=shell
+
+[Panels]
+left_type=0
+right_type=0
+left_format=half
+right_format=half
+left_mixed=false
+right_mixed=false
+left_show_hidden=false
+right_show_hidden=false
+left_sort_order=name
+right_sort_order=name
+left_sort_reverse=false
+right_sort_reverse=false
+left_sort_case_sensitive=false
+right_sort_case_sensitive=false
+left_sort_exec_first=true
+right_sort_exec_first=true
+left_selection=*
+right_selection=*
+
+[Dirs]
+other_dir_history_size=50
+other_dir_history=
+hot_list=
+
+[FileTypes]
+# Custom file type associations for AiraOS
+MCEOF
+
+# Create Aira skin for mc
+MC_SKIN_DIR="$MC_CONFIG_DIR/skins"
+mkdir -p "$MC_SKIN_DIR"
+cat > "$MC_SKIN_DIR/aira.ini" <<'SKINEOF'
+[skin]
+description=AiraOS Dark Blue Skin
+version=1
+
+[core]
+_default_=;default
+selected=white;blue
+marked=yellow;blue
+markselect=yellow;blue
+errors=red;white
+input=white;blue
+inputunchanged=gray;blue
+disabled=gray;blue
+reverse=white;blue
+executable=green;default
+directory=cyan;default
+link=magenta;default
+device=yellow;default
+special=red;default
+core=red;default
+helplink=cyan;default
+stalelink=red;default
+
+[menu]
+menuhot=yellow;blue
+menuhotsel=yellow;white
+menusel=white;blue
+menu=gray;blue
+menubox=white;blue
+
+[dialog]
+dnormal=white;blue
+dfocus=yellow;blue
+dhotnormal=yellow;blue
+dhotfocus=yellow;white
+dtitle=white;blue
+dbox=white;blue
+
+[editor]
+editnormal=white;blue
+editbold=yellow;blue
+editmarked=white;cyan
+editwhitespace=gray;blue
+editlinestate=yellow;blue
+
+[viewer]
+viewnormal=white;default
+viewbold=yellow;default
+viewunderline=cyan;default
+viewselected=white;blue
+
+[help]
+helpnormal=white;blue
+helpitalic=yellow;blue
+helpbold=white;blue
+helplink=cyan;blue
+helpslink=magenta;blue
+
+[buttonbar]
+button=white;blue
+hotkey=yellow;blue
+buttonbar=white;blue
+
+[input]
+input=white;blue
+inputunchanged=gray;blue
+
+[tree]
+treeselected=white;blue
+tree=gray;blue
+SKINEOF
+
+# Launch mc in xterm with Aira styling
+exec xterm \
+    -fa "Monospace" -fs 10 \
+    -bg "#0b1026" -fg "#e8ecff" \
+    -sb -sl 1000 \
+    -T "AiraOS File Manager" \
+    -geometry 100x32+50+50 \
+    -name aira-file-manager \
+    -e mc "$@"

@@ -1,0 +1,140 @@
+#!/bin/sh
+# AiraOS Welcome / First Run Wizard - helps new users understand the system.
+# Runs on first boot or when explicitly invoked.
+
+WELCOME_DIR="$HOME/.config/aira"
+WELCOME_FLAG="$WELCOME_DIR/welcome-done"
+mkdir -p "$WELCOME_DIR"
+
+# Skip if already shown (unless --force)
+if [ -f "$WELCOME_FLAG" ] && [ "${1:-}" != "--force" ]; then
+    exit 0
+fi
+
+export DISPLAY="${DISPLAY:-:0}"
+
+show_welcome() {
+    cat <<'WELCOME_EOF'
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                                                                              ║
+║    █████╗ ██████╗  █████╗ ███████╗██╗   ██╗                                 ║
+║   ██╔══██╗██╔══██╗██╔══██╗██╔════╝╚██╗ ██╔╝                                 ║
+║   ███████║██████╔╝███████║█████╗   ╚████╔╝                                  ║
+║   ██╔══██║██╔══██╗██╔══██║██╔══╝    ╚██╔╝                                   ║
+║   ██║  ██║██║  ██║██║  ██║███████╗   ██║                                    ║
+║   ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝   ╚═╝                                    ║
+║                                                                              ║
+║                        Welcome to AiraOS-Octave!                            ║
+║                                                                              ║
+╚═════════════════════════════════════════════════════════════════════════════╝
+
+AiraOS is a complete, bootable operating system designed to be
+simple, transparent, and hackable.
+
+┌─ QUICK START ─────────────────────────────────────────────────────────────┐
+│                                                                             │
+│  🖥  TERMINAL     Press Alt+F2 or click "Terminal" in the taskbar          │
+│  📁 FILES        Press Alt+F3 or click "Files" to browse your system       │
+│  ✏️  EDITOR       Press Alt+F4 or click "Editor" to edit text files        │
+│  ⚙️  SETTINGS     Press Alt+F5 or click "Settings" to configure system     │
+│  📊 MONITOR      Press Alt+F6 to see CPU, memory, and processes            │
+│  🌐 NETWORK      Press Alt+F7 to manage network connections                │
+│  📦 PACKAGES     Press Alt+F8 to install/remove software                   │
+│  ℹ️  ABOUT        Press Alt+F9 for system information                      │
+│                                                                             │
+│  🖱  RIGHT-CLICK on desktop for application menu                           │
+│  ⌨️  Alt+Tab to switch between windows                                     │
+│  🖥  Alt+F1 opens the main menu                                            │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─ KEY CONCEPTS ────────────────────────────────────────────────────────────┐
+│                                                                             │
+│  • Everything runs in a graphical desktop (JWM window manager)             │
+│  • Applications are real programs, not simulations                         │
+│  • Your files persist if you boot with a virtual disk (-drive)             │
+│  • System settings are changed through the Settings app                    │
+│  • Software is managed via Package Center (airapkg)                        │
+│  • The system uses a local IPC bus for service communication               │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─ USEFUL COMMANDS (in Terminal) ───────────────────────────────────────────┐
+│                                                                             │
+│  aira help           Show all system commands                              │
+│  aira system         Show kernel, CPU, memory, disk info                   │
+│  aira status         Show running services and mounts                      │
+│  aira doctor         Run system health check                               │
+│  aira diagnose       Full diagnostic dump                                  │
+│  aira demo           Guided tour of the system                             │
+│  airapk list         List installed packages                               │
+│  airapk search <term> Search for packages                                  │
+│  airapkg install <file.apkg> Install a package                             │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+Press Enter to continue, or 'q' to skip this welcome screen.
+WELCOME_EOF
+}
+
+if [ -n "${DISPLAY:-}" ] && command -v xmessage >/dev/null 2>&1; then
+    # Graphical welcome
+    show_welcome | xmessage -file - -buttons "Get Started:0,Skip:1" -title "Welcome to AiraOS-Octave" -center -default "Get Started" 2>/dev/null
+    RESULT=$?
+else
+    # Text welcome
+    show_welcome
+    read -r input
+    case "$input" in
+        q|Q) RESULT=1 ;;
+        *) RESULT=0 ;;
+    esac
+fi
+
+if [ "$RESULT" = "0" ]; then
+    # Show a quick tour of the desktop
+    if [ -n "${DISPLAY:-}" ] && command -v xmessage >/dev/null 2>&1; then
+        cat <<'TOUR_EOF' | xmessage -file - -buttons OK:0 -title "AiraOS Desktop Tour" -center 2>/dev/null
+The AiraOS Desktop:
+
+┌────────────────────────────────────────────────────────────────────────────┐
+│  Aira [Terminal] [Files] [Editor] [Settings]  [Task List]  [1][2][3][4]  │
+│                                                                            │
+│  ┌────────────────────────────────────────────────────────────────────┐   │
+│  │                                                                    │   │
+│  │   Right-click anywhere on the desktop background for the menu!   │   │
+│  │                                                                    │   │
+│  └────────────────────────────────────────────────────────────────────┘   │
+│                                                                            │
+│  NET: 10.0.2.15    DSK: 2.1G free (45% used)    CPU ████░░░░░░░  14:32  │
+└────────────────────────────────────────────────────────────────────────────┘
+
+Top Bar (left to right):
+• "Aira" button / Alt+F1 → Main application menu
+• Quick launch: Terminal, Files, Editor, Settings
+• Running applications (task list)
+• Workspace switcher (1,2,3,4)
+• Network status, Disk status, CPU load, Clock
+
+Keyboard Shortcuts:
+• Alt+F1  → Main menu
+• Alt+F2  → Terminal
+• Alt+F3  → File Manager
+• Alt+F4  → Text Editor
+• Alt+F5  → Settings
+• Alt+F6  → System Monitor
+• Alt+F7  → Network Manager
+• Alt+F8  → Package Center
+• Alt+F9  → About
+• Alt+Tab → Switch windows
+• Alt+F4  → Close window
+• Ctrl+Esc → Main menu
+
+Try it now! Right-click on the desktop → Terminal
+TOUR_EOF
+    fi
+fi
+
+# Mark welcome as done
+touch "$WELCOME_FLAG"
+echo "Welcome screen completed."

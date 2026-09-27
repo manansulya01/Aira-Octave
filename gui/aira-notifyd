@@ -1,0 +1,31 @@
+#!/bin/sh
+# AiraOS Notification Daemon - simple notification system for desktop.
+# Uses xmessage for popups, can be extended for more sophisticated notifications.
+
+NOTIFY_FIFO="/tmp/aira-notify-fifo"
+mkfifo "$NOTIFY_FIFO" 2>/dev/null
+
+# Cleanup on exit
+trap "rm -f $NOTIFY_FIFO" EXIT
+
+# Listen for notifications
+while true; do
+    if read -r line < "$NOTIFY_FIFO"; then
+        # Format: urgency|title|message|timeout
+        urgency=$(echo "$line" | cut -d'|' -f1)
+        title=$(echo "$line" | cut -d'|' -f2)
+        message=$(echo "$line" | cut -d'|' -f3)
+        timeout=$(echo "$line" | cut -d'|' -f4)
+        [ -z "$timeout" ] && timeout=5
+        
+        case "$urgency" in
+            critical) bgcolor="#8b0000"; fgcolor="#ffffff" ;;
+            normal) bgcolor="#1e2d72"; fgcolor="#e8ecff" ;;
+            low) bgcolor="#16205c"; fgcolor="#b8c0e8" ;;
+            *) bgcolor="#1e2d72"; fgcolor="#e8ecff" ;;
+        esac
+        
+        # Show notification using xmessage
+        echo "$title\n\n$message" | xmessage -file - -buttons OK:0 -title "AiraOS Notification" -center -bg "$bgcolor" -fg "$fgcolor" -timeout "$timeout" 2>/dev/null &
+    fi
+done

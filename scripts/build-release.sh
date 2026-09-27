@@ -3,7 +3,7 @@
 set -u
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT" || exit 1
-VER="${1:-0.1.0}"
+VER="${1:-1.5.0}"
 REL="$ROOT/release/aira-octave-$VER"
 OUTDIR="$ROOT/logs/final-completion/release"
 mkdir -p "$OUTDIR" "$REL/boot/grub"

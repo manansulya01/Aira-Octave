@@ -1,0 +1,47 @@
+#!/bin/sh
+# AiraOS Session Manager - handles logout, restart, shutdown from desktop.
+# Integrates with JWM and system services.
+
+ACTION="${1:-logout}"
+
+case "$ACTION" in
+    logout)
+        # Graceful logout: stop JWM, kill X apps, return to login/shell
+        if [ -f /tmp/aira-jwm.pid ]; then
+            kill "$(cat /tmp/aira-jwm.pid)" 2>/dev/null
+        fi
+        pkill -f "aira-" 2>/dev/null
+        pkill xterm 2>/dev/null
+        pkill jwm 2>/dev/null
+        echo "Logged out"
+        ;;
+    restart)
+        # Restart desktop session
+        if [ -f /tmp/aira-jwm.pid ]; then
+            kill "$(cat /tmp/aira-jwm.pid)" 2>/dev/null
+        fi
+        pkill -f "aira-" 2>/dev/null
+        pkill xterm 2>/dev/null
+        pkill jwm 2>/dev/null
+        sleep 1
+        exec aira-session
+        ;;
+    shutdown)
+        # Full system shutdown
+        echo "Shutting down..."
+        /sbin/aira-init shutdown 2>&1
+        sync
+        poweroff -f
+        ;;
+    reboot)
+        # Full system reboot
+        echo "Rebooting..."
+        /sbin/aira-init shutdown 2>&1
+        sync
+        reboot -f
+        ;;
+    *)
+        echo "Usage: aira-session-mgr {logout|restart|shutdown|reboot}"
+        exit 1
+        ;;
+esac

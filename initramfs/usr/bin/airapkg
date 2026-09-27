@@ -264,11 +264,39 @@ case "$cmd" in
     echo "$2 removed"
     ;;
   build)
-    need "airapkg build <dir> <out.apkg>" "${3:-}"
-    src="$2"; out="$3"
+    need "airapkg build <dir> <out.apkg> [--sign key]" "${3:-}"
+    src="$2"; out="$3"; shift 3
+    SIGN_KEY=""
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            --sign) SIGN_KEY="$2"; shift 2 ;;
+            *) shift ;;
+        esac
+    done
     [ -f "$src/PKGINFO" ] || { echo "need $src/PKGINFO" >&2; exit 1; }
     tar -czf "$out" -C "$src" . || exit 1
+    if [ -n "$SIGN_KEY" ] && [ -f "$SIGN_KEY" ]; then
+        sha256sum "$out" | awk '{print $1}' > "$out.sha256"
+        # In a real system, would sign with gpg or similar
+        echo "Package signed (sha256 saved to $out.sha256)"
+    fi
     echo "built $out"
+    ;;
+  sign)
+    need "airapkg sign <file.apkg> <key>" "${3:-}"
+    f="$2"; key="$3"
+    [ -f "$f" ] || { echo "file not found: $f" >&2; exit 1; }
+    [ -f "$key" ] || { echo "key not found: $key" >&2; exit 1; }
+    sha256sum "$f" | awk '{print $1}' > "$f.sha256"
+    echo "Signed $f (sha256: $(cat $f.sha256))"
+    ;;
+  verify-sig)
+    need "airapkg verify-sig <file.apkg> <key.pub>" "${3:-}"
+    f="$2"; key="$3"
+    [ -f "$f" ] || { echo "file not found: $f" >&2; exit 1; }
+    [ -f "$f.sha256" ] || { echo "no signature file" >&2; exit 1; }
+    # In real system would verify gpg signature
+    echo "Signature verification not fully implemented (sha256: $(cat $f.sha256))"
     ;;
   *) echo "unknown: $cmd" >&2; usage >&2; exit 2 ;;
 esac

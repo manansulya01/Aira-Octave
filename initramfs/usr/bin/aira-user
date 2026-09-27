@@ -1,0 +1,328 @@
+#!/bin/sh
+# AiraOS User Management - adduser, deluser, passwd, groups, login
+# Real user account management with password support.
+
+set -u
+
+usage() {
+    cat <<'EOF'
+aira-user — AiraOS user management
+  aira-user adduser <name> [--uid N] [--gid N] [--home DIR] [--shell SHELL] [--gecos "Name"]
+  aira-user deluser <name> [--remove-home]
+  aira-user passwd <name> [--stdin]
+  aira-user addgroup <name> [--gid N]
+  aira-user delgroup <name>
+  aira-user usermod <name> [--uid N] [--gid N] [--home DIR] [--shell SHELL] [--gecos "Name"] [--lock|--unlock]
+  aira-user groups <name>
+  aira-user list
+  aira-user login <name>    # Start login shell as user (requires root)
+EOF
+}
+
+# Read /etc/passwd and find max UID/GID
+get_next_uid() {
+    awk -F: '$3 >= 1000 && $3 < 65534 {print $3}' /etc/passwd | sort -n | tail -1 | awk '{print $1+1}'
+}
+get_next_gid() {
+    awk -F: '$3 >= 1000 && $3 < 65534 {print $3}' /etc/group | sort -n | tail -1 | awk '{print $1+1}'
+}
+
+cmd="${1:-help}"
+case "$cmd" in
+    help|--help|-h) usage ;;
+
+    adduser)
+        shift
+        NAME=""
+        UID=""
+        GID=""
+        HOME=""
+        SHELL="/bin/sh"
+        GECOS=""
+        while [ $# -gt 0 ]; do
+            case "$1" in
+                --uid) UID="$2"; shift 2 ;;
+                --gid) GID="$2"; shift 2 ;;
+                --home) HOME="$2"; shift 2 ;;
+                --shell) SHELL="$2"; shift 2 ;;
+                --gecos) GECOS="$2"; shift 2 ;;
+                *) [ -z "$NAME" ] && NAME="$1" || { echo "Unexpected arg: $1"; usage; exit 1; }; shift ;;
+            esac
+        done
+        [ -n "$NAME" ] || { echo "Usage: aira-user adduser <name> [options]"; exit 1; }
+        
+        # Check if user exists
+        if grep -q "^$NAME:" /etc/passwd; then
+            echo "User $NAME already exists"
+            exit 1
+        fi
+        
+        [ -n "$UID" ] || UID=$(get_next_uid)
+        [ -n "$UID" ] || UID=1000
+        [ -n "$GID" ] || GID=$UID
+        [ -n "$HOME" ] || HOME="/home/$NAME"
+        
+        # Create group if needed
+        if ! grep -q "^[^:]*x:$GID:" /etc/group; then
+            echo "$NAME:x:$GID:" >> /etc/group
+        fi
+        
+        # Add user
+        echo "$NAME:x:$UID:$GID:${GECOS:-$NAME}:$HOME:$SHELL" >> /etc/passwd
+        echo "$NAME:*:19000:0:99999:7:::">> /etc/shadow
+        
+        # Create home directory
+        mkdir -p "$HOME"
+        chown "$UID:$GID" "$HOME"
+        chmod 755 "$HOME"
+        
+        # Copy skeleton files
+        [ -d /etc/skel ] && cp -r /etc/skel/. "$HOME/" 2>/dev/null
+        chown -R "$UID:$GID" "$HOME"
+        
+        echo "User $NAME created (uid=$UID, gid=$GID, home=$HOME)"
+        ;;
+
+    deluser)
+        shift
+        NAME=""
+        REMOVE_HOME=0
+        while [ $# -gt 0 ]; do
+            case "$1" in
+                --remove-home) REMOVE_HOME=1; shift ;;
+                *) [ -z "$NAME" ] && NAME="$1" || { echo "Unexpected arg: $1"; exit 1; }; shift ;;
+            esac
+        done
+        [ -n "$NAME" ] || { echo "Usage: aira-user deluser <name> [--remove-home]"; exit 1; }
+        
+        if ! grep -q "^$NAME:" /etc/passwd; then
+            echo "User $NAME does not exist"
+            exit 1
+        fi
+        
+        if [ "$NAME" = "root" ]; then
+            echo "Cannot delete root user"
+            exit 1
+        fi
+        
+        # Remove from passwd, shadow, group
+        sed -i "/^$NAME:/d" /etc/passwd
+        sed -i "/^$NAME:/d" /etc/shadow
+        # Remove from groups
+        sed -i "s/\(:$NAME,$\)//g; s/\(,$NAME\)//g; s/^$NAME://" /etc/group
+        
+        if [ "$REMOVE_HOME" = "1" ]; then
+            HOME=$(grep "^$NAME:" /etc/passwd | cut -d: -f6)
+            [ -n "$HOME" ] && rm -rf "$HOME"
+        fi
+        
+        echo "User $NAME deleted"
+        ;;
+
+    passwd)
+        shift
+        NAME=""
+        STDIN=0
+        while [ $# -gt 0 ]; do
+            case "$1" in
+                --stdin) STDIN=1; shift ;;
+                *) [ -z "$NAME" ] && NAME="$1" || { echo "Unexpected arg: $1"; exit 1; }; shift ;;
+            esac
+        done
+        [ -n "$NAME" ] || { echo "Usage: aira-user passwd <name> [--stdin]"; exit 1; }
+        
+        if ! grep -q "^$NAME:" /etc/passwd; then
+            echo "User $NAME does not exist"
+            exit 1
+        fi
+        
+        if [ "$STDIN" = "1" ]; then
+            read -r PASS
+        else
+            echo -n "New password: "
+            stty -echo
+            read -r PASS1
+            echo
+            echo -n "Retype password: "
+            read -r PASS2
+            echo
+            stty echo
+            [ "$PASS1" = "$PASS2" ] || { echo "Passwords do not match"; exit 1; }
+            PASS="$PASS1"
+        fi
+        
+        # Simple hash (in real system would use crypt/sha512)
+        # For now, store a marker that password is set
+        HASH="$(echo -n "$PASS" | sha256sum 2>/dev/null | cut -d' ' -f1 || echo "set")"
+        sed -i "s/^$NAME:\*:/$NAME:$HASH:/" /etc/shadow
+        echo "Password updated for $NAME"
+        ;;
+
+    addgroup)
+        shift
+        NAME=""
+        GID=""
+        while [ $# -gt 0 ]; do
+            case "$1" in
+                --gid) GID="$2"; shift 2 ;;
+                *) [ -z "$NAME" ] && NAME="$1" || { echo "Unexpected arg: $1"; exit 1; }; shift ;;
+            esac
+        done
+        [ -n "$NAME" ] || { echo "Usage: aira-user addgroup <name> [--gid N]"; exit 1; }
+        
+        if grep -q "^$NAME:" /etc/group; then
+            echo "Group $NAME already exists"
+            exit 1
+        fi
+        
+        [ -n "$GID" ] || GID=$(get_next_gid)
+        [ -n "$GID" ] || GID=1000
+        
+        echo "$NAME:x:$GID:" >> /etc/group
+        echo "Group $NAME created (gid=$GID)"
+        ;;
+
+    delgroup)
+        shift
+        NAME="${1:-}"
+        [ -n "$NAME" ] || { echo "Usage: aira-user delgroup <name>"; exit 1; }
+        
+        if ! grep -q "^$NAME:" /etc/group; then
+            echo "Group $NAME does not exist"
+            exit 1
+        fi
+        
+        # Check if group is primary for any user
+        GID=$(grep "^$NAME:" /etc/group | cut -d: -f3)
+        if grep -q ":$GID:" /etc/passwd; then
+            echo "Group $NAME is primary group for existing users"
+            exit 1
+        fi
+        
+        sed -i "/^$NAME:/d" /etc/group
+        # Remove from supplementary groups
+        sed -i "s/,$NAME//g; s/$NAME,//g" /etc/group
+        echo "Group $NAME deleted"
+        ;;
+
+    usermod)
+        shift
+        NAME=""
+        UID=""
+        GID=""
+        HOME=""
+        SHELL=""
+        GECOS=""
+        LOCK=0
+        UNLOCK=0
+        while [ $# -gt 0 ]; do
+            case "$1" in
+                --uid) UID="$2"; shift 2 ;;
+                --gid) GID="$2"; shift 2 ;;
+                --home) HOME="$2"; shift 2 ;;
+                --shell) SHELL="$2"; shift 2 ;;
+                --gecos) GECOS="$2"; shift 2 ;;
+                --lock) LOCK=1; shift ;;
+                --unlock) UNLOCK=1; shift ;;
+                *) [ -z "$NAME" ] && NAME="$1" || { echo "Unexpected arg: $1"; exit 1; }; shift ;;
+            esac
+        done
+        [ -n "$NAME" ] || { echo "Usage: aira-user usermod <name> [options]"; exit 1; }
+        
+        if ! grep -q "^$NAME:" /etc/passwd; then
+            echo "User $NAME does not exist"
+            exit 1
+        fi
+        
+        # Build new passwd line
+        OLD_LINE=$(grep "^$NAME:" /etc/passwd)
+        OUID=$(echo "$OLD_LINE" | cut -d: -f3)
+        OGID=$(echo "$OLD_LINE" | cut -d: -f4)
+        OGECOS=$(echo "$OLD_LINE" | cut -d: -f5)
+        OHOME=$(echo "$OLD_LINE" | cut -d: -f6)
+        OSHELL=$(echo "$OLD_LINE" | cut -d: -f7)
+        
+        NEW_UID="${UID:-$OUID}"
+        NEW_GID="${GID:-$OGID}"
+        NEW_HOME="${HOME:-$OHOME}"
+        NEW_SHELL="${SHELL:-$OSHELL}"
+        NEW_GECOS="${GECOS:-$OGECOS}"
+        
+        # Update home directory if changed
+        if [ "$NEW_HOME" != "$OHOME" ] && [ -d "$OHOME" ]; then
+            mv "$OHOME" "$NEW_HOME"
+            chown -R "$NEW_UID:$NEW_GID" "$NEW_HOME"
+        fi
+        
+        # Update passwd
+        sed -i "s|^$NAME:.*|$NAME:x:$NEW_UID:$NEW_GID:$NEW_GECOS:$NEW_HOME:$NEW_SHELL|" /etc/passwd
+        
+        if [ "$LOCK" = "1" ]; then
+            sed -i "s/^$NAME:[^:]*:/$NAME:!:/ " /etc/shadow
+            echo "User $NAME locked"
+        fi
+        if [ "$UNLOCK" = "1" ]; then
+            sed -i "s/^$NAME:!:/$NAME:*:/" /etc/shadow
+            echo "User $NAME unlocked"
+        fi
+        echo "User $NAME modified"
+        ;;
+
+    groups)
+        shift
+        NAME="${1:-$(whoami)}"
+        if ! grep -q "^$NAME:" /etc/passwd; then
+            echo "User $NAME does not exist"
+            exit 1
+        fi
+        GID=$(grep "^$NAME:" /etc/passwd | cut -d: -f4)
+        PRIMARY=$(grep ":$GID:" /etc/group | cut -d: -f1)
+        SUPP=$(grep ":$GID:" /etc/group | cut -d: -f4)
+        # Also find groups where user is in members list
+        EXTRA=$(awk -F: -v user="$NAME" '$4 ~ user {print $1}' /etc/group | tr '\n' ',')
+        echo "$PRIMARY${SUPP:+,}${SUPP}${EXTRA:+,}${EXTRA}"
+        ;;
+
+    list)
+        echo "Users:"
+        awk -F: '{printf "  %-15s uid=%-5s gid=%-5s %s\n", $1, $3, $4, $5}' /etc/passwd
+        echo
+        echo "Groups:"
+        awk -F: '{printf "  %-15s gid=%-5s\n", $1, $3}' /etc/group
+        ;;
+
+    login)
+        shift
+        NAME="${1:-}"
+        [ -n "$NAME" ] || { echo "Usage: aira-user login <name>"; exit 1; }
+        
+        if ! grep -q "^$NAME:" /etc/passwd; then
+            echo "User $NAME does not exist"
+            exit 1
+        fi
+        
+        if [ "$(id -u)" != "0" ]; then
+            echo "Login requires root privileges"
+            exit 1
+        fi
+        
+        UID=$(grep "^$NAME:" /etc/passwd | cut -d: -f3)
+        GID=$(grep "^$NAME:" /etc/passwd | cut -d: -f4)
+        HOME=$(grep "^$NAME:" /etc/passwd | cut -d: -f6)
+        SHELL=$(grep "^$NAME:" /etc/passwd | cut -d: -f7)
+        
+        export HOME="$HOME"
+        export USER="$NAME"
+        export LOGNAME="$NAME"
+        export SHELL="$SHELL"
+        
+        # Set groups
+        GROUPS=$(aira-user groups "$NAME" 2>/dev/null | tr ',' ' ')
+        export GROUPS
+        
+        cd "$HOME"
+        exec su -s "$SHELL" "$NAME"
+        ;;
+
+    *) echo "Unknown command: $cmd"; usage; exit 1 ;;
+esac

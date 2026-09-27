@@ -1,33 +1,78 @@
 #!/bin/sh
-# Real system information (xmessage when graphical, stdout always).
-# Uses the Aira IPC bus when alive (real integration), falls back to direct
-# /proc reads so the app never depends on IPC alone.
-# --once: print to stdout, skip xmessage (for tests / terminal use).
+# AiraOS System Information - real system info via IPC bus or direct /proc reads.
+# --once: print to stdout, skip xmessage (for tests/terminal use).
 ONCE=""
 [ "${1:-}" = "--once" ] && ONCE="1"
+
 INFO="$(mktemp /tmp/aira-sysinfo.XXXXXX 2>/dev/null || echo /tmp/aira-sysinfo.$$)"
+
 {
-  echo "AiraOS-Octave System Information"; echo
-  cat /etc/os-release 2>/dev/null; echo
-  if command -v aira-ipc >/dev/null 2>&1 && aira-ipc ping >/dev/null 2>&1; then
-    echo "[via Aira IPC bus]"
-    echo "--- system.version ---"; aira-ipc call system version 2>/dev/null; echo
-    echo "--- system.info ---"; aira-ipc call system info 2>/dev/null | tr ';' '\n'; echo
-    echo "--- system.memory ---"; aira-ipc call system memory 2>/dev/null | tr ';' '\n'; echo
-    echo "--- storage.persist ---"; aira-ipc call storage persist 2>/dev/null | tr ';' '\n'; echo
-  else
-    echo "[direct: IPC bus unreachable]"
-    uname -a; echo
-    grep -m1 "model name" /proc/cpuinfo 2>/dev/null; echo
-    free -h 2>/dev/null || grep -E "MemTotal|MemFree" /proc/meminfo; echo
-    df -h 2>/dev/null | head -n 8; echo
-    ip -o -4 addr show 2>/dev/null | head -n 5 || echo "(no ip)"
-  fi
-  # Always show direct kernel truth as well (same underlying system).
-  echo; echo "--- kernel ---"; uname -a
+    echo "AiraOS-Octave System Information"
+    echo "================================="
+    echo
+    cat /etc/os-release 2>/dev/null
+    echo
+    if command -v aira-ipc >/dev/null 2>&1 && aira-ipc ping >/dev/null 2>&1; then
+        echo "[via Aira IPC bus]"
+        echo "--- system.version ---"
+        aira-ipc call system version 2>/dev/null
+        echo
+        echo "--- system.info ---"
+        aira-ipc call system info 2>/dev/null | tr ';' '\n'
+        echo
+        echo "--- system.memory ---"
+        aira-ipc call system memory 2>/dev/null | tr ';' '\n'
+        echo
+        echo "--- storage.persist ---"
+        aira-ipc call storage persist 2>/dev/null | tr ';' '\n'
+        echo
+    else
+        echo "[direct: IPC bus unreachable]"
+        uname -a
+        echo
+        grep -m1 "model name" /proc/cpuinfo 2>/dev/null
+        echo
+        free -h 2>/dev/null || grep -E "MemTotal|MemFree" /proc/meminfo
+        echo
+        df -h 2>/dev/null | head -n 8
+        echo
+        ip -o -4 addr show 2>/dev/null | head -n 5 || echo "(no ip)"
+    fi
+    echo
+    echo "--- kernel ---"
+    uname -a
+    echo
+    echo "--- CPU ---"
+    grep -E "model name|cpu MHz|cpu cores" /proc/cpuinfo 2>/dev/null | head -n 4
+    echo "CPUs: $(grep -c '^processor' /proc/cpuinfo 2>/dev/null)"
+    echo
+    echo "--- Memory ---"
+    free -h 2>/dev/null || cat /proc/meminfo 2>/dev/null | head -n 10
+    echo
+    echo "--- Storage ---"
+    df -h 2>/dev/null
+    echo
+    echo "--- Network ---"
+    ip -o -4 addr show 2>/dev/null | head -n 8
+    echo
+    echo "--- PCI Devices ---"
+    if [ -d /sys/bus/pci/devices ]; then
+        for d in /sys/bus/pci/devices/*; do
+            [ -e "$d/vendor" ] || continue
+            printf "%s vendor=%s device=%s class=%s\n" "$(basename "$d")" "$(cat "$d/vendor" 2>/dev/null)" "$(cat "$d/device" 2>/dev/null)" "$(cat "$d/class" 2>/dev/null)"
+        done 2>/dev/null | head -n 15
+    else
+        dmesg 2>/dev/null | grep -i pci | head -n 10
+    fi
+    echo
+    echo "--- Block Devices ---"
+    ls -la /dev/vd* /dev/sd* /dev/sr* 2>/dev/null || echo "(no block devices)"
 } > "$INFO" 2>&1
+
 cat "$INFO"
+
 if [ -z "$ONCE" ] && [ -n "${DISPLAY:-}" ] && command -v xmessage >/dev/null 2>&1; then
-  xmessage -file "$INFO" -buttons OK:0 -title "AiraOS System Information" 2>/dev/null
+    xmessage -file "$INFO" -buttons OK:0 -title "AiraOS System Information" -center 2>/dev/null
 fi
+
 rm -f "$INFO"

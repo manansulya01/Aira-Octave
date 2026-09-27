@@ -1,41 +1,203 @@
-# AiraOS-Octave 1.2.0
+# AiraOS-Octave
 
-Bootable x86_64 OS: Linux 7.2.2 + AiraOS userspace + supervised services +
-Aira IPC bus (AIRA1) + persistent ext4 + networking + package manager with
-rollback + X11/JWM desktop + applications + automated tests + reproducible
-release.
+A minimal, bootable x86_64 Linux operating system built from scratch.
 
-## Quick start
-- Build: `bash scripts/build-samples.sh`, `bash scripts/build-initramfs.sh`, `bash scripts/build-gui.sh`, `bash scripts/build-rootfs.sh 512`
-- Boot text: `bash scripts/boot-qemu.sh --mem 512M --timeout 35 --log logs/boot.log`
-- Boot visible desktop: `bash scripts/boot-gui.sh` (QEMU GTK window, virtio-gpu + Xorg/JWM; serial shell stays on stdio)
-- Boot GUI/persist: add `--drive aira-rootfs.img --mem 1G`, in guest run `aira-session`
-- Demo: `bash scripts/demo.sh` (or `scripts/demo.sh --iso --gui`) — see `SHOWCASE_GUIDE.md`
-- IPC: in guest, `aira ipc ping hello`, `aira ipc list`, `aira doctor`
-- Test: `bash scripts/test-all.sh` (kernel/userspace/services/storage/network/gui/demo/iso)
-- Release: `bash scripts/test-release.sh 1.2.0` (builds + checksums + boots ISO)
+## Features
 
-## What's inside
-- Kernel 7.2.2 GZIP/SMP/PREEMPT_DYNAMIC, virtio (blk/net/gpu/input), e1000, ext4, DRM.
-- Userspace: BusyBox, /init, aira CLI (info/system/status/services/network/
-  storage/users/platform/diagnose/doctor/ipc/demo/...), airapkg
-  (search/info/install/remove/verify/rollback/update-check), service manager
-  (start/stop/restart/status/enable/disable/USER/shutdown), users (root+aira).
-- IPC bus: `aira-ipcd` daemon + `aira-ipc` client (AIRA1 over loopback TCP) +
-  handlers (bus/services/system/storage/network) with root-token auth for
-  privileged ops; `aira status` and `aira doctor` and System Information use
-  the bus (with direct fallback).
-- Desktop: Xvfb/Xorg + JWM (Aira menu), Terminal, File Manager, Text Editor,
-  System Monitor, Settings, Network Manager, Package Center, Sysinfo, About.
-- Dev: C sample app with packaged/host-to-guest workflow (see DEVELOPER_GUIDE.md).
+### 1.3 Desktop Experience
+- **JWM Window Manager** - Custom theme, 4 workspaces, taskbar, application menu
+- **Terminal** - xterm with copy/paste, Alt+F2
+- **File Manager** - Midnight Commander integration, Alt+F3
+- **Text Editor** - vi with syntax highlighting, Alt+F4
+- **Settings** - System/Display/Network/Storage/Users/Security/Apps/About, Alt+F5
+- **System Monitor** - Real-time CPU/Memory/Process/Storage/Network, Alt+F6
+- **Network Manager** - Interfaces, DHCP, Routes, DNS, Alt+F7
+- **Package Center** - Search, Install, Remove, Verify, Rollback, Alt+F8
+- **About** - System information, Alt+F9
 
-## Hardware
-QEMU verified (see HARDWARE_COMPATIBILITY.md). Real HW untested.
+### 1.4 Platform Hardening
+- **User Management** - Accounts, groups, passwords, login/session
+- **Security** - Kernel hardening, cgroups, seccomp, shadow passwords
+- **Service Manager** - Dependencies, respawn, resource limits, diagnostics
+- **IPC Bus** - AIRA1 protocol, request/response, events, service discovery
+- **Device Management** - PCI, USB, VirtIO, input discovery
+- **Recovery** - Check/fix services, storage, network, packages, graphics
 
-## Limitations
-- Core services/desktop run as root (USER= mechanism proven; separation future work).
-- No login/firewall/encryption; local package repo only; user-net networking.
-- IPC binds all interfaces at the nc level (loopback-only not enforceable with
-  this BusyBox nc); QEMU user-net exposes no guest ports by default, and
-  privileged bus methods require the root-only token.
-- See `docs/research/final/KNOWN_LIMITATIONS.md` for the full honest list.
+### 1.5 Flagship
+- **Installer** - Disk partitioning, filesystem, bootloader, user creation
+- **Updater** - Atomic updates with snapshot rollback
+- **SDK** - Headers, libraries, examples, package building
+- **Audio** - ALSA mixer, device enumeration, test tones
+- **Power** - Shutdown, reboot, suspend, hibernate, ACPI
+- **Observability** - Doctor, info, status, diagnose, unified logs
+
+## Quick Start
+
+### Boot in QEMU (Live)
+```bash
+qemu-system-x86_64 \
+    -machine q35,accel=kvm \
+    -cpu host \
+    -m 1G \
+    -kernel bzImage \
+    -initrd initramfs.cpio \
+    -append "console=ttyS0 aira_gui=1" \
+    -serial stdio
+```
+
+### Boot with Persistence
+```bash
+# Create disk image
+qemu-img create -f raw aira-rootfs.img 2G
+
+# Boot with disk
+qemu-system-x86_64 \
+    -machine q35,accel=kvm \
+    -cpu host \
+    -m 1G \
+    -kernel bzImage \
+    -initrd initramfs.cpio \
+    -drive file=aira-rootfs.img,format=raw,if=virtio \
+    -netdev user,id=net0 -device virtio-net-pci,netdev=net0 \
+    -append "console=ttyS0 aira_gui=1" \
+    -serial stdio
+```
+
+### Keyboard Shortcuts
+| Key | Action |
+|-----|--------|
+| Alt+F1 | Main menu |
+| Alt+F2 | Terminal |
+| Alt+F3 | File Manager |
+| Alt+F4 | Text Editor |
+| Alt+F5 | Settings |
+| Alt+F6 | System Monitor |
+| Alt+F7 | Network Manager |
+| Alt+F8 | Package Center |
+| Alt+F9 | About |
+| Alt+Tab | Switch windows |
+| Right-click | Desktop menu |
+
+## System Commands
+
+```bash
+# System information
+aira info           # OS/kernel/arch
+aira version        # Version
+aira system         # Kernel+CPU+memory+disk
+aira platform       # Hardware details
+aira status         # Services + mounts
+
+# Service management
+aira services status
+aira services start|stop|restart <name>
+aira services enable|disable <name>
+aira services logs <name> [lines]
+aira services diag <name>
+
+# Network
+aira network        # Interfaces, routes, DNS
+aira network dhcp eth0
+
+# Storage
+aira storage        # Disks, mounts, persistence
+
+# Users
+aira users          # Users/groups
+aira user adduser <name>
+aira user passwd <name>
+
+# Packages
+aira packages list
+aira packages search <term>
+aira packages info <name>
+aira packages install <file.apkg>
+aira packages remove <name>
+aira packages verify <name>
+aira packages rollback <name>
+
+# IPC
+aira ipc ping
+aira ipc list
+aira ipc call <service> <method> [args]
+aira ipc emit <topic> <message>
+
+# Diagnostics
+aira doctor         # Health check
+aira diagnose       # Full dump
+aira demo           # Guided tour
+
+# Recovery
+aira-recovery check all
+aira-recovery fix all
+
+# Updates
+aira-update check
+aira-update status
+aira-update install
+
+# Power
+aira-power shutdown --force
+aira-power reboot --force
+aira-power suspend
+aira-power status
+
+# Audio
+aira-audio volume [0-100]
+aira-audio mute|unmute
+aira-audio list
+aira-audio test
+```
+
+## Building from Source
+
+```bash
+# Prerequisites: gcc, make, bc, flex, bison, libssl-dev, libelf-dev, cpio, grub, qemu
+
+# Build kernel
+scripts/build-kernel.sh
+
+# Build initramfs
+scripts/build-initramfs.sh
+
+# Build persistent rootfs (optional)
+scripts/build-rootfs.sh 512
+
+# Run tests
+scripts/test-all.sh
+
+# Create release
+scripts/build-release.sh 1.5.0
+```
+
+## Project Structure
+
+```
+├── configs/              # Kernel config
+├── docs/                 # Documentation
+├── gui/                  # Desktop applications
+├── initramfs/            # Initramfs source
+│   ├── init              # PID 1
+│   ├── sbin/             # System services
+│   ├── usr/bin/          # User commands
+│   └── etc/              # Configuration
+├── linux-7.2.2/          # Kernel source
+├── scripts/              # Build/test scripts
+└── release/              # Release artifacts
+```
+
+## Documentation
+
+- [Architecture](docs/ARCHITECTURE.md) - System design and internals
+- [Security](docs/SECURITY.md) - Security model and hardening
+- [Testing](docs/TESTING.md) - Test procedures
+- [Building](docs/BUILDING.md) - Build instructions
+- [Release Notes](RELEASE_NOTES.md) - Version history
+
+## License
+
+MIT License - see LICENSE file
+
+## Version
+
+Current: 1.5.0

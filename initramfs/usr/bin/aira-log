@@ -1,0 +1,97 @@
+#!/bin/sh
+# AiraOS Log Viewer - unified log viewing for system and services.
+# Usage: aira-log {list|view|follow|search|clear} [service] [lines]
+
+set -u
+
+CMD="${1:-list}"
+SERVICE="${2:-}"
+LINES="${3:-100}"
+LOG_DIR="/var/log/airaos"
+
+usage() {
+    cat <<'EOF'
+aira-log — AiraOS log viewer
+  aira-log list                  List all log files
+  aira-log view [service] [n]    View last n lines (default 100)
+  aira-log follow [service]      Follow log in real-time
+  aira-log search <pattern> [svc] Search logs for pattern
+  aira-log clear [service]       Clear log file(s)
+EOF
+}
+
+list_logs() {
+    echo "=== Log Files in $LOG_DIR ==="
+    ls -la "$LOG_DIR"/ 2>/dev/null | sed 's/^/  /' || echo "  No log directory"
+    echo
+    echo "=== Service Logs ==="
+    for log in "$LOG_DIR"/*.log; do
+        [ -f "$log" ] || continue
+        size=$(wc -c < "$log" 2>/dev/null)
+        lines=$(wc -l < "$log" 2>/dev/null)
+        echo "  $(basename $log): ${size}B, ${lines} lines"
+    done
+}
+
+view_log() {
+    if [ -n "$SERVICE" ]; then
+        LOG_FILE="$LOG_DIR/$SERVICE.log"
+        [ -f "$LOG_FILE" ] || { echo "Log not found: $LOG_FILE"; exit 1; }
+        tail -n "$LINES" "$LOG_FILE"
+    else
+        # Show combined recent logs
+        for log in "$LOG_DIR"/*.log; do
+            [ -f "$log" ] || continue
+            echo "=== $(basename $log) ==="
+            tail -n 20 "$log"
+            echo
+        done
+    fi
+}
+
+follow_log() {
+    if [ -n "$SERVICE" ]; then
+        LOG_FILE="$LOG_DIR/$SERVICE.log"
+        [ -f "$LOG_FILE" ] || { echo "Log not found: $LOG_FILE"; exit 1; }
+        tail -f "$LOG_FILE"
+    else
+        tail -f "$LOG_DIR"/*.log 2>/dev/null
+    fi
+}
+
+search_log() {
+    PATTERN="${2:-}"
+    [ -n "$PATTERN" ] || { echo "Pattern required"; exit 1; }
+    
+    if [ -n "$SERVICE" ]; then
+        LOG_FILE="$LOG_DIR/$SERVICE.log"
+        [ -f "$LOG_FILE" ] || { echo "Log not found: $LOG_FILE"; exit 1; }
+        grep -n "$PATTERN" "$LOG_FILE" | tail -n 50
+    else
+        grep -rn "$PATTERN" "$LOG_DIR"/*.log 2>/dev/null | tail -n 50
+    fi
+}
+
+clear_log() {
+    if [ -n "$SERVICE" ]; then
+        LOG_FILE="$LOG_DIR/$SERVICE.log"
+        [ -f "$LOG_FILE" ] || { echo "Log not found: $LOG_FILE"; exit 1; }
+        > "$LOG_FILE"
+        echo "Cleared: $LOG_FILE"
+    else
+        for log in "$LOG_DIR"/*.log; do
+            [ -f "$log" ] && > "$log"
+        done
+        echo "Cleared all logs"
+    fi
+}
+
+case "$CMD" in
+    list) list_logs ;;
+    view) view_log ;;
+    follow) follow_log ;;
+    search) search_log "$@" ;;
+    clear) clear_log ;;
+    help|--help|-h) usage ;;
+    *) echo "Unknown command: $CMD"; usage; exit 1 ;;
+esac

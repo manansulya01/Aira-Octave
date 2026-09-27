@@ -1,4 +1,4 @@
-# SHOWCASE GUIDE — AiraOS-Octave 1.2.0 (3–5 minute demo)
+# SHOWCASE GUIDE — AiraOS-Octave 1.5.0 (3–5 minute demo)
 
 Every step below is real (no fakes). Serial console stays visible for narration.
 
@@ -60,7 +60,7 @@ bash scripts/demo.sh --iso
 
 ```sh
 bash scripts/test-all.sh            # 8 suites (kernel/userspace/services/storage/network/gui/demo/iso)
-bash scripts/test-release.sh 1.2.0  # build + checksums + boot exact ISO
+bash scripts/test-release.sh 1.5.0  # build + checksums + boot exact ISO
 ```
 
 Evidence: `logs/final-completion/` (per-suite logs) + GUI screenshot in

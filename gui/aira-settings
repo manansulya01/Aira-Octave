@@ -1,48 +1,214 @@
 #!/bin/sh
-# AiraOS Settings: real system/network/display/storage state + real actions.
-# Sections show live values; actions (hostname, DHCP) actually apply.
-set -u
-if [ -z "${DISPLAY:-}" ]; then export DISPLAY=":99"; fi
-show_all() {
-  echo "=== AiraOS Settings ==="
-  echo "--- SYSTEM ---"
-  echo "os:      $(grep PRETTY_NAME /etc/os-release 2>/dev/null | cut -d= -f2- | tr -d '\"' || echo unknown)"
-  echo "kernel:  $(uname -r 2>/dev/null)  arch: $(uname -m 2>/dev/null)"
-  echo "cpu:     $(grep -m1 'model name' /proc/cpuinfo 2>/dev/null | cut -d: -f2- | sed 's/^ //')"
-  echo "ram:     $(awk '/MemTotal/{printf "%d MB",$2/1024}' /proc/meminfo 2>/dev/null) total"
-  echo "hostname: $(cat /etc/hostname 2>/dev/null)"
-  echo "--- DISPLAY ---"
-  echo "server:  $(ps 2>/dev/null | grep -q '[X]org' && echo 'Xorg (visible)' || ([ -n "${DISPLAY:-}" ] && echo "X on $DISPLAY" || echo unknown))"
-  echo "screen:  $(xrandr 2>/dev/null | grep -m1 'current' || echo unknown)"
-  echo "--- NETWORK ---"
-  ip -o -4 addr show 2>/dev/null | head -n 4 || echo "(no addresses)"
-  echo "--- STORAGE ---"
-  df -h /persist / 2>/dev/null | head -n 4 || df -h 2>/dev/null | head -n 4
-}
-menu() {
-  while true; do
-    clear 2>/dev/null || true
-    show_all
-    echo
-    echo "1) set hostname  2) renew DHCP eth0  3) system info  4) quit"
-    printf "choice: "; read c
-    case "$c" in
-      1) printf "new hostname: "; read h; [ -n "$h" ] && { echo "$h" > /etc/hostname; hostname "$h" 2>/dev/null; echo saved; }; printf "enter..."; read x ;;
-      2) for _s in /usr/share/udhcpc/default.script /etc/udhcpc/default.script; do
-           if [ -x "$_s" ]; then _SCRIPT="$_s"; break; fi
-         done
-         if [ -n "${_SCRIPT:-}" ]; then udhcpc -i eth0 -n -q -t 3 -s "$_SCRIPT" 2>&1 | head;
-         else udhcpc -i eth0 -n -q -t 3 2>&1 | head; fi
-         printf "enter..."; read x ;;
-      3) aira-sysinfo ;;
-      4|q) break ;;
-    esac
-  done
-}
-if [ "${1:-}" = "--noterm" ]; then
-  menu
-elif [ -n "${DISPLAY:-}" ] && command -v xterm >/dev/null 2>&1; then
-  exec xterm -fa Monospace -fs 10 -bg "#0b1026" -fg "#e8ecff" -sb -T "AiraOS Settings" -geometry 80x26+150+100 -e sh "$0" --noterm
-else
-  menu
+# AiraOS Settings - real graphical settings application with SYSTEM, DISPLAY,
+# NETWORK, STORAGE, USERS, SECURITY, APPLICATIONS, ABOUT sections.
+# Controls perform real actions or clearly expose read-only state.
+export DISPLAY="${DISPLAY:-:0}"
+
+# Check for graphical mode
+if [ -n "${DISPLAY:-}" ] && command -v xterm >/dev/null 2>&1 && [ "${1:-}" != "--text" ]; then
+    exec xterm \
+        -fa "Monospace" -fs 10 \
+        -bg "#0b1026" -fg "#e8ecff" \
+        -sb -sl 500 \
+        -T "AiraOS Settings" \
+        -geometry 90x38+150+100 \
+        -name aira-settings \
+        -e "$0" --text
+    exit 0
 fi
+
+# Text mode UI (runs inside xterm)
+clear
+show_header() {
+    echo "╔═════════════════════════════════════════════════════════════════════════════╗"
+    echo "║                          AiraOS Settings                                    ║"
+    echo "╚═════════════════════════════════════════════════════════════════════════════╝"
+    echo
+}
+
+show_system() {
+    echo "┌─ SYSTEM ──────────────────────────────────────────────────────────────────┐"
+    printf "│ OS:        %-58s │\n" "$(grep PRETTY_NAME /etc/os-release 2>/dev/null | cut -d= -f2- | tr -d '\"' || echo "Unknown")"
+    printf "│ Kernel:    %-58s │\n" "$(uname -r 2>/dev/null)"
+    printf "│ Arch:      %-58s │\n" "$(uname -m 2>/dev/null)"
+    printf "│ CPU:       %-58s │\n" "$(grep -m1 'model name' /proc/cpuinfo 2>/dev/null | cut -d: -f2- | sed 's/^ //' | cut -c1-58)"
+    printf "│ RAM:       %-58s │\n" "$(awk '/MemTotal/{printf "%d MB",$2/1024}' /proc/meminfo 2>/dev/null) total"
+    printf "│ Hostname:  %-58s │\n" "$(cat /etc/hostname 2>/dev/null)"
+    printf "│ Uptime:    %-58s │\n" "$(awk '{d=int($1/86400);h=int(($1%86400)/3600);m=int(($1%3600)/60);printf "%dd %02d:%02d",$1/86400,$1%86400/3600,$1%3600/60}' /proc/uptime 2>/dev/null)"
+    echo "└────────────────────────────────────────────────────────────────────────────┘"
+    echo
+}
+
+show_display() {
+    echo "┌─ DISPLAY ─────────────────────────────────────────────────────────────────┐"
+    if ps 2>/dev/null | grep -q '[X]org'; then
+        printf "│ Server:    %-58s │\n" "Xorg (visible hardware)"
+    elif [ -n "${DISPLAY:-}" ]; then
+        printf "│ Server:    %-58s │\n" "X on $DISPLAY"
+    else
+        printf "│ Server:    %-58s │\n" "Unknown"
+    fi
+    if command -v xrandr >/dev/null 2>&1; then
+        xrandr 2>/dev/null | grep -m1 'current' | sed 's/^/│ /; s/$/ │/' || printf "│ Screen:    %-58s │\n" "Unknown"
+    else
+        printf "│ Screen:    %-58s │\n" "xrandr not available"
+    fi
+    printf "│ DPI:       %-58s │\n" "$(xdpyinfo 2>/dev/null | grep -i resolution | head -1 | awk '{print $2}' || echo "Unknown")"
+    echo "└────────────────────────────────────────────────────────────────────────────┘"
+    echo
+}
+
+show_network() {
+    echo "┌─ NETWORK ─────────────────────────────────────────────────────────────────┐"
+    ip -o -4 addr show 2>/dev/null | while IFS= read -r line; do
+        iface=$(echo "$line" | awk '{print $2}')
+        addr=$(echo "$line" | awk '{print $4}')
+        printf "│ %-12s %-46s │\n" "$iface:" "$addr"
+    done
+    if ! ip -o -4 addr show 2>/dev/null | grep -q .; then
+        printf "│ %-58s │\n" "(no IPv4 addresses configured)"
+    fi
+    echo "├────────────────────────────────────────────────────────────────────────────┤"
+    printf "│ Routes:    %-58s │\n" "$(ip route 2>/dev/null | head -1 | cut -c1-58)"
+    echo "├────────────────────────────────────────────────────────────────────────────┤"
+    printf "│ DNS:       %-58s │\n" "$(cat /etc/resolv.conf 2>/dev/null | grep nameserver | head -1 | awk '{print $2}' || echo "Not configured")"
+    echo "└────────────────────────────────────────────────────────────────────────────┘"
+    echo
+}
+
+show_storage() {
+    echo "┌─ STORAGE ─────────────────────────────────────────────────────────────────┐"
+    df -h /persist / 2>/dev/null | while IFS= read -r line; do
+        printf "│ %-58s │\n" "$line"
+    done
+    if mount 2>/dev/null | grep -q " /persist "; then
+        printf "│ Persistence: %-47s │\n" "AVAILABLE (/persist mounted)"
+    else
+        printf "│ Persistence: %-47s │\n" "NOT AVAILABLE (boot with -drive aira-rootfs.img)"
+    fi
+    echo "└────────────────────────────────────────────────────────────────────────────┘"
+    echo
+}
+
+show_users() {
+    echo "┌─ USERS ───────────────────────────────────────────────────────────────────┐"
+    cat /etc/passwd 2>/dev/null | while IFS=: read -r user pass uid gid gecos home shell; do
+        printf "│ %-15s uid=%-5s gid=%-5s %-25s │\n" "$user" "$uid" "$gid" "$home"
+    done
+    echo "├────────────────────────────────────────────────────────────────────────────┤"
+    printf "│ Current user: %-46s │\n" "$(whoami 2>/dev/null) ($(id -u 2>/dev/null))"
+    echo "└────────────────────────────────────────────────────────────────────────────┘"
+    echo
+}
+
+show_security() {
+    echo "┌─ SECURITY ────────────────────────────────────────────────────────────────┐"
+    # Check various security features
+    if [ -f /etc/passwd ] && grep -q "^aira:" /etc/passwd 2>/dev/null; then
+        printf "│ User account 'aira': %-41s │\n" "EXISTS"
+    else
+        printf "│ User account 'aira': %-41s │\n" "NOT FOUND"
+    fi
+    if command -v aira-ipc >/dev/null 2>&1 && aira-ipc ping >/dev/null 2>&1; then
+        printf "│ IPC bus:     %-48s │\n" "RUNNING (authenticated)"
+    else
+        printf "│ IPC bus:     %-48s │\n" "NOT RUNNING"
+    fi
+    if [ "$(id -u 2>/dev/null)" = "0" ]; then
+        printf "│ Running as:  %-48s │\n" "ROOT (privileged)"
+    else
+        printf "│ Running as:  %-48s │\n" "USER (unprivileged)"
+    fi
+    # Check kernel security features
+    if grep -q "CONFIG_SECCOMP=y" /proc/config.gz 2>/dev/null || grep -q "CONFIG_SECCOMP=y" /boot/config-* 2>/dev/null; then
+        printf "│ Seccomp:     %-48s │\n" "ENABLED (kernel)"
+    else
+        printf "│ Seccomp:     %-48s │\n" "UNKNOWN"
+    fi
+    if [ -d /sys/fs/cgroup ]; then
+        printf "│ Cgroups:     %-48s │\n" "AVAILABLE"
+    else
+        printf "│ Cgroups:     %-48s │\n" "NOT MOUNTED"
+    fi
+    echo "└────────────────────────────────────────────────────────────────────────────┘"
+    echo
+}
+
+show_applications() {
+    echo "┌─ APPLICATIONS ────────────────────────────────────────────────────────────┐"
+    echo "│ Installed packages:                                                       │"
+    airapkg list 2>/dev/null | while IFS= read -r pkg; do
+        printf "│   %-56s │\n" "$pkg"
+    done
+    if ! airapkg list 2>/dev/null | grep -q .; then
+        printf "│   %-56s │\n" "(none)"
+    fi
+    echo "└────────────────────────────────────────────────────────────────────────────┘"
+    echo
+}
+
+show_about() {
+    echo "┌─ ABOUT ───────────────────────────────────────────────────────────────────┐"
+    VER="$(grep '^VERSION=' /etc/os-release 2>/dev/null | cut -d= -f2- | tr -d '\"')"
+    [ -n "$VER" ] || VER="1.5.0"
+    printf "│ AiraOS-Octave %-48s │\n" "$VER"
+    printf "│ %-66s │\n" "$(grep PRETTY_NAME /etc/os-release 2>/dev/null | cut -d= -f2- | tr -d '\"')"
+    printf "│ Kernel: Linux %-53s │\n" "$(uname -r 2>/dev/null)"
+    printf "│ Architecture: %-51s │\n" "$(uname -m 2>/dev/null)"
+    echo "├────────────────────────────────────────────────────────────────────────────┤"
+    printf "│ AiraOS-Octave is a small bootable x86_64 operating system:                │\n"
+    printf "│ Linux kernel plus the Aira userspace with supervised services,            │\n"
+    printf "│ a local IPC service bus, persistent storage, a package manager,           │\n"
+    printf "│ and this graphical desktop environment.                                   │\n"
+    echo "└────────────────────────────────────────────────────────────────────────────┘"
+    echo
+}
+
+# Main menu loop
+while true; do
+    clear
+    show_header
+    show_system
+    show_display
+    show_network
+    show_storage
+    show_users
+    show_security
+    show_applications
+    show_about
+    echo "Actions:"
+    echo "  1) Set hostname          2) Renew DHCP (eth0)       3) Open System Monitor"
+    echo "  4) Open Network Manager  5) Open Package Center     6) Run Diagnostics"
+    echo "  q) Quit"
+    echo
+    printf "Choice: "
+    read choice
+    case "$choice" in
+        1)
+            printf "New hostname: "
+            read newhost
+            if [ -n "$newhost" ]; then
+                echo "$newhost" > /etc/hostname
+                hostname "$newhost" 2>/dev/null
+                echo "Hostname set to: $newhost"
+            fi
+            printf "Press Enter..."; read _
+            ;;
+        2)
+            for _s in /usr/share/udhcpc/default.script /etc/udhcpc/default.script; do
+                if [ -x "$_s" ]; then _SCRIPT="$_s"; break; fi
+            done
+            if [ -n "${_SCRIPT:-}" ]; then
+                udhcpc -i eth0 -n -q -t 3 -s "$_SCRIPT" 2>&1 | head -n 10
+            else
+                udhcpc -i eth0 -n -q -t 3 2>&1 | head -n 10
+            fi
+            printf "Press Enter..."; read _
+            ;;
+        3) aira-sysmon ;;
+        4) aira-netman ;;
+        5) aira-pkgcenter ;;
+        6) aira diagnose; printf "Press Enter..."; read _ ;;
+        q|Q) break ;;
+    esac
+done

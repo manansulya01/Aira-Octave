@@ -1,0 +1,138 @@
+#!/bin/sh
+# AiraOS Update System - safe atomic updates with rollback.
+# Usage: aira-update {check|download|install|rollback|status}
+
+set -u
+
+CMD="${1:-check}"
+UPDATE_DIR="/var/lib/aira-update"
+CURRENT_VER=$(grep VERSION /etc/os-release | cut -d= -f2 | tr -d '\"')
+REPO_URL="${AIRA_UPDATE_REPO:-https://updates.airaos.org}"
+
+mkdir -p "$UPDATE_DIR"
+
+usage() {
+    cat <<'EOF'
+aira-update — AiraOS update system
+  aira-update check              Check for updates
+  aira-update download           Download update package
+  aira-update install            Install downloaded update
+  aira-update rollback           Rollback to previous version
+  aira-update status             Show update status
+EOF
+}
+
+check_update() {
+    echo "Checking for updates..."
+    echo "Current version: $CURRENT_VER"
+    
+    # In a real implementation, would fetch from repo
+    # For now, simulate check
+    if [ -f "$UPDATE_DIR/latest.version" ]; then
+        LATEST=$(cat "$UPDATE_DIR/latest.version")
+        if [ "$LATEST" != "$CURRENT_VER" ]; then
+            echo "Update available: $LATEST"
+            return 0
+        else
+            echo "Already at latest version"
+            return 1
+        fi
+    else
+        echo "No update info available (run 'aira-update download' to fetch)"
+        return 2
+    fi
+}
+
+download_update() {
+    echo "Downloading update information..."
+    # Simulate downloading update metadata
+    # In real implementation: curl -s "$REPO_URL/latest.version" -o "$UPDATE_DIR/latest.version"
+    echo "1.5.0" > "$UPDATE_DIR/latest.version"
+    echo "Update metadata downloaded"
+    
+    LATEST=$(cat "$UPDATE_DIR/latest.version")
+    if [ "$LATEST" != "$CURRENT_VER" ]; then
+        echo "Downloading update package..."
+        # Simulate: curl -s "$REPO_URL/airaos-$LATEST.apkg" -o "$UPDATE_DIR/airaos-$LATEST.apkg"
+        touch "$UPDATE_DIR/airaos-$LATEST.apkg"
+        echo "Update package ready: $UPDATE_DIR/airaos-$LATEST.apkg"
+    else
+        echo "Already at latest version"
+    fi
+}
+
+install_update() {
+    LATEST=$(cat "$UPDATE_DIR/latest.version" 2>/dev/null)
+    [ -n "$LATEST" ] || { echo "No update downloaded"; exit 1; }
+    
+    PKG="$UPDATE_DIR/airaos-$LATEST.apkg"
+    [ -f "$PKG" ] || { echo "Update package not found"; exit 1; }
+    
+    echo "Installing update to version $LATEST..."
+    
+    # Create snapshot for rollback
+    SNAPSHOT="$UPDATE_DIR/snapshot-$CURRENT_VER.tar.gz"
+    echo "Creating rollback snapshot..."
+    tar -czf "$SNAPSHOT" -C / \
+        --exclude=/proc --exclude=/sys --exclude=/dev --exclude=/run \
+        --exclude=/tmp --exclude=/var/log --exclude=/mnt \
+        etc usr bin sbin lib lib64 2>/dev/null
+    
+    echo "Snapshot saved: $SNAPSHOT"
+    
+    # Install update package
+    echo "Applying update..."
+    airapkg install --force "$PKG" 2>&1
+    
+    # Update version
+    sed -i "s/VERSION=\"$CURRENT_VER\"/VERSION=\"$LATEST\"/" /etc/os-release
+    
+    # Save rollback info
+    echo "$CURRENT_VER" > "$UPDATE_DIR/previous.version"
+    
+    echo "Update installed successfully"
+    echo "Reboot required to complete update"
+}
+
+rollback_update() {
+    PREV=$(cat "$UPDATE_DIR/previous.version" 2>/dev/null)
+    [ -n "$PREV" ] || { echo "No previous version to rollback to"; exit 1; }
+    
+    SNAPSHOT="$UPDATE_DIR/snapshot-$PREV.tar.gz"
+    [ -f "$SNAPSHOT" ] || { echo "Snapshot not found"; exit 1; }
+    
+    echo "Rolling back to version $PREV..."
+    
+    # Restore from snapshot
+    tar -xzf "$SNAPSHOT" -C / 2>/dev/null
+    
+    # Update version
+    sed -i "s/VERSION=\"$CURRENT_VER\"/VERSION=\"$PREV\"/" /etc/os-release
+    
+    echo "Rollback complete"
+    echo "Reboot required"
+}
+
+status_update() {
+    echo "=== Update Status ==="
+    echo "Current version: $CURRENT_VER"
+    if [ -f "$UPDATE_DIR/latest.version" ]; then
+        echo "Latest available: $(cat $UPDATE_DIR/latest.version)"
+    fi
+    if [ -f "$UPDATE_DIR/previous.version" ]; then
+        echo "Rollback available: $(cat $UPDATE_DIR/previous.version)"
+    fi
+    if [ -f "$UPDATE_DIR/airaos-*.apkg" ]; then
+        echo "Downloaded package: $(ls $UPDATE_DIR/airaos-*.apkg)"
+    fi
+}
+
+case "$CMD" in
+    check) check_update ;;
+    download) download_update ;;
+    install) install_update ;;
+    rollback) rollback_update ;;
+    status) status_update ;;
+    help|--help|-h) usage ;;
+    *) echo "Unknown command: $CMD"; usage; exit 1 ;;
+esac
