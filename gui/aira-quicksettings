@@ -250,9 +250,12 @@ case "${1:---gui}" in
   --gui)
     : "${DISPLAY:=:0}"; export DISPLAY
     if command -v xterm >/dev/null 2>&1; then
+      # Theme-aware window (single-sourced via aira-theme).
+      _QBG="$(aira-theme get AIRA_BG 2>/dev/null)"; [ -n "$_QBG" ] || _QBG="#0b1026"
+      _QFG="$(aira-theme get AIRA_FG 2>/dev/null)"; [ -n "$_QFG" ] || _QFG="#e8ecff"
       exec xterm \
         -fa "Monospace" -fs 10 \
-        -bg "#0b1026" -fg "#e8ecff" \
+        -bg "$_QBG" -fg "$_QFG" \
         -sb -sl 200 \
         -T "Aira Quick Settings" \
         -geometry 60x30+300+60 \

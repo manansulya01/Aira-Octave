@@ -65,7 +65,9 @@ show_recent() {
 resolve_cmd() {
   case "$1" in
     aira-diagnose-launcher)
-      echo "xterm -fa Monospace -fs 10 -bg #0b1026 -fg #e8ecff -T AiraOS Diagnostics -geometry 84x28 -e sh -c 'aira diagnose; echo; echo Press Enter to close...; read x'" ;;
+      _DBG="$(aira-theme get AIRA_BG 2>/dev/null)"; [ -n "$_DBG" ] || _DBG="#0b1026"
+      _DFG="$(aira-theme get AIRA_FG 2>/dev/null)"; [ -n "$_DFG" ] || _DFG="#e8ecff"
+      echo "xterm -fa Monospace -fs 10 -bg $_DBG -fg $_DFG -T AiraOS Diagnostics -geometry 84x28 -e sh -c 'aira diagnose; echo; echo Press Enter to close...; read x'" ;;
     aira-action-logout) echo "aira-session-mgr logout" ;;
     aira-action-restart) echo "aira-session-mgr restart" ;;
     aira-action-reboot) echo "aira-session-mgr reboot" ;;

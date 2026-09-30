@@ -78,11 +78,13 @@ if [ "${1:-}" = "--menu" ]; then
     exit 0
 fi
 
-# Graphical mode
+# Graphical mode (theme single-sourced).
 if [ -n "${DISPLAY:-}" ] && command -v xterm >/dev/null 2>&1; then
+    _NBG="$(aira-theme get AIRA_BG 2>/dev/null)"; [ -n "$_NBG" ] || _NBG="#0b1026"
+    _NFG="$(aira-theme get AIRA_FG 2>/dev/null)"; [ -n "$_NFG" ] || _NFG="#e8ecff"
     exec xterm \
         -fa "Monospace" -fs 10 \
-        -bg "#0b1026" -fg "#e8ecff" \
+        -bg "$_NBG" -fg "$_NFG" \
         -sb -sl 500 \
         -T "AiraOS Network Manager" \
         -geometry 90x36+210+130 \

@@ -10,10 +10,14 @@ SHELL="${SHELL:-/bin/sh}"
 # Working directory
 CWD="${1:-$HOME}"
 
+# Aira styling is single-sourced via the theme engine (fallback = night).
+_TBG="$(aira-theme get AIRA_BG 2>/dev/null)"; [ -n "$_TBG" ] || _TBG="#0b1026"
+_TFG="$(aira-theme get AIRA_FG 2>/dev/null)"; [ -n "$_TFG" ] || _TFG="#e8ecff"
+
 # Launch xterm with Aira styling and proper terminal features
 exec xterm \
     -fa "Monospace" -fs 11 \
-    -bg "#0b1026" -fg "#e8ecff" \
+    -bg "$_TBG" -fg "$_TFG" \
     -sb -sl 2000 -rightbar \
     -T "AiraOS Terminal" \
     -geometry 90x30+60+50 \

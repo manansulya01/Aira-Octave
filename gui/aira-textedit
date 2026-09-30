@@ -74,9 +74,12 @@ fi
 
 mkdir -p "$HOME/.vim/backup" "$HOME/.vim/swap" "$HOME/.vim/undo" 2>/dev/null
 
+# Aira styling single-sourced via the theme engine (fallback = night).
+_EBG="$(aira-theme get AIRA_BG 2>/dev/null)"; [ -n "$_EBG" ] || _EBG="#0b1026"
+_EFG="$(aira-theme get AIRA_FG 2>/dev/null)"; [ -n "$_EFG" ] || _EFG="#e8ecff"
 exec xterm \
     -fa "Monospace" -fs 11 \
-    -bg "#0b1026" -fg "#e8ecff" \
+    -bg "$_EBG" -fg "$_EFG" \
     -sb -sl 1000 \
     -T "$TITLE" \
     -geometry 90x34+100+80 \

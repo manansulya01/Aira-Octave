@@ -33,11 +33,13 @@ if [ "${1:-}" = "--once" ]; then
     exit 0
 fi
 
-# Graphical mode - run in xterm with live updates
+# Graphical mode - run in xterm with live updates (theme single-sourced).
 if [ -n "${DISPLAY:-}" ] && command -v xterm >/dev/null 2>&1; then
+    _MBG="$(aira-theme get AIRA_BG 2>/dev/null)"; [ -n "$_MBG" ] || _MBG="#0b1026"
+    _MFG="$(aira-theme get AIRA_FG 2>/dev/null)"; [ -n "$_MFG" ] || _MFG="#e8ecff"
     exec xterm \
         -fa "Monospace" -fs 10 \
-        -bg "#0b1026" -fg "#e8ecff" \
+        -bg "$_MBG" -fg "$_MFG" \
         -sb -sl 1000 \
         -T "AiraOS System Monitor" \
         -geometry 100x40+180+110 \

@@ -59,9 +59,16 @@ set_val() {
 }
 
 # Built-in original Aira themes: name|accent|bg|fg|wallpaper|opacity
+# Aira Blue/Cyan base identity: night (default) + ocean carry the brand;
+# day is the light theme; sunset/forest give warm/green accent choices;
+# contrast is the accessibility theme. All styling is single-sourced here:
+# xterm wrappers (terminal, file-manager, editor, settings, launcher,
+# quicksettings) query this engine via `get`/`export` — never hardcode.
 THEMES="aira-night|#2f4bd7|#0b1026|#e8ecff|night-weave|0.9
 aira-ocean|#00b8d4|#06232b|#dcf7ff|ocean-tide|0.9
 aira-day|#1e40d7|#eef1ff|#101a3a|day-mist|1.0
+aira-sunset|#ff6b35|#1c0f24|#fff1e8|sunset-ember|0.9
+aira-forest|#00c853|#06281c|#e0f7e9|forest-moss|0.9
 aira-contrast|#ffffff|#000000|#ffffff|midnight|1.0"
 
 theme_line() {
@@ -130,13 +137,21 @@ case "${1:-current}" in
     ensure_conf || exit 1
     for k in $VALID_KEYS; do printf "%s=%s\n" "$k" "$(get_val "$k")"; done
     ;;
+  export)
+    # Single-source styling feed for xterm wrappers:
+    #   eval "$(aira-theme export)" -> sets AIRA_BG/FG/ACCENT/etc in caller.
+    ensure_conf || exit 1
+    for k in $VALID_KEYS; do printf "%s=%s\n" "$k" "$(get_val "$k")"; done
+    printf "XTERM_BG=%s\n" "$(get_val AIRA_BG)"
+    printf "XTERM_FG=%s\n" "$(get_val AIRA_FG)"
+    ;;
   use)
     if [ $# -lt 2 ]; then echo "Usage: aira-theme use <name>" >&2; exit 1; fi
     cmd_use "$2"
     ;;
   --next|next) cmd_next ;;
   -h|--help|help)
-    echo "Usage: aira-theme list|current|get [KEY]|set KEY VALUE|show|use <name>|--next"
+    echo "Usage: aira-theme list|current|get [KEY]|set KEY VALUE|show|export|use <name>|--next"
     echo "Themes (original Aira visual system):"
     cmd_list | sed 's/^/  /'
     ;;

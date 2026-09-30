@@ -7,9 +7,14 @@
 set -u
 
 # Presets: name|kind|fg|bg  (kind: weave=xsetroot -mod, solid=xsetroot -solid)
+# Original Aira wallpapers; selection is stored in the theme engine
+# (AIRA_WALLPAPER) so it persists across session restart. xsetroot is the
+# only backend (JWM has no wallpaper layer) with solid fallback.
 PRESETS="night-weave|weave|#24338a|#1d2a6b
 ocean-tide|weave|#0e5a6b|#08333d
 day-mist|solid|#eef1ff|#eef1ff
+sunset-ember|weave|#8a3a1d|#2b0f1d
+forest-moss|weave|#1d6b3a|#0b2b1d
 midnight|solid|#05070f|#05070f"
 
 preset_line() {

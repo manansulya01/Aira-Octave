@@ -137,10 +137,12 @@ treeselected=white;blue
 tree=gray;blue
 SKINEOF
 
-# Launch mc in xterm with Aira styling
+# Launch mc in xterm with Aira styling (single-sourced via theme engine).
+_FBG="$(aira-theme get AIRA_BG 2>/dev/null)"; [ -n "$_FBG" ] || _FBG="#0b1026"
+_FFG="$(aira-theme get AIRA_FG 2>/dev/null)"; [ -n "$_FFG" ] || _FFG="#e8ecff"
 exec xterm \
     -fa "Monospace" -fs 10 \
-    -bg "#0b1026" -fg "#e8ecff" \
+    -bg "$_FBG" -fg "$_FFG" \
     -sb -sl 1000 \
     -T "AiraOS File Manager" \
     -geometry 100x32+50+50 \
