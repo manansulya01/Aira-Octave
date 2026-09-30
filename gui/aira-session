@@ -72,7 +72,7 @@ chmod 1777 /tmp/.X11-unix 2>/dev/null || true
 rm -f "/tmp/.X${DISP#:}-lock" 2>/dev/null
 # X helpers expected at fixed /usr/bin paths (rootfs at /persist)
 mkdir -p /usr/bin 2>/dev/null
-for t in xkbcomp Xvfb Xorg jwm xterm xmessage xsetroot xwininfo xwd xload mc setxkbmap xauth aira-net-indicator aira-storage-indicator aira-clock; do
+for t in xkbcomp Xvfb Xorg jwm xterm xmessage xsetroot xwininfo xwd xload xlsclients xprop mc setxkbmap xauth aira-net-indicator aira-storage-indicator aira-vol-indicator aira-power-indicator aira-clock aira-notify aira-notifyd aira-theme aira-wallpaper aira-launcher aira-quicksettings; do
   if [ ! -x "/usr/bin/$t" ] && [ -x "/persist/usr/bin/$t" ]; then
     ln -sf "/persist/usr/bin/$t" "/usr/bin/$t" 2>/dev/null || true
   fi
@@ -273,6 +273,17 @@ else
   echo "=== Xvfb.log ===" >&2
   cat /tmp/Xvfb.log >&2 2>/dev/null
   echo "=== END Xvfb.log ===" >&2
+fi
+# Persistent state dirs (survive reboot only under /persist; /tmp is tmpfs).
+mkdir -p /persist/var/lib/aira /persist/var/log/airaos /var/log/airaos 2>/dev/null || true
+# Notification daemon: queued, non-blocking; fallback to logger when no UI.
+# Started before the WM so early session messages are never lost; a second
+# instance is harmless (FIFO readers share the queue).
+if command -v aira-notifyd >/dev/null 2>&1; then
+  if ! pgrep -f "aira-notifyd" >/dev/null 2>&1; then
+    aira-notifyd >/var/log/airaos/notifyd.log 2>&1 &
+    echo "[aira-session] notifyd started (pid $!)"
+  fi
 fi
 # Wallpaper via the Aira theme engine (falls back to the classic weave).
 if command -v aira-wallpaper >/dev/null 2>&1; then

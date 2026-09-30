@@ -62,14 +62,14 @@ mkdir -p "$STAGE/etc/jwm" "$STAGE/usr/bin" "$STAGE/etc/aira"
 cp -f "$ROOT/gui/aira-jwmrc" "$STAGE/etc/jwm/aira-jwmrc"
 cp -f "$ROOT/gui/aira-jwmrc.classic" "$STAGE/etc/jwm/aira-jwmrc.classic"
 [ -f "$STAGE/etc/aira/theme.conf" ] || cp -f "$ROOT/gui/aira-theme.conf.default" "$STAGE/etc/aira/theme.conf"
-for b in aira-session aira-terminal aira-file-manager aira-settings aira-sysinfo aira-about aira-clock aira-gui-test aira-textedit aira-sysmon aira-pkgcenter aira-netman aira-net-indicator aira-storage-indicator aira-welcome aira-help aira-notify aira-notifyd aira-session-mgr aira-dm aira-theme aira-wallpaper aira-launcher aira-quicksettings; do
+for b in aira-session aira-terminal aira-file-manager aira-settings aira-sysinfo aira-about aira-clock aira-gui-test aira-textedit aira-sysmon aira-pkgcenter aira-netman aira-net-indicator aira-storage-indicator aira-vol-indicator aira-power-indicator aira-welcome aira-help aira-notify aira-notifyd aira-session-mgr aira-dm aira-theme aira-wallpaper aira-launcher aira-quicksettings; do
   cp -f "$ROOT/gui/$b" "$STAGE/usr/bin/$b"
   chmod +x "$STAGE/usr/bin/$b"
 done
 # JWM needs /etc/jwm/system.jwmrc fallback (use ours)
 cp -f "$ROOT/gui/aira-jwmrc" "$STAGE/etc/jwm/system.jwmrc" 2>/dev/null || true
-# Ensure ld cache + basic dirs
-mkdir -p "$STAGE/tmp/.X11-unix" "$STAGE/var/log/airaos" "$STAGE/home/aira" "$STAGE/root"
+# Ensure ld cache + basic dirs (var/lib/aira holds launcher recents on /persist)
+mkdir -p "$STAGE/tmp/.X11-unix" "$STAGE/var/log/airaos" "$STAGE/var/lib/aira" "$STAGE/home/aira" "$STAGE/root"
 chmod 1777 "$STAGE/tmp" 2>/dev/null || true
 du -sh "$STAGE" | tee -a "$LOG"
 echo "GUI STAGE PASS (now run scripts/build-rootfs.sh 512)"

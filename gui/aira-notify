@@ -1,8 +1,12 @@
 #!/bin/sh
 # AiraOS notify-send compatible notification sender.
 # Usage: aira-notify [--urgency=low|normal|critical] [--expire-time=ms] <title> [<message>]
+#        aira-notify --history [N] | --clear
+# Sends never block the caller (background FIFO write). History is kept by
+# aira-notifyd in /var/log/airaos/notifications.log.
 
-NOTIFY_FIFO="/tmp/aira-notify-fifo"
+NOTIFY_FIFO="${AIRA_NOTIFY_FIFO:-/tmp/aira-notify-fifo}"
+HIST_LOG="${AIRA_NOTIFY_LOG:-/var/log/airaos/notifications.log}"
 URGENCY="normal"
 TIMEOUT=5000
 
@@ -23,6 +27,24 @@ while [ $# -gt 0 ]; do
         -t)
             TIMEOUT="$2"
             shift 2
+            ;;
+        --history)
+            N="${2:-10}"
+            case "$N" in *[!0-9]*|"") N=10 ;; esac
+            if [ -f "$HIST_LOG" ]; then
+                tail -n "$N" "$HIST_LOG" 2>/dev/null
+            else
+                echo "(no notification history yet)"
+            fi
+            exit 0
+            ;;
+        --clear)
+            : > "$HIST_LOG" 2>/dev/null && echo "Notification history cleared" || echo "Cannot clear $HIST_LOG" >&2
+            exit 0
+            ;;
+        -h|--help|help)
+            echo "Usage: aira-notify [--urgency=..] [--expire-time=ms] <title> [message] | --history [N] | --clear"
+            exit 0
             ;;
         *)
             break

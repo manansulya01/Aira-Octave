@@ -1,0 +1,30 @@
+#!/bin/sh
+# AiraOS power status indicator for JWM tray (swallowed xterm).
+# Shows live battery/AC state from /sys/class/power_supply.
+while true; do
+    S="PWR:QEMU"
+    if [ -d /sys/class/power_supply ]; then
+        for b in /sys/class/power_supply/BAT*; do
+            [ -e "$b/capacity" ] || continue
+            CAP="$(cat "$b/capacity" 2>/dev/null)"
+            ST="$(cat "$b/status" 2>/dev/null)"
+            case "$ST" in
+                Charging) S="BAT:${CAP}%+" ;;
+                Discharging) S="BAT:${CAP}%" ;;
+                Full) S="BAT:FULL" ;;
+                *) S="BAT:${CAP}%" ;;
+            esac
+            break
+        done
+        if [ "$S" = "PWR:QEMU" ]; then
+            for ac in /sys/class/power_supply/AC* /sys/class/power_supply/ADP*; do
+                [ -e "$ac/online" ] || continue
+                [ "$(cat "$ac/online" 2>/dev/null)" = "1" ] && S="PWR:AC" || S="PWR:OFF"
+                break
+            done
+        fi
+    fi
+    clear 2>/dev/null || printf '\n\n\n\n\n\n\n\n'
+    echo "$S"
+    sleep 10
+done

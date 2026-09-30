@@ -58,6 +58,10 @@
     <Spacer width="6"/>
     <Swallow name="dskind" width="100">xterm -name dskind -T "Storage" -fa Monospace -fs 9 -bg "#16205c" -fg "#e8ecff" -e aira-storage-indicator</Swallow>
     <Spacer width="6"/>
+    <Swallow name="volind" width="80">xterm -name volind -T "Volume" -fa Monospace -fs 9 -bg "#16205c" -fg "#e8ecff" -e aira-vol-indicator</Swallow>
+    <Spacer width="6"/>
+    <Swallow name="pwrind" width="80">xterm -name pwrind -T "Power" -fa Monospace -fs 9 -bg "#16205c" -fg "#e8ecff" -e aira-power-indicator</Swallow>
+    <Spacer width="6"/>
     <Swallow name="xload" width="60">xload -bg "#0d1440" -fg "#2f4bd7" -hl "#ffffff" -update 2</Swallow>
     <Spacer width="6"/>
     <TrayButton label="Quick" icon="">exec:aira-quicksettings</TrayButton>
@@ -118,8 +122,19 @@
   <Group>
     <Name>xmessage</Name>
     <Option>layer:above</Option>
+    <Option>centered</Option>
   </Group>
-  <Desktops count="4"/>
+  <Group>
+    <Name>aira-launcher</Name>
+    <Option>centered</Option>
+    <Option>layer:above</Option>
+  </Group>
+  <Group>
+    <Name>aira-quicksettings</Name>
+    <Option>centered</Option>
+    <Option>layer:above</Option>
+  </Group>
+  <Desktops count="4" width="2"/>
   <DoubleClickSpeed>400</DoubleClickSpeed>
   <DoubleClickDelta>4</DoubleClickDelta>
   <FocusModel>click</FocusModel>
@@ -138,5 +153,21 @@
   <Key mask="A" key="F9">exec:aira-about</Key>
   <Key mask="A" key="F10">exec:aira-quicksettings</Key>
   <Key mask="A" key="F11">exec:aira-launcher</Key>
+  <Key mask="A" key="m">minimize</Key>
+  <Key mask="A" key="x">maximize</Key>
+  <Key mask="A" key="r">restore</Key>
+  <Key mask="AS" key="Tab">prev</Key>
+  <Key mask="CA" key="Left">ldesktop</Key>
+  <Key mask="CA" key="Right">rdesktop</Key>
+  <Key mask="CA" key="Up">udesktop</Key>
+  <Key mask="CA" key="Down">ddesktop</Key>
+  <Key mask="CA" key="1">desktop1</Key>
+  <Key mask="CA" key="2">desktop2</Key>
+  <Key mask="CA" key="3">desktop3</Key>
+  <Key mask="CA" key="4">desktop4</Key>
+  <Key mask="AS" key="1">send1</Key>
+  <Key mask="AS" key="2">send2</Key>
+  <Key mask="AS" key="3">send3</Key>
+  <Key mask="AS" key="4">send4</Key>
   <Key mask="C" key="Escape">root:1</Key>
 </JWM>

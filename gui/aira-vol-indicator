@@ -1,0 +1,22 @@
+#!/bin/sh
+# AiraOS audio status indicator for JWM tray (swallowed xterm).
+# Shows live volume/mute state from the real mixer via aira-audio.
+while true; do
+    if command -v aira-audio >/dev/null 2>&1; then
+        LVL="$(aira-audio volume 2>/dev/null | grep -o '[0-9]*%' | head -n 1)"
+        if [ -n "$LVL" ]; then
+            if amixer -c "${AIRA_AUDIO_CARD:-0}" get Master 2>/dev/null | grep -q '\[off\]'; then
+                S="VOL:MUTE"
+            else
+                S="VOL:$LVL"
+            fi
+        else
+            S="VOL:--"
+        fi
+    else
+        S="VOL:--"
+    fi
+    clear 2>/dev/null || printf '\n\n\n\n\n\n\n\n'
+    echo "$S"
+    sleep 5
+done

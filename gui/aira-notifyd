@@ -1,31 +1,55 @@
 #!/bin/sh
-# AiraOS Notification Daemon - simple notification system for desktop.
-# Uses xmessage for popups, can be extended for more sophisticated notifications.
+# AiraOS Notification Daemon — queued, non-blocking desktop notifications.
+# Reads lines from $NOTIFY_FIFO (format urgency|title|message|timeout-sec),
+# appends each to the history log, then displays:
+#   - graphical popup (xmessage, backgrounded w/ timeout) when DISPLAY + xmessage
+#   - logger + log file only when no graphical UI (accessible fallback)
+# Senders never block: aira-notify writes to the FIFO in background.
+# History: /var/log/airaos/notifications.log (view: aira-notify --history).
 
-NOTIFY_FIFO="/tmp/aira-notify-fifo"
-mkfifo "$NOTIFY_FIFO" 2>/dev/null
+NOTIFY_FIFO="${AIRA_NOTIFY_FIFO:-/tmp/aira-notify-fifo}"
+HIST_LOG="${AIRA_NOTIFY_LOG:-/var/log/airaos/notifications.log}"
+mkdir -p "$(dirname "$HIST_LOG")" 2>/dev/null || HIST_LOG="/tmp/aira-notifications.log"
+[ -p "$NOTIFY_FIFO" ] || mkfifo "$NOTIFY_FIFO" 2>/dev/null
 
-# Cleanup on exit
-trap "rm -f $NOTIFY_FIFO" EXIT
+log_hist() {
+  # $1=urgency $2=title $3=message
+  printf "%s|%s|%s|%s\n" "$(date +%s 2>/dev/null || echo 0)" "$1" "$2" "$3" >> "$HIST_LOG" 2>/dev/null
+}
 
-# Listen for notifications
+show_popup() {
+  # $1=urgency $2=title $3=message $4=timeout
+  case "$1" in
+    critical) bgcolor="#8b0000"; fgcolor="#ffffff" ;;
+    low) bgcolor="#16205c"; fgcolor="#b8c0e8" ;;
+    *) bgcolor="#1e2d72"; fgcolor="#e8ecff" ;;
+  esac
+  if [ -n "${DISPLAY:-}" ] && command -v xmessage >/dev/null 2>&1; then
+    printf "%s\n\n%s" "$2" "$3" | xmessage -file - -buttons OK:0 \
+      -title "AiraOS Notification" -center -bg "$bgcolor" -fg "$fgcolor" \
+      -timeout "$4" 2>/dev/null &
+  else
+    # Accessible fallback: system log (daemon may have no stdout).
+    logger -t aira-notify "[$1] $2: $3" 2>/dev/null || true
+    echo "aira-notifyd [$1] $2: $3"
+  fi
+}
+
+# Cleanup on exit (only remove FIFO we manage under /tmp).
+trap 'case "$NOTIFY_FIFO" in /tmp/*) rm -f "$NOTIFY_FIFO";; esac' EXIT
+
+# FIFO read loop: each open/read gets one writer's line (queueing is inherent).
 while true; do
-    if read -r line < "$NOTIFY_FIFO"; then
-        # Format: urgency|title|message|timeout
-        urgency=$(echo "$line" | cut -d'|' -f1)
-        title=$(echo "$line" | cut -d'|' -f2)
-        message=$(echo "$line" | cut -d'|' -f3)
-        timeout=$(echo "$line" | cut -d'|' -f4)
-        [ -z "$timeout" ] && timeout=5
-        
-        case "$urgency" in
-            critical) bgcolor="#8b0000"; fgcolor="#ffffff" ;;
-            normal) bgcolor="#1e2d72"; fgcolor="#e8ecff" ;;
-            low) bgcolor="#16205c"; fgcolor="#b8c0e8" ;;
-            *) bgcolor="#1e2d72"; fgcolor="#e8ecff" ;;
-        esac
-        
-        # Show notification using xmessage
-        echo "$title\n\n$message" | xmessage -file - -buttons OK:0 -title "AiraOS Notification" -center -bg "$bgcolor" -fg "$fgcolor" -timeout "$timeout" 2>/dev/null &
-    fi
+  if read -r line < "$NOTIFY_FIFO"; then
+    urgency=$(echo "$line" | cut -d'|' -f1)
+    title=$(echo "$line" | cut -d'|' -f2)
+    message=$(echo "$line" | cut -d'|' -f3)
+    timeout=$(echo "$line" | cut -d'|' -f4)
+    [ -n "$urgency" ] || urgency="normal"
+    [ -n "$title" ] || title="Notification"
+    [ -z "$timeout" ] && timeout=5
+    case "$timeout" in *[!0-9]*|"") timeout=5 ;; esac
+    log_hist "$urgency" "$title" "$message"
+    show_popup "$urgency" "$title" "$message" "$timeout"
+  fi
 done
