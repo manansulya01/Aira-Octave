@@ -72,6 +72,89 @@ grep -qi "AiraTest-Term\|Editor\|Package" /tmp/gui-windows.log && echo "GUI-TEST
 grep -qi "xterm\|xmessage" /tmp/gui-clients.log && echo "GUI-TEST OK: xterm/xmessage clients" || echo "GUI-TEST INFO: xlsclients empty (non-fatal)"
 grep -qi "airaos-octave\|memtotal" /tmp/gui-sysinfo.log && echo "GUI-TEST OK: sysinfo content" || { echo "GUI-TEST FAIL: sysinfo content"; PASS=0; }
 grep -qi "airaos-octave" /tmp/gui-about.log && echo "GUI-TEST OK: about content" || { echo "GUI-TEST FAIL: about content"; PASS=0; }
+echo "--- Wave B-2 desktop checks ---"
+# JWM config parses (both modern + classic fallback must be valid).
+if command -v jwm >/dev/null 2>&1; then
+  if jwm -p 2>/tmp/gui-jwmp.log; then echo "GUI-TEST OK: jwm -p parses active config";
+  else echo "GUI-TEST FAIL: jwm -p"; cat /tmp/gui-jwmp.log 2>/dev/null | head -n 10; PASS=0; fi
+  for _jc in /persist/etc/jwm/aira-jwmrc /persist/etc/jwm/aira-jwmrc.classic /etc/jwm/aira-jwmrc; do
+    [ -f "$_jc" ] || continue
+    if grep -q "volind" "$_jc" && grep -q "pwrind" "$_jc"; then echo "GUI-TEST OK: indicators in $(basename $_jc 2>/dev/null || echo jwmrc)";
+    elif echo "$_jc" | grep -q classic; then echo "GUI-TEST INFO: classic has no new indicators (expected)"; fi
+  done
+  grep -q "desktop1" /persist/etc/jwm/aira-jwmrc 2>/dev/null && echo "GUI-TEST OK: workspace keys present" || { echo "GUI-TEST FAIL: workspace keys"; PASS=0; }
+  grep -q "send1" /persist/etc/jwm/aira-jwmrc 2>/dev/null && echo "GUI-TEST OK: workspace move keys present" || { echo "GUI-TEST FAIL: workspace move keys"; PASS=0; }
+  grep -q ">minimize<" /persist/etc/jwm/aira-jwmrc 2>/dev/null && echo "GUI-TEST OK: minimize key present" || { echo "GUI-TEST FAIL: minimize key"; PASS=0; }
+else echo "GUI-TEST FAIL: jwm missing"; PASS=0; fi
+# EWMH workspace count must be 4 (JWM Desktops).
+if command -v xprop >/dev/null 2>&1; then
+  xprop -root _NET_NUMBER_OF_DESKTOPS 2>/dev/null | tee /tmp/gui-desktops.log
+  grep -q "4" /tmp/gui-desktops.log 2>/dev/null && echo "GUI-TEST OK: 4 workspaces (EWMH)" || echo "GUI-TEST INFO: EWMH desktop count unreadable (non-fatal)"
+else echo "GUI-TEST INFO: xprop missing (non-fatal)"; fi
+# Theme engine: 6 themes, export feed, set/readback on the real conf.
+if command -v aira-theme >/dev/null 2>&1; then
+  [ "$(aira-theme list 2>/dev/null | wc -l)" = "6" ] && echo "GUI-TEST OK: 6 themes in guest" || { echo "GUI-TEST FAIL: theme count"; PASS=0; }
+  aira-theme export 2>/dev/null | grep -q "^XTERM_BG=" && echo "GUI-TEST OK: theme export feed" || { echo "GUI-TEST FAIL: theme export"; PASS=0; }
+  aira-theme use aira-forest >/dev/null 2>&1 && [ "$(aira-theme current)" = "aira-forest" ] && echo "GUI-TEST OK: theme set/readback" || { echo "GUI-TEST FAIL: theme set/readback"; PASS=0; }
+else echo "GUI-TEST FAIL: aira-theme missing"; PASS=0; fi
+# Wallpaper: 6 presets, set/readback (applies on :99 via xsetroot).
+if command -v aira-wallpaper >/dev/null 2>&1; then
+  [ "$(aira-wallpaper --list 2>/dev/null | wc -l)" = "6" ] && echo "GUI-TEST OK: 6 wallpapers in guest" || { echo "GUI-TEST FAIL: wallpaper count"; PASS=0; }
+  aira-wallpaper --set forest-moss >/dev/null 2>&1 && echo "GUI-TEST OK: wallpaper set forest-moss" || { echo "GUI-TEST FAIL: wallpaper set"; PASS=0; }
+else echo "GUI-TEST FAIL: aira-wallpaper missing"; PASS=0; fi
+# Launcher: registry, categories, piped keyboard-nav smoke, recents dir.
+if command -v aira-launcher >/dev/null 2>&1; then
+  [ "$(aira-launcher --list 2>/dev/null | wc -l)" -ge 10 ] && echo "GUI-TEST OK: launcher registry" || { echo "GUI-TEST FAIL: launcher registry"; PASS=0; }
+  aira-launcher --categories 2>/dev/null | grep -q "System" && echo "GUI-TEST OK: launcher categories" || { echo "GUI-TEST FAIL: launcher categories"; PASS=0; }
+  printf "q\n" | timeout 5 aira-launcher --text >/dev/null 2>&1 && echo "GUI-TEST OK: launcher text smoke" || echo "GUI-TEST INFO: launcher text smoke rc=$? (non-fatal)"
+  export AIRA_STATE_DIR=/tmp/aira-guitest-state; mkdir -p "$AIRA_STATE_DIR"
+  aira-launcher --recent >/dev/null 2>&1 && echo "GUI-TEST OK: launcher recents readable" || { echo "GUI-TEST FAIL: launcher recents"; PASS=0; }
+  unset AIRA_STATE_DIR
+else echo "GUI-TEST FAIL: aira-launcher missing"; PASS=0; fi
+# Quick settings: honest hardware rows + night/theme paths (isolated conf).
+if command -v aira-quicksettings >/dev/null 2>&1; then
+  aira-quicksettings --status 2>/dev/null | grep -qi "wi-fi" && echo "GUI-TEST OK: qs wifi row" || { echo "GUI-TEST FAIL: qs wifi"; PASS=0; }
+  aira-quicksettings --status 2>/dev/null | grep -qi "battery" && echo "GUI-TEST OK: qs battery row" || { echo "GUI-TEST FAIL: qs battery"; PASS=0; }
+  aira-quicksettings --status 2>/dev/null | grep -qi "brightness" && echo "GUI-TEST OK: qs brightness row" || { echo "GUI-TEST FAIL: qs brightness"; PASS=0; }
+  export AIRA_THEME_CONF=/tmp/aira-guitest-theme.conf; rm -f "$AIRA_THEME_CONF"
+  aira-quicksettings --night on >/dev/null 2>&1 && echo "GUI-TEST OK: qs night on" || { echo "GUI-TEST FAIL: qs night on"; PASS=0; }
+  unset AIRA_THEME_CONF; rm -f /tmp/aira-guitest-theme.conf
+else echo "GUI-TEST FAIL: aira-quicksettings missing"; PASS=0; fi
+# Indicators present + produce a status line within 5s (honest QEMU fallback ok).
+for _ind in aira-vol-indicator aira-power-indicator aira-net-indicator aira-storage-indicator; do
+  if command -v "$_ind" >/dev/null 2>&1; then
+    timeout 5 "$_ind" 2>/dev/null | head -n 1 | grep -qE "VOL:|PWR:|BAT:|NET:|DSK:|RAM:" && echo "GUI-TEST OK: $_ind live line" || echo "GUI-TEST INFO: $_ind slow/empty (non-fatal)"
+  else echo "GUI-TEST FAIL: $_ind missing"; PASS=0; fi
+done
+# Notifications: isolated FIFO/log queue drain (2 msgs), history readable.
+export AIRA_NOTIFY_FIFO=/tmp/aira-guitest-fifo AIRA_NOTIFY_LOG=/tmp/aira-guitest-notify.log
+rm -f "$AIRA_NOTIFY_FIFO" "$AIRA_NOTIFY_LOG"
+timeout 10 aira-notifyd >/tmp/aira-guitest-notifyd.log 2>&1 &
+_GNPD=$!
+sleep 0.5
+timeout 3 aira-notify "B2Test1" "hello-one" 2>/dev/null
+timeout 3 aira-notify --urgency=critical "B2Test2" "hello-two" 2>/dev/null
+sleep 1
+if grep -q "B2Test1" "$AIRA_NOTIFY_LOG" 2>/dev/null && grep -q "B2Test2" "$AIRA_NOTIFY_LOG" 2>/dev/null; then
+  echo "GUI-TEST OK: notify queue drain (2 msgs)"
+else echo "GUI-TEST FAIL: notify queue"; cat "$AIRA_NOTIFY_LOG" 2>/dev/null | head; PASS=0; fi
+aira-notify --history 2 2>/dev/null | grep -q "B2Test" && echo "GUI-TEST OK: notify history" || { echo "GUI-TEST FAIL: notify history"; PASS=0; }
+kill "$_GNPD" 2>/dev/null; wait "$_GNPD" 2>/dev/null || true
+unset AIRA_NOTIFY_FIFO AIRA_NOTIFY_LOG
+# JWM restart in place (session survives WM restart, not just app crash).
+if command -v jwm >/dev/null 2>&1; then
+  _JPID="$(pidof jwm 2>/dev/null | awk '{print $1}')"
+  jwm -restart >/dev/null 2>&1 || echo "GUI-TEST INFO: jwm -restart rc=$? (non-fatal)"
+  sleep 2
+  if pidof jwm >/dev/null 2>&1; then echo "GUI-TEST OK: desktop survives WM restart";
+  else echo "GUI-TEST FAIL: jwm gone after restart"; PASS=0; fi
+fi
+# Persistence EXPECT marker: real theme+wallpaper left on /persist for host debugfs.
+mkdir -p /persist/var/lib/aira 2>/dev/null || true
+aira-theme use aira-forest >/dev/null 2>&1 || true
+aira-wallpaper --set forest-moss >/dev/null 2>&1 || true
+echo "b2-expect-forest $(date +%s 2>/dev/null || echo 0)" > /persist/var/lib/aira/b2-expect 2>/dev/null && echo "GUI-TEST OK: persist EXPECT marker" || echo "GUI-TEST INFO: persist marker unwritable (non-fatal)"
+sync 2>/dev/null || true
 xwd -root -out /tmp/aira-gui-shot.xwd 2>/dev/null && echo "GUI-TEST OK: screenshot $(wc -c < /tmp/aira-gui-shot.xwd) bytes" || echo "GUI-TEST INFO: xwd failed (non-fatal)"
 cp -f /tmp/aira-gui-shot.xwd /persist/screenshots/ 2>/dev/null || true
 kill $TPID $APID $TEPID $PCPID $NMPID ${SYSMSG_PID:-} 2>/dev/null
