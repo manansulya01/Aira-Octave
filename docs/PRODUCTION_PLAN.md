@@ -122,3 +122,9 @@ Aira mechanisms. No Ubuntu code/assets/branding.
 - 2026-09-30 — WAVE B increment 1 (planned): Aira top panel + dock +
   launcher + quick settings + theme engine + wallpaper (JWM-native,
   additive, old single-tray layout kept as `aira-jwmrc.classic` fallback).
+- 2026-09-30 — WAVE B increment 1 (LANDED, commit TBD): as planned, plus
+  fixed a real 1.5.0 bug found during the rework (Alt+F4 was bound twice:
+  `close` AND `exec:aira-textedit`; kept `close`, editor stays on dock /
+  menu / launcher / Alt+F3-adjacent workflow). Also fixed a pipeline-exit
+  bug in new code (`grep|head` status in wallpaper --set validation) found
+  by scripts/test-shell.sh (46/46 after fix).

@@ -1,0 +1,170 @@
+#!/bin/sh
+# AiraOS Quick Settings — one-glance status + real actions.
+# Every row queries/acts on the actual subsystem (audio, network, display,
+# theme, session). Rows without an underlying mechanism say so explicitly
+# instead of faking a control.
+# Usage: aira-quicksettings [--status | --text | --volume up|down|mute|unmute|N |
+#        --network renew | --theme next | --session logout|restart|shutdown|reboot]
+export DISPLAY="${DISPLAY:-:0}"
+
+qs_volume() {
+  if command -v aira-audio >/dev/null 2>&1; then
+    # aira-audio list shows devices; current level via mixer if present
+    lvl="$(aira-audio volume 2>/dev/null | head -n 1)"
+    [ -n "$lvl" ] || lvl="(see aira-audio list)"
+    printf "Volume: %s\n" "$lvl"
+  else
+    echo "Volume: aira-audio not installed"
+  fi
+}
+
+qs_network() {
+  if ip -o -4 addr show 2>/dev/null | grep -q .; then
+    ip -o -4 addr show 2>/dev/null | awk '{print "Net: " $2 " " $4}' | head -n 3
+  else
+    echo "Net: no IPv4 addresses"
+  fi
+  dns="$(grep -m1 nameserver /etc/resolv.conf 2>/dev/null | awk '{print $2}')"
+  echo "DNS: ${dns:-not configured}"
+}
+
+qs_display() {
+  if command -v xrandr >/dev/null 2>&1 && [ -n "${DISPLAY:-}" ]; then
+    cur="$(xrandr 2>/dev/null | grep -m1 ' connected' )"
+    [ -n "$cur" ] || cur="Display: xrandr unavailable"
+    echo "Display: $cur" | cut -c1-70
+  else
+    echo "Display: no X display / xrandr missing"
+  fi
+}
+
+qs_theme() {
+  if command -v aira-theme >/dev/null 2>&1; then
+    echo "Theme: $(aira-theme current 2>/dev/null)"
+  else
+    echo "Theme: aira-theme not installed"
+  fi
+}
+
+qs_session() {
+  echo "User: $(whoami 2>/dev/null)/$(id -un 2>/dev/null)"
+  echo "Uptime: $(awk '{printf "%dh %dm", $1/3600, ($1%3600)/60}' /proc/uptime 2>/dev/null)"
+}
+
+cmd_status() {
+  qs_volume; qs_network; qs_display; qs_theme; qs_session
+}
+
+cmd_text() {
+  while true; do
+    clear
+    echo "╔══════════════════════════════════════════════════════════╗"
+    echo "║                 Aira Quick Settings                      ║"
+    echo "╚══════════════════════════════════════════════════════════╝"
+    echo
+    cmd_status | sed 's/^/  /'
+    echo
+    echo "  Actions:"
+    echo "    1) Volume up        2) Volume down      3) Mute/unmute"
+    echo "    4) Renew DHCP       5) Next theme       6) Next wallpaper"
+    echo "    7) Open Settings    8) Open Network Manager"
+    echo "    9) Logout           0) Shutdown         q) Close"
+    echo
+    printf "  Choice: "
+    read choice
+    case "$choice" in
+      1) "$0" --volume up; printf "  Press Enter..."; read _ ;;
+      2) "$0" --volume down; printf "  Press Enter..."; read _ ;;
+      3) "$0" --volume mute-toggle; printf "  Press Enter..."; read _ ;;
+      4) "$0" --network renew; printf "  Press Enter..."; read _ ;;
+      5) aira-theme --next 2>&1; printf "  Press Enter..."; read _ ;;
+      6) aira-wallpaper --next 2>&1; printf "  Press Enter..."; read _ ;;
+      7) aira-settings 2>/dev/null & ;;
+      8) aira-netman 2>/dev/null & ;;
+      9) aira-session-mgr logout ;;
+      0) printf "  Shutdown now? [y/N] "; read yn
+         [ "$yn" = "y" ] && aira-session-mgr shutdown ;;
+      q|Q) break ;;
+    esac
+  done
+}
+
+cmd_volume() {
+  command -v aira-audio >/dev/null 2>&1 || { echo "aira-audio not installed" >&2; return 1; }
+  case "${1:-}" in
+    up|down)
+      cur="$(aira-audio volume 2>/dev/null | grep -o '[0-9]*' | head -n 1)"
+      if [ -z "$cur" ]; then
+        echo "No mixer available (no audio device)" >&2; return 1
+      fi
+      if [ "$1" = "up" ]; then new=$((cur + 5)); else new=$((cur - 5)); fi
+      [ "$new" -gt 100 ] && new=100
+      [ "$new" -lt 0 ] && new=0
+      aira-audio volume "$new"
+      ;;
+    mute) aira-audio mute ;;
+    unmute) aira-audio unmute ;;
+    mute-toggle)
+      if amixer -c "${AIRA_AUDIO_CARD:-0}" get Master 2>/dev/null | grep -q '\[off\]'; then
+        aira-audio unmute
+      elif amixer -c "${AIRA_AUDIO_CARD:-0}" get Master 2>/dev/null | grep -q '\[on\]'; then
+        aira-audio mute
+      else
+        echo "No mixer available (no audio device)" >&2; return 1
+      fi
+      ;;
+    [0-9]*) aira-audio volume "$1" ;;
+    *) echo "Usage: --volume up|down|mute|unmute|N" >&2; return 1 ;;
+  esac
+}
+
+cmd_network() {
+  case "${1:-}" in
+    renew)
+      for _s in /usr/share/udhcpc/default.script /etc/udhcpc/default.script; do
+        if [ -x "$_s" ]; then _SCRIPT="$_s"; break; fi
+      done
+      iface="$(ip -o link show 2>/dev/null | grep -v -m1 'lo:' | awk -F': ' '{print $2}' | head -n 1)"
+      [ -n "$iface" ] || iface="eth0"
+      echo "Renewing DHCP on $iface..."
+      if [ -n "${_SCRIPT:-}" ]; then
+        udhcpc -i "$iface" -n -q -t 3 -s "$_SCRIPT" 2>&1 | head -n 10
+      else
+        udhcpc -i "$iface" -n -q -t 3 2>&1 | head -n 10
+      fi
+      ;;
+    *) echo "Usage: --network renew" >&2; return 1 ;;
+  esac
+}
+
+case "${1:---gui}" in
+  --status) cmd_status ;;
+  --text) cmd_text ;;
+  --volume) shift; cmd_volume "$@" ;;
+  --network) shift; cmd_network "$@" ;;
+  --theme)
+    if [ "${2:-}" = "next" ]; then aira-theme --next; else aira-theme current; fi ;;
+  --session)
+    case "${2:-}" in
+      logout|restart|shutdown|reboot) aira-session-mgr "$2" ;;
+      *) echo "Usage: --session logout|restart|shutdown|reboot" >&2; exit 1 ;;
+    esac
+    ;;
+  --gui)
+    if [ -n "${DISPLAY:-}" ] && command -v xterm >/dev/null 2>&1; then
+      exec xterm \
+        -fa "Monospace" -fs 10 \
+        -bg "#0b1026" -fg "#e8ecff" \
+        -sb -sl 200 \
+        -T "Aira Quick Settings" \
+        -geometry 60x30+300+60 \
+        -name aira-quicksettings \
+        -e "$0" --text
+      exit 0
+    fi
+    cmd_text
+    ;;
+  -h|--help|help)
+    echo "Usage: aira-quicksettings [--status|--text|--volume ..|--network renew|--theme next|--session ..]" ;;
+  *) echo "aira-quicksettings: unknown option '$1'" >&2; exit 1 ;;
+esac

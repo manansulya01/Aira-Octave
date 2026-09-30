@@ -1,0 +1,7 @@
+# AiraOS desktop theme (managed by aira-theme; safe to edit by hand).
+AIRA_THEME_NAME=aira-night
+AIRA_ACCENT=#2f4bd7
+AIRA_BG=#0b1026
+AIRA_FG=#e8ecff
+AIRA_WALLPAPER=night-weave
+AIRA_OPACITY=0.9

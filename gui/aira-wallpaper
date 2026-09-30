@@ -1,0 +1,92 @@
+#!/bin/sh
+# aira-wallpaper — Aira wallpaper setter (original presets, xsetroot-based).
+# Reads AIRA_WALLPAPER from the theme config (see aira-theme). Works without
+# X (stores selection, reports what would be applied) so it is safe in the
+# session startup path and in headless tests.
+# Usage: aira-wallpaper [--list | --set NAME | --next | --apply]
+set -u
+
+# Presets: name|kind|fg|bg  (kind: weave=xsetroot -mod, solid=xsetroot -solid)
+PRESETS="night-weave|weave|#24338a|#1d2a6b
+ocean-tide|weave|#0e5a6b|#08333d
+day-mist|solid|#eef1ff|#eef1ff
+midnight|solid|#05070f|#05070f"
+
+preset_line() {
+  echo "$PRESETS" | grep -E "^$1\|" | head -n 1
+}
+
+current_name() {
+  if command -v aira-theme >/dev/null 2>&1; then
+    aira-theme get AIRA_WALLPAPER 2>/dev/null
+  else
+    echo "night-weave"
+  fi
+}
+
+apply_preset() {
+  name="$1"
+  line="$(preset_line "$name")"
+  [ -n "$line" ] || { echo "aira-wallpaper: unknown preset '$name'" >&2; return 1; }
+  oldifs="$IFS"; IFS="|"
+  # shellcheck disable=SC2086
+  set -- $line
+  IFS="$oldifs"
+  # $1=name $2=kind $3=fg $4=bg
+  if [ -z "${DISPLAY:-}" ] || ! command -v xsetroot >/dev/null 2>&1; then
+    echo "Wallpaper: $1 (no display — stored, not applied)"
+    return 0
+  fi
+  if [ "$2" = "weave" ]; then
+    xsetroot -mod 4 4 -fg "$3" -bg "$4" 2>/dev/null || \
+      xsetroot -solid "$4" 2>/dev/null || return 1
+  else
+    xsetroot -solid "$4" 2>/dev/null || return 1
+  fi
+  echo "Wallpaper: $1"
+}
+
+store_preset() {
+  if command -v aira-theme >/dev/null 2>&1; then
+    AIRA_THEME_CONF="${AIRA_THEME_CONF:-}" aira-theme set AIRA_WALLPAPER "$1" 2>/dev/null || true
+  fi
+}
+
+cmd_list() {
+  echo "$PRESETS" | cut -d'|' -f1
+}
+
+cmd_next() {
+  cur="$(current_name)"
+  [ -n "$cur" ] || cur="night-weave"
+  names="$(cmd_list)"
+  # find first name after cur; wrap to first if cur is last/unknown
+  next=""
+  found=0
+  for n in $names; do
+    if [ "$found" = "1" ]; then next="$n"; break; fi
+    if [ "$n" = "$cur" ]; then found=1; fi
+  done
+  [ -n "$next" ] || next="$(echo "$names" | head -n 1)"
+  store_preset "$next"
+  apply_preset "$next"
+}
+
+case "${1:---apply}" in
+  --list|-l) cmd_list ;;
+  --set)
+    if [ $# -lt 2 ]; then echo "Usage: aira-wallpaper --set NAME" >&2; exit 1; fi
+    if [ -z "$(preset_line "$2")" ]; then
+      echo "aira-wallpaper: unknown preset '$2' (see --list)" >&2; exit 1
+    fi
+    store_preset "$2"
+    apply_preset "$2"
+    ;;
+  --next) cmd_next ;;
+  --apply) apply_preset "$(current_name)" ;;
+  -h|--help|help)
+    echo "Usage: aira-wallpaper [--list|--set NAME|--next|--apply]"
+    echo "Presets:"; cmd_list | sed 's/^/  /'
+    ;;
+  *) echo "aira-wallpaper: unknown option '$1'" >&2; exit 1 ;;
+esac

@@ -1,0 +1,143 @@
+#!/bin/sh
+# aira-theme — Aira desktop theme engine (original Aira visual system).
+# Manages /etc/aira/theme.conf: theme name, accent/background/foreground
+# colors, wallpaper preset, panel opacity. No X required for get/set/list;
+# apply degrades gracefully without a display.
+# Usage: aira-theme list | current | get [KEY] | set KEY VALUE |
+#        show <name> | use <name> | --next
+# Test override: AIRA_THEME_CONF=/tmp/test-theme.conf
+set -u
+
+CONF="${AIRA_THEME_CONF:-}"
+if [ -z "$CONF" ]; then
+  if [ -w /persist/etc/aira 2>/dev/null ] || [ -f /persist/etc/aira/theme.conf ]; then
+    CONF="/persist/etc/aira/theme.conf"
+  else
+    CONF="/etc/aira/theme.conf"
+  fi
+fi
+
+VALID_KEYS="AIRA_THEME_NAME AIRA_ACCENT AIRA_BG AIRA_FG AIRA_WALLPAPER AIRA_OPACITY"
+
+default_conf() {
+  cat <<'EOF'
+# AiraOS desktop theme (managed by aira-theme; safe to edit by hand).
+AIRA_THEME_NAME=aira-night
+AIRA_ACCENT=#2f4bd7
+AIRA_BG=#0b1026
+AIRA_FG=#e8ecff
+AIRA_WALLPAPER=night-weave
+AIRA_OPACITY=0.9
+EOF
+}
+
+ensure_conf() {
+  if [ ! -f "$CONF" ]; then
+    d="$(dirname "$CONF")"
+    mkdir -p "$d" 2>/dev/null || return 1
+    default_conf > "$CONF" 2>/dev/null || return 1
+  fi
+  return 0
+}
+
+get_val() {
+  grep -E "^$1=" "$CONF" 2>/dev/null | tail -n 1 | cut -d= -f2-
+}
+
+set_val() {
+  key="$1"; val="$2"
+  case " $VALID_KEYS " in
+    *" $key "*) ;;
+    *) echo "aira-theme: unknown key '$key' (valid: $VALID_KEYS)" >&2; return 1 ;;
+  esac
+  ensure_conf || return 1
+  tmp="$CONF.tmp.$$"
+  grep -vE "^$key=" "$CONF" 2>/dev/null > "$tmp" || true
+  echo "$key=$val" >> "$tmp"
+  mv -f "$tmp" "$CONF"
+}
+
+# Built-in original Aira themes: name|accent|bg|fg|wallpaper|opacity
+THEMES="aira-night|#2f4bd7|#0b1026|#e8ecff|night-weave|0.9
+aira-ocean|#00b8d4|#06232b|#dcf7ff|ocean-tide|0.9
+aira-day|#1e40d7|#eef1ff|#101a3a|day-mist|1.0
+aira-contrast|#ffffff|#000000|#ffffff|midnight|1.0"
+
+theme_line() {
+  echo "$THEMES" | grep -E "^$1\|" | head -n 1
+}
+
+apply_theme_line() {
+  line="$1"
+  oldifs="$IFS"; IFS="|"
+  # shellcheck disable=SC2086
+  set -- $line
+  IFS="$oldifs"
+  # $1=name $2=accent $3=bg $4=fg $5=wallpaper $6=opacity
+  set_val AIRA_THEME_NAME "$1" && set_val AIRA_ACCENT "$2" && \
+    set_val AIRA_BG "$3" && set_val AIRA_FG "$4" && \
+    set_val AIRA_WALLPAPER "$5" && set_val AIRA_OPACITY "$6"
+}
+
+cmd_list() {
+  echo "$THEMES" | cut -d'|' -f1
+}
+
+cmd_current() {
+  ensure_conf || return 1
+  get_val AIRA_THEME_NAME
+}
+
+cmd_use() {
+  name="${1:-}"
+  line="$(theme_line "$name")"
+  if [ -z "$line" ]; then
+    echo "aira-theme: unknown theme '$name' (see: aira-theme list)" >&2
+    return 1
+  fi
+  apply_theme_line "$line" || return 1
+  if [ -n "${DISPLAY:-}" ] && command -v aira-wallpaper >/dev/null 2>&1; then
+    aira-wallpaper --apply 2>/dev/null || true
+  fi
+  echo "Theme: $name"
+}
+
+cmd_next() {
+  ensure_conf || return 1
+  cur="$(get_val AIRA_THEME_NAME)"
+  names="$(cmd_list)"
+  next="$(echo "$names" | grep -A1 -x -m1 "$cur" 2>/dev/null | tail -n 1)"
+  if [ -z "$next" ] || [ "$next" = "$cur" ]; then
+    next="$(echo "$names" | head -n 1)"
+  fi
+  # grep -A1 at last line returns the line itself; wrap in that case
+  if [ "$next" = "$cur" ]; then
+    next="$(echo "$names" | head -n 1)"
+  fi
+  cmd_use "$next"
+}
+
+case "${1:-current}" in
+  list) cmd_list ;;
+  current) cmd_current ;;
+  get) ensure_conf && get_val "${2:-AIRA_THEME_NAME}" ;;
+  set)
+    if [ $# -lt 3 ]; then echo "Usage: aira-theme set KEY VALUE" >&2; exit 1; fi
+    set_val "$2" "$3"
+    ;;
+  show)
+    ensure_conf || exit 1
+    for k in $VALID_KEYS; do printf "%s=%s\n" "$k" "$(get_val "$k")"; done
+    ;;
+  use)
+    if [ $# -lt 2 ]; then echo "Usage: aira-theme use <name>" >&2; exit 1; fi
+    cmd_use "$2"
+    ;;
+  --next|next) cmd_next ;;
+  -h|--help|help)
+    echo "Usage: aira-theme list|current|get [KEY]|set KEY VALUE|show|use <name>|--next"
+    echo "Themes (original Aira visual system):"
+    cmd_list | sed 's/^/  /'
+    ;;
+  *) echo "aira-theme: unknown command '$1' (see --help)" >&2; exit 1 ;;
+esac

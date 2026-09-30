@@ -1,7 +1,9 @@
 <?xml version="1.0"?>
-<!-- AiraOS-Octave JWM config: Aira identity, taskbar + tray layout.
-     Top tray: Aira menu, launchers, task list, indicators, clock.
-     Desktop context menu on right-click. -->
+<!-- AiraOS-Octave JWM config: Aira shell (top panel + bottom dock).
+     Top panel: Aira menu, launcher, workspaces pager, indicators, quick
+       settings, clock. Bottom dock: app launchers + window task list.
+     Rollback: gui/aira-jwmrc.classic holds the 1.5.0 single-tray layout;
+       aira-session falls back to it if this config fails to start. -->
 <JWM>
   <WindowStyle>
     <Font>Sans-10:bold</Font>
@@ -23,7 +25,7 @@
     <Background>#16205c</Background>
     <Foreground>#e8ecff</Foreground>
     <Outline>#0d1440</Outline>
-    <Opacity>1.0</Opacity>
+    <Opacity>0.9</Opacity>
   </TrayStyle>
   <TaskListStyle>
     <Font>Sans-10</Font>
@@ -42,19 +44,15 @@
     <Background>#1a2456</Background>
     <Outline>#2f4bd7</Outline>
   </PopupStyle>
-  <!-- Taskbar: Aira menu, quick launch, task list, system tray, clock -->
-  <Tray x="0" y="-1" height="32">
+  <!-- TOP PANEL: system status + session controls -->
+  <Tray x="0" y="0" height="30">
     <TrayButton label="Aira" icon="">root:1</TrayButton>
+    <Spacer width="6"/>
+    <TrayButton label="Apps" icon="">exec:aira-launcher</TrayButton>
     <Spacer width="8"/>
-    <TrayButton label="Terminal" icon="">exec:aira-terminal</TrayButton>
-    <TrayButton label="Files" icon="">exec:aira-file-manager</TrayButton>
-    <TrayButton label="Editor" icon="">exec:aira-textedit</TrayButton>
-    <TrayButton label="Settings" icon="">exec:aira-settings</TrayButton>
-    <Spacer width="12"/>
-    <TaskList maxwidth="300"/>
+    <Pager labeled="true"/>
     <Spacer width="12"/>
     <Dock/>
-    <Pager labeled="true"/>
     <Spacer width="12"/>
     <Swallow name="netind" width="100">xterm -name netind -T "Network" -fa Monospace -fs 9 -bg "#16205c" -fg "#e8ecff" -e aira-net-indicator</Swallow>
     <Spacer width="6"/>
@@ -62,10 +60,27 @@
     <Spacer width="6"/>
     <Swallow name="xload" width="60">xload -bg "#0d1440" -fg "#2f4bd7" -hl "#ffffff" -update 2</Swallow>
     <Spacer width="6"/>
+    <TrayButton label="Quick" icon="">exec:aira-quicksettings</TrayButton>
+    <Spacer width="6"/>
     <Swallow name="clock" width="80">xterm -name clock -T "Clock" -fa Monospace -fs 9 -bg "#16205c" -fg "#e8ecff" -e aira-clock</Swallow>
   </Tray>
-  <!-- Root menu (right-click desktop) -->
+  <!-- BOTTOM DOCK: app launchers + window task list -->
+  <Tray x="0" y="-1" height="40">
+    <TrayButton label="Terminal" icon="">exec:aira-terminal</TrayButton>
+    <TrayButton label="Files" icon="">exec:aira-file-manager</TrayButton>
+    <TrayButton label="Editor" icon="">exec:aira-textedit</TrayButton>
+    <TrayButton label="Settings" icon="">exec:aira-settings</TrayButton>
+    <TrayButton label="Monitor" icon="">exec:aira-sysmon</TrayButton>
+    <TrayButton label="Network" icon="">exec:aira-netman</TrayButton>
+    <TrayButton label="Packages" icon="">exec:aira-pkgcenter</TrayButton>
+    <Spacer width="12"/>
+    <TaskList maxwidth="400"/>
+  </Tray>
+  <!-- Root menu (Aira button + right-click desktop) -->
   <RootMenu height="28" onroot="1" labeled="true">
+    <Program label="Application Launcher" icon="">aira-launcher</Program>
+    <Program label="Quick Settings" icon="">aira-quicksettings</Program>
+    <Separator/>
     <Program label="Terminal" icon="">aira-terminal</Program>
     <Program label="File Manager" icon="">aira-file-manager</Program>
     <Program label="Text Editor" icon="">aira-textedit</Program>
@@ -81,6 +96,10 @@
     </Menu>
     <Menu label="Packages">
       <Program label="Package Center" icon="">aira-pkgcenter</Program>
+    </Menu>
+    <Menu label="Appearance">
+      <Program label="Next Wallpaper" icon="">aira-wallpaper --next</Program>
+      <Program label="Next Theme" icon="">xterm -fa Monospace -fs 10 -bg "#0b1026" -fg "#e8ecff" -T "AiraOS Theme" -geometry 70x20 -e sh -c 'aira-theme --next; echo; echo "Press Enter to close..."; read x'</Program>
     </Menu>
     <Separator/>
     <Menu label="About">
@@ -112,11 +131,12 @@
   <Key mask="A" key="F1">root:1</Key>
   <Key mask="A" key="F2">exec:aira-terminal</Key>
   <Key mask="A" key="F3">exec:aira-file-manager</Key>
-  <Key mask="A" key="F4">exec:aira-textedit</Key>
   <Key mask="A" key="F5">exec:aira-settings</Key>
   <Key mask="A" key="F6">exec:aira-sysmon</Key>
   <Key mask="A" key="F7">exec:aira-netman</Key>
   <Key mask="A" key="F8">exec:aira-pkgcenter</Key>
   <Key mask="A" key="F9">exec:aira-about</Key>
+  <Key mask="A" key="F10">exec:aira-quicksettings</Key>
+  <Key mask="A" key="F11">exec:aira-launcher</Key>
   <Key mask="C" key="Escape">root:1</Key>
 </JWM>

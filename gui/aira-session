@@ -274,18 +274,46 @@ else
   cat /tmp/Xvfb.log >&2 2>/dev/null
   echo "=== END Xvfb.log ===" >&2
 fi
-# Wallpaper: Aira blue with a subtle woven texture (falls back to solid).
-xsetroot -mod 4 4 -fg "#24338a" -bg "#1d2a6b" 2>/dev/null || \
-  xsetroot -solid "#1d2a6b" 2>/dev/null || true
-# JWM with Aira config (rootfs at /persist when booted via initramfs)
-JWMRC="/persist/etc/jwm/aira-jwmrc"
-[ -f "$JWMRC" ] || JWMRC="/etc/jwm/aira-jwmrc"
-[ -f "$JWMRC" ] || JWMRC="/persist/etc/jwm/system.jwmrc"
-[ -f "$JWMRC" ] || JWMRC="/etc/jwm/system.jwmrc"
-echo "[aira-session] starting jwm"
+# Wallpaper via the Aira theme engine (falls back to the classic weave).
+if command -v aira-wallpaper >/dev/null 2>&1; then
+  aira-wallpaper --apply 2>/dev/null || \
+    xsetroot -solid "#1d2a6b" 2>/dev/null || true
+else
+  xsetroot -mod 4 4 -fg "#24338a" -bg "#1d2a6b" 2>/dev/null || \
+    xsetroot -solid "#1d2a6b" 2>/dev/null || true
+fi
+# JWM with Aira config (rootfs at /persist when booted via initramfs).
+# The modern top-panel+dock layout is tried first; the 1.5.0 single-tray
+# layout (aira-jwmrc.classic) is the supervised fallback so a bad config
+# can never leave the session without a window manager.
+pick_jwmrc() {
+  for c in "/persist/etc/jwm/aira-jwmrc" "/etc/jwm/aira-jwmrc" \
+           "/persist/etc/jwm/system.jwmrc" "/etc/jwm/system.jwmrc"; do
+    if [ -f "$c" ]; then echo "$c"; return 0; fi
+  done
+  return 1
+}
+JWMRC="$(pick_jwmrc)" || { echo "aira-session: no JWM config found" >&2; exit 1; }
+JWMRC_CLASSIC="$(dirname "$JWMRC")/aira-jwmrc.classic"
+echo "[aira-session] starting jwm ($JWMRC)"
 jwm -f "$JWMRC" &
 JWM_PID=$!
-sleep 0.5
+sleep 1
+if ! kill -0 "$JWM_PID" 2>/dev/null; then
+  echo "[aira-session] primary JWM config failed, trying classic fallback" >&2
+  if [ -f "$JWMRC_CLASSIC" ]; then
+    JWMRC="$JWMRC_CLASSIC"
+    echo "[aira-session] starting jwm ($JWMRC)"
+    jwm -f "$JWMRC" &
+    JWM_PID=$!
+    sleep 1
+  fi
+  if ! kill -0 "$JWM_PID" 2>/dev/null; then
+    echo "aira-session: JWM failed to start" >&2
+    kill $XPID 2>/dev/null
+    exit 1
+  fi
+fi
 echo "[aira-session] desktop ready on $DISPLAY (X pid $XPID, jwm $JWM_PID)"
 # If interactive (not headless test), wait; else return (test harness manages lifetime)
 if [ "$HEADLESS" = "no" ]; then

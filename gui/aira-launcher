@@ -1,0 +1,103 @@
+#!/bin/sh
+# AiraOS Application Launcher — searchable grid over the real Aira app set.
+# Registry entries: display name|keywords|command (commands are the actual
+# aira-* tools; nothing here duplicates system logic).
+# Usage: aira-launcher [--list | --text | --find PATTERN]
+export DISPLAY="${DISPLAY:-:0}"
+
+# Registry (single source for launcher + --list consumers).
+AIRA_APPS="Terminal|terminal shell console xterm|aira-terminal
+Files|files folders browse copy move delete mc|aira-file-manager
+Text Editor|editor text vi edit|aira-textedit
+Settings|settings config system display|aira-settings
+System Monitor|monitor cpu memory process top|aira-sysmon
+System Information|info system about hardware|aira-sysinfo
+Network Manager|network wifi dhcp ip dns|aira-netman
+Package Center|packages software install remove|aira-pkgcenter
+About AiraOS|about version|aira-about
+Welcome|welcome start help tour|aira-welcome
+Help|help manual docs|aira-help
+Quick Settings|quick settings volume theme|aira-quicksettings
+Diagnostics|diagnose doctor health log|aira-diagnose-launcher"
+
+# Diagnostics entry resolves to a real terminal pipeline (not a fake app).
+resolve_cmd() {
+  case "$1" in
+    aira-diagnose-launcher)
+      echo "xterm -fa Monospace -fs 10 -bg #0b1026 -fg #e8ecff -T AiraOS Diagnostics -geometry 84x28 -e sh -c 'aira diagnose; echo; echo Press Enter to close...; read x'" ;;
+    *) echo "$1" ;;
+  esac
+}
+
+cmd_list() {
+  echo "$AIRA_APPS"
+}
+
+cmd_find() {
+  pat="$(echo "${1:-}" | tr 'A-Z' 'a-z')"
+  echo "$AIRA_APPS" | while IFS='|' read -r name keys cmd; do
+    line="$(echo "$name $keys" | tr 'A-Z' 'a-z')"
+    case "$line" in
+      *"$pat"*) printf "%s|%s\n" "$name" "$cmd" ;;
+    esac
+  done
+}
+
+cmd_text() {
+  echo "╔══════════════════════════════════════════════════════════╗"
+  echo "║              Aira Application Launcher                   ║"
+  echo "╚══════════════════════════════════════════════════════════╝"
+  echo
+  printf "Search (empty = list all, q = quit): "
+  read pat
+  [ "$pat" = "q" ] && return 0
+  if [ -z "$pat" ]; then
+    matches="$(cmd_list)"
+  else
+    lower="$(echo "$pat" | tr 'A-Z' 'a-z')"
+    matches="$(echo "$AIRA_APPS" | while IFS='|' read -r name keys cmd; do
+      line="$(echo "$name $keys" | tr 'A-Z' 'a-z')"
+      case "$line" in *"$lower"*) printf "%s|%s|%s\n" "$name" "$keys" "$cmd" ;; esac
+    done)"
+  fi
+  if [ -z "$matches" ]; then echo "No applications match '$pat'."; return 0; fi
+  echo
+  echo "$matches" | awk -F'|' '{printf "  %d) %s\n", NR, $1}'
+  echo
+  printf "Launch [1-%s, q=cancel]: " "$(echo "$matches" | wc -l | tr -d ' ')"
+  read choice
+  case "$choice" in ''|q|Q) return 0 ;; esac
+  sel="$(echo "$matches" | sed -n "${choice}p" 2>/dev/null)"
+  [ -n "$sel" ] || { echo "Invalid choice."; return 1; }
+  cmd="$(echo "$sel" | awk -F'|' '{print $NF}')"
+  cmd="$(resolve_cmd "$cmd")"
+  # shellcheck disable=SC2086
+  if [ -n "${DISPLAY:-}" ]; then $cmd >/dev/null 2>&1 & else $cmd; fi
+}
+
+case "${1:---gui}" in
+  --list) cmd_list ;;
+  --find)
+    if [ $# -lt 2 ]; then echo "Usage: aira-launcher --find PATTERN" >&2; exit 1; fi
+    cmd_find "$2"
+    ;;
+  --text) cmd_text ;;
+  --gui)
+    if [ -n "${DISPLAY:-}" ] && command -v xterm >/dev/null 2>&1; then
+      exec xterm \
+        -fa "Monospace" -fs 10 \
+        -bg "#0b1026" -fg "#e8ecff" \
+        -sb -sl 200 \
+        -T "Aira Application Launcher" \
+        -geometry 62x28+200+80 \
+        -name aira-launcher \
+        -e "$0" --text
+      exit 0
+    fi
+    cmd_text
+    ;;
+  -h|--help|help)
+    echo "Usage: aira-launcher [--list|--find PATTERN|--text]"
+    ;;
+  *) echo "aira-launcher: unknown option '$1'" >&2; exit 1 ;;
+esac

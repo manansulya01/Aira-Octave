@@ -1,0 +1,122 @@
+<?xml version="1.0"?>
+<!-- AiraOS-Octave JWM config: Aira identity, taskbar + tray layout.
+     Top tray: Aira menu, launchers, task list, indicators, clock.
+     Desktop context menu on right-click. -->
+<JWM>
+  <WindowStyle>
+    <Font>Sans-10:bold</Font>
+    <Width>3</Width>
+    <Height>28</Height>
+    <Corner>6</Corner>
+    <Foreground>#ffffff</Foreground>
+    <Background>#1e2d72</Background>
+    <Outline>#0d1440</Outline>
+    <Opacity>1.0</Opacity>
+    <Active>
+      <Foreground>#ffffff</Foreground>
+      <Background>#2f4bd7</Background>
+      <Outline>#101c5c</Outline>
+    </Active>
+  </WindowStyle>
+  <TrayStyle>
+    <Font>Sans-10</Font>
+    <Background>#16205c</Background>
+    <Foreground>#e8ecff</Foreground>
+    <Outline>#0d1440</Outline>
+    <Opacity>1.0</Opacity>
+  </TrayStyle>
+  <TaskListStyle>
+    <Font>Sans-10</Font>
+    <Active><Foreground>#ffffff</Foreground><Background>#2f4bd7</Background></Active>
+  </TaskListStyle>
+  <MenuStyle>
+    <Font>Sans-10</Font>
+    <Foreground>#e8ecff</Foreground>
+    <Background>#1a2456</Background>
+    <Outline>#0d1440</Outline>
+    <Active><Foreground>#ffffff</Foreground><Background>#2f4bd7</Background></Active>
+  </MenuStyle>
+  <PopupStyle>
+    <Font>Sans-10</Font>
+    <Foreground>#e8ecff</Foreground>
+    <Background>#1a2456</Background>
+    <Outline>#2f4bd7</Outline>
+  </PopupStyle>
+  <!-- Taskbar: Aira menu, quick launch, task list, system tray, clock -->
+  <Tray x="0" y="-1" height="32">
+    <TrayButton label="Aira" icon="">root:1</TrayButton>
+    <Spacer width="8"/>
+    <TrayButton label="Terminal" icon="">exec:aira-terminal</TrayButton>
+    <TrayButton label="Files" icon="">exec:aira-file-manager</TrayButton>
+    <TrayButton label="Editor" icon="">exec:aira-textedit</TrayButton>
+    <TrayButton label="Settings" icon="">exec:aira-settings</TrayButton>
+    <Spacer width="12"/>
+    <TaskList maxwidth="300"/>
+    <Spacer width="12"/>
+    <Dock/>
+    <Pager labeled="true"/>
+    <Spacer width="12"/>
+    <Swallow name="netind" width="100">xterm -name netind -T "Network" -fa Monospace -fs 9 -bg "#16205c" -fg "#e8ecff" -e aira-net-indicator</Swallow>
+    <Spacer width="6"/>
+    <Swallow name="dskind" width="100">xterm -name dskind -T "Storage" -fa Monospace -fs 9 -bg "#16205c" -fg "#e8ecff" -e aira-storage-indicator</Swallow>
+    <Spacer width="6"/>
+    <Swallow name="xload" width="60">xload -bg "#0d1440" -fg "#2f4bd7" -hl "#ffffff" -update 2</Swallow>
+    <Spacer width="6"/>
+    <Swallow name="clock" width="80">xterm -name clock -T "Clock" -fa Monospace -fs 9 -bg "#16205c" -fg "#e8ecff" -e aira-clock</Swallow>
+  </Tray>
+  <!-- Root menu (right-click desktop) -->
+  <RootMenu height="28" onroot="1" labeled="true">
+    <Program label="Terminal" icon="">aira-terminal</Program>
+    <Program label="File Manager" icon="">aira-file-manager</Program>
+    <Program label="Text Editor" icon="">aira-textedit</Program>
+    <Separator/>
+    <Menu label="System">
+      <Program label="System Monitor" icon="">aira-sysmon</Program>
+      <Program label="System Information" icon="">aira-sysinfo</Program>
+      <Program label="Settings" icon="">aira-settings</Program>
+      <Program label="Run Diagnostics" icon="">xterm -fa Monospace -fs 10 -bg "#0b1026" -fg "#e8ecff" -T "AiraOS Diagnostics" -geometry 84x28 -e sh -c 'aira diagnose; echo; echo "Press Enter to close..."; read x'</Program>
+    </Menu>
+    <Menu label="Network">
+      <Program label="Network Manager" icon="">aira-netman</Program>
+    </Menu>
+    <Menu label="Packages">
+      <Program label="Package Center" icon="">aira-pkgcenter</Program>
+    </Menu>
+    <Separator/>
+    <Menu label="About">
+      <Program label="About AiraOS" icon="">aira-about</Program>
+      <Program label="AiraOS Demo" icon="">xterm -fa Monospace -fs 10 -bg "#0b1026" -fg "#e8ecff" -T "AiraOS Demo" -geometry 84x28 -e sh -c 'aira demo; echo; echo "Press Enter to close..."; read x'</Program>
+    </Menu>
+    <Separator/>
+    <Restart label="Restart Desktop" icon=""/>
+    <Exit label="Logout" confirm="true"/>
+  </RootMenu>
+  <!-- Window grouping and behavior -->
+  <Group>
+    <Name>xterm</Name>
+    <Option>icon:xterm</Option>
+  </Group>
+  <Group>
+    <Name>xmessage</Name>
+    <Option>layer:above</Option>
+  </Group>
+  <Desktops count="4"/>
+  <DoubleClickSpeed>400</DoubleClickSpeed>
+  <DoubleClickDelta>4</DoubleClickDelta>
+  <FocusModel>click</FocusModel>
+  <MoveMode>opaque</MoveMode>
+  <ResizeMode>opaque</ResizeMode>
+  <SnapMode>screen</SnapMode>
+  <Key mask="A" key="Tab">next</Key>
+  <Key mask="A" key="F4">close</Key>
+  <Key mask="A" key="F1">root:1</Key>
+  <Key mask="A" key="F2">exec:aira-terminal</Key>
+  <Key mask="A" key="F3">exec:aira-file-manager</Key>
+  <Key mask="A" key="F4">exec:aira-textedit</Key>
+  <Key mask="A" key="F5">exec:aira-settings</Key>
+  <Key mask="A" key="F6">exec:aira-sysmon</Key>
+  <Key mask="A" key="F7">exec:aira-netman</Key>
+  <Key mask="A" key="F8">exec:aira-pkgcenter</Key>
+  <Key mask="A" key="F9">exec:aira-about</Key>
+  <Key mask="C" key="Escape">root:1</Key>
+</JWM>

@@ -58,9 +58,11 @@ for d in "$DLDIR"/*.deb; do
 done
 
 # Aira GUI files
-mkdir -p "$STAGE/etc/jwm" "$STAGE/usr/bin"
+mkdir -p "$STAGE/etc/jwm" "$STAGE/usr/bin" "$STAGE/etc/aira"
 cp -f "$ROOT/gui/aira-jwmrc" "$STAGE/etc/jwm/aira-jwmrc"
-for b in aira-session aira-terminal aira-file-manager aira-settings aira-sysinfo aira-about aira-clock aira-gui-test aira-textedit aira-sysmon aira-pkgcenter aira-netman aira-net-indicator aira-storage-indicator aira-welcome aira-help aira-notify aira-notifyd aira-session-mgr aira-dm; do
+cp -f "$ROOT/gui/aira-jwmrc.classic" "$STAGE/etc/jwm/aira-jwmrc.classic"
+[ -f "$STAGE/etc/aira/theme.conf" ] || cp -f "$ROOT/gui/aira-theme.conf.default" "$STAGE/etc/aira/theme.conf"
+for b in aira-session aira-terminal aira-file-manager aira-settings aira-sysinfo aira-about aira-clock aira-gui-test aira-textedit aira-sysmon aira-pkgcenter aira-netman aira-net-indicator aira-storage-indicator aira-welcome aira-help aira-notify aira-notifyd aira-session-mgr aira-dm aira-theme aira-wallpaper aira-launcher aira-quicksettings; do
   cp -f "$ROOT/gui/$b" "$STAGE/usr/bin/$b"
   chmod +x "$STAGE/usr/bin/$b"
 done
