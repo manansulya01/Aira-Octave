@@ -7,7 +7,8 @@
 # /var/lib/aira, then $HOME/.cache/aira) so they survive reboot on persist.
 # Usage: aira-launcher [--list | --find PATTERN | --categories |
 #        --category NAME | --recent | --check | --launch NAME | --text]
-export DISPLAY="${DISPLAY:-:0}"
+# NOTE: DISPLAY is intentionally NOT defaulted here (see --gui branch).
+# Forcing DISPLAY=:0 would mask headless detection in dispatch.
 
 # Registry (single source for launcher + --list consumers).
 AIRA_APPS="Terminal|Accessories|terminal shell console xterm|aira-terminal
@@ -243,7 +244,8 @@ case "${1:---gui}" in
     ;;
   --text) cmd_text ;;
   --gui)
-    if [ -n "${DISPLAY:-}" ] && command -v xterm >/dev/null 2>&1; then
+    : "${DISPLAY:=:0}"; export DISPLAY
+    if command -v xterm >/dev/null 2>&1; then
       # Theme-aware launcher window (single-sourced via aira-theme).
       _BG="$(aira-theme get AIRA_BG 2>/dev/null)"; [ -n "$_BG" ] || _BG="#0b1026"
       _FG="$(aira-theme get AIRA_FG 2>/dev/null)"; [ -n "$_FG" ] || _FG="#e8ecff"

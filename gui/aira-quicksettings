@@ -5,7 +5,9 @@
 # instead of faking a control.
 # Usage: aira-quicksettings [--status | --text | --volume up|down|mute|unmute|N |
 #        --network renew | --theme next | --session logout|restart|shutdown|reboot]
-export DISPLAY="${DISPLAY:-:0}"
+# NOTE: DISPLAY is intentionally NOT defaulted here. Forcing DISPLAY=:0
+# would mask headless detection in --status/--night/--theme delegates.
+# Only the --gui branch assumes :0 when DISPLAY is unset.
 
 qs_volume() {
   if command -v aira-audio >/dev/null 2>&1; then
@@ -51,8 +53,71 @@ qs_session() {
   echo "Uptime: $(awk '{printf "%dh %dm", $1/3600, ($1%3600)/60}' /proc/uptime 2>/dev/null)"
 }
 
+qs_night() {
+  if command -v aira-theme >/dev/null 2>&1; then
+    n="$(aira-theme get AIRA_NIGHT 2>/dev/null)"
+    [ -n "$n" ] || n="off (default)"
+    echo "Night mode: $n"
+  else
+    echo "Night mode: aira-theme not installed"
+  fi
+}
+
+qs_battery() {
+  if [ -d /sys/class/power_supply ]; then
+    bat=""
+    for b in /sys/class/power_supply/BAT*; do
+      [ -e "$b/capacity" ] || continue
+      cap="$(cat "$b/capacity" 2>/dev/null)"
+      st="$(cat "$b/status" 2>/dev/null)"
+      bat="$bat $(basename "$b"):${cap}%/${st}"
+    done
+    if [ -n "$bat" ]; then
+      echo "Battery:$bat"
+      return 0
+    fi
+    for ac in /sys/class/power_supply/AC* /sys/class/power_supply/ADP*; do
+      [ -e "$ac/online" ] || continue
+      echo "Battery: no battery, AC online=$(cat "$ac/online" 2>/dev/null)"
+      return 0
+    done
+  fi
+  echo "Battery: no battery on this hardware (expected in QEMU)"
+}
+
+qs_brightness() {
+  for bl in /sys/class/backlight/*; do
+    [ -e "$bl/brightness" ] || continue
+    cur="$(cat "$bl/brightness" 2>/dev/null)"
+    max="$(cat "$bl/max_brightness" 2>/dev/null)"
+    echo "Brightness: $cur/$max ($(basename "$bl"))"
+    return 0
+  done
+  echo "Brightness: no backlight control on this hardware"
+}
+
+qs_wifi() {
+  found=0
+  for w in /sys/class/net/wlan* /sys/class/net/wlp*; do
+    [ -e "$w" ] || continue
+    found=1
+    echo "Wi-Fi: $(basename "$w") $(cat "$w/operstate" 2>/dev/null)"
+  done
+  if [ "$found" = "0" ]; then
+    if command -v iw >/dev/null 2>&1 || command -v iwconfig >/dev/null 2>&1; then
+      echo "Wi-Fi: tools present, no wireless interface"
+    else
+      echo "Wi-Fi: Wi-Fi hardware absent (wired/virtio-net only)"
+    fi
+  fi
+}
+
+qs_info() {
+  echo "System: $(uname -srm 2>/dev/null) up $(awk '{printf "%dh %dm", $1/3600, ($1%3600)/60}' /proc/uptime 2>/dev/null)"
+}
+
 cmd_status() {
-  qs_volume; qs_network; qs_display; qs_theme; qs_session
+  qs_volume; qs_network; qs_wifi; qs_display; qs_battery; qs_brightness; qs_theme; qs_night; qs_session
 }
 
 cmd_text() {
@@ -67,8 +132,10 @@ cmd_text() {
     echo "  Actions:"
     echo "    1) Volume up        2) Volume down      3) Mute/unmute"
     echo "    4) Renew DHCP       5) Next theme       6) Next wallpaper"
-    echo "    7) Open Settings    8) Open Network Manager"
-    echo "    9) Logout           0) Shutdown         q) Close"
+    echo "    7) Night on         8) Night off        9) Theme select"
+    echo "    a) Open Settings    b) Open Network Manager"
+    echo "    c) System info      l) Logout           r) Reboot"
+    echo "    0) Shutdown         q) Close"
     echo
     printf "  Choice: "
     read choice
@@ -79,9 +146,21 @@ cmd_text() {
       4) "$0" --network renew; printf "  Press Enter..."; read _ ;;
       5) aira-theme --next 2>&1; printf "  Press Enter..."; read _ ;;
       6) aira-wallpaper --next 2>&1; printf "  Press Enter..."; read _ ;;
-      7) aira-settings 2>/dev/null & ;;
-      8) aira-netman 2>/dev/null & ;;
-      9) aira-session-mgr logout ;;
+      7) "$0" --night on; printf "  Press Enter..."; read _ ;;
+      8) "$0" --night off; printf "  Press Enter..."; read _ ;;
+      9)
+        echo "  Available themes:"
+        aira-theme list 2>/dev/null | sed 's/^/    /'
+        printf "  Use theme: "
+        read th
+        [ -n "$th" ] && aira-theme use "$th" 2>&1
+        printf "  Press Enter..."; read _ ;;
+      a) aira-settings 2>/dev/null & ;;
+      b) aira-netman 2>/dev/null & ;;
+      c) qs_info; printf "  Press Enter..."; read _ ;;
+      l) aira-session-mgr logout ;;
+      r) printf "  Reboot now? [y/N] "; read yn
+         [ "$yn" = "y" ] && aira-session-mgr reboot ;;
       0) printf "  Shutdown now? [y/N] "; read yn
          [ "$yn" = "y" ] && aira-session-mgr shutdown ;;
       q|Q) break ;;
@@ -143,7 +222,25 @@ case "${1:---gui}" in
   --volume) shift; cmd_volume "$@" ;;
   --network) shift; cmd_network "$@" ;;
   --theme)
-    if [ "${2:-}" = "next" ]; then aira-theme --next; else aira-theme current; fi ;;
+    case "${2:-current}" in
+      next) aira-theme --next ;;
+      list) aira-theme list ;;
+      current) aira-theme current ;;
+      use)
+        if [ -z "${3:-}" ]; then echo "Usage: --theme use NAME" >&2; exit 1; fi
+        aira-theme use "$3"
+        ;;
+      *) echo "Usage: --theme next|list|current|use NAME" >&2; exit 1 ;;
+    esac
+    ;;
+  --night)
+    case "${2:-}" in
+      on) aira-theme use aira-night && aira-theme set AIRA_NIGHT on ;;
+      off) aira-theme use aira-day && aira-theme set AIRA_NIGHT off ;;
+      *) echo "Usage: --night on|off" >&2; exit 1 ;;
+    esac
+    ;;
+  --info) qs_info; cmd_status ;;
   --session)
     case "${2:-}" in
       logout|restart|shutdown|reboot) aira-session-mgr "$2" ;;
@@ -151,7 +248,8 @@ case "${1:---gui}" in
     esac
     ;;
   --gui)
-    if [ -n "${DISPLAY:-}" ] && command -v xterm >/dev/null 2>&1; then
+    : "${DISPLAY:=:0}"; export DISPLAY
+    if command -v xterm >/dev/null 2>&1; then
       exec xterm \
         -fa "Monospace" -fs 10 \
         -bg "#0b1026" -fg "#e8ecff" \
