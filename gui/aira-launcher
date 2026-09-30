@@ -1,32 +1,93 @@
 #!/bin/sh
-# AiraOS Application Launcher — searchable grid over the real Aira app set.
-# Registry entries: display name|keywords|command (commands are the actual
-# aira-* tools; nothing here duplicates system logic).
-# Usage: aira-launcher [--list | --text | --find PATTERN]
+# AiraOS Application Launcher — searchable, categorized registry over the real
+# Aira app set, with recents, system actions, and keyboard navigation.
+# Registry: display name|Category|keywords|command. Commands are the actual
+# aira-* tools or session-mgr actions; nothing duplicates system logic.
+# Recents live in $AIRA_STATE_DIR (default /persist/var/lib/aira, then
+# /var/lib/aira, then $HOME/.cache/aira) so they survive reboot on persist.
+# Usage: aira-launcher [--list | --find PATTERN | --categories |
+#        --category NAME | --recent | --check | --launch NAME | --text]
 export DISPLAY="${DISPLAY:-:0}"
 
 # Registry (single source for launcher + --list consumers).
-AIRA_APPS="Terminal|terminal shell console xterm|aira-terminal
-Files|files folders browse copy move delete mc|aira-file-manager
-Text Editor|editor text vi edit|aira-textedit
-Settings|settings config system display|aira-settings
-System Monitor|monitor cpu memory process top|aira-sysmon
-System Information|info system about hardware|aira-sysinfo
-Network Manager|network wifi dhcp ip dns|aira-netman
-Package Center|packages software install remove|aira-pkgcenter
-About AiraOS|about version|aira-about
-Welcome|welcome start help tour|aira-welcome
-Help|help manual docs|aira-help
-Quick Settings|quick settings volume theme|aira-quicksettings
-Diagnostics|diagnose doctor health log|aira-diagnose-launcher"
+AIRA_APPS="Terminal|Accessories|terminal shell console xterm|aira-terminal
+Files|Accessories|files folders browse copy move delete mc|aira-file-manager
+Text Editor|Accessories|editor text vi edit|aira-textedit
+Help|Accessories|help manual docs|aira-help
+Settings|Settings|settings config system appearance|aira-settings
+Quick Settings|Settings|quick settings volume theme network|aira-quicksettings
+System Monitor|System|monitor cpu memory process top|aira-sysmon
+System Information|System|info system about hardware ipc|aira-sysinfo
+Network Manager|Internet|network wifi dhcp ip dns|aira-netman
+Package Center|System|packages software install remove|aira-pkgcenter
+About AiraOS|System|about version|aira-about
+Welcome|System|welcome start help tour|aira-welcome
+Diagnostics|System|diagnose doctor health log|aira-diagnose-launcher
+Logout|Actions|logout exit session|aira-action-logout
+Restart Desktop|Actions|restart session desktop|aira-action-restart
+Reboot|Actions|reboot restart system|aira-action-reboot
+Shutdown|Actions|shutdown power off halt|aira-action-shutdown"
+
+RECENT_MAX=10
+
+state_dir() {
+  if [ -n "${AIRA_STATE_DIR:-}" ]; then echo "$AIRA_STATE_DIR"; return 0; fi
+  for d in /persist/var/lib/aira /var/lib/aira; do
+    if [ -d "$d" ] && [ -w "$d" ] 2>/dev/null; then echo "$d"; return 0; fi
+    if [ -d "$(dirname "$d")" ] && [ -w "$(dirname "$d")" ] 2>/dev/null; then
+      mkdir -p "$d" 2>/dev/null && echo "$d" && return 0
+    fi
+  done
+  d="${HOME:-/tmp}/.cache/aira"
+  mkdir -p "$d" 2>/dev/null && echo "$d" && return 0
+  echo "/tmp"; return 0
+}
+
+recent_file() {
+  echo "$(state_dir)/aira-launcher-recent"
+}
+
+record_recent() {
+  rf="$(recent_file)"
+  tmp="$rf.tmp.$$"
+  ( echo "$(date +%s 2>/dev/null || echo 0)|$1"; grep -v "|$1\$" "$rf" 2>/dev/null | head -n $((RECENT_MAX - 1)) ) > "$tmp" 2>/dev/null && mv -f "$tmp" "$rf"
+}
+
+show_recent() {
+  rf="$(recent_file)"
+  [ -f "$rf" ] || return 0
+  cut -d'|' -f2- "$rf" 2>/dev/null | head -n "$RECENT_MAX"
+}
 
 # Diagnostics entry resolves to a real terminal pipeline (not a fake app).
+# Action entries resolve to the safe session mechanisms.
 resolve_cmd() {
   case "$1" in
     aira-diagnose-launcher)
       echo "xterm -fa Monospace -fs 10 -bg #0b1026 -fg #e8ecff -T AiraOS Diagnostics -geometry 84x28 -e sh -c 'aira diagnose; echo; echo Press Enter to close...; read x'" ;;
+    aira-action-logout) echo "aira-session-mgr logout" ;;
+    aira-action-restart) echo "aira-session-mgr restart" ;;
+    aira-action-reboot) echo "aira-session-mgr reboot" ;;
+    aira-action-shutdown) echo "aira-session-mgr shutdown" ;;
     *) echo "$1" ;;
   esac
+}
+
+# First word of the resolved pipeline must exist, else the app is unavailable.
+cmd_available() {
+  first="$(resolve_cmd "$1" | awk '{print $1}')"
+  command -v "$first" >/dev/null 2>&1
+}
+
+missing_bin() {
+  resolve_cmd "$1" | awk '{print $1}'
+}
+
+entry_by_name() {
+  want="$1"
+  echo "$AIRA_APPS" | while IFS='|' read -r name cat keys cmd; do
+    if [ "$name" = "$want" ]; then printf "%s|%s|%s|%s\n" "$name" "$cat" "$keys" "$cmd"; break; fi
+  done
 }
 
 cmd_list() {
@@ -35,44 +96,132 @@ cmd_list() {
 
 cmd_find() {
   pat="$(echo "${1:-}" | tr 'A-Z' 'a-z')"
-  echo "$AIRA_APPS" | while IFS='|' read -r name keys cmd; do
-    line="$(echo "$name $keys" | tr 'A-Z' 'a-z')"
+  echo "$AIRA_APPS" | while IFS='|' read -r name cat keys cmd; do
+    line="$(echo "$name $cat $keys" | tr 'A-Z' 'a-z')"
     case "$line" in
       *"$pat"*) printf "%s|%s\n" "$name" "$cmd" ;;
     esac
   done
 }
 
+cmd_categories() {
+  echo "$AIRA_APPS" | cut -d'|' -f2 | sort -u
+}
+
+cmd_category() {
+  want="$1"
+  echo "$AIRA_APPS" | while IFS='|' read -r name cat keys cmd; do
+    if [ "$name" = "$want" ] || [ "$cat" = "$want" ]; then
+      printf "%s|%s|%s|%s\n" "$name" "$cat" "$keys" "$cmd"
+    fi
+  done
+}
+
+cmd_check() {
+  rc=0
+  echo "$AIRA_APPS" | while IFS='|' read -r name cat keys cmd; do
+    if cmd_available "$cmd"; then
+      echo "OK: $name"
+    else
+      echo "MISSING: $name (needs $(missing_bin "$cmd"))"
+    fi
+  done | tee /tmp/aira-launcher-check.$$.log
+  if grep -q "^MISSING" /tmp/aira-launcher-check.$$.log 2>/dev/null; then rc=1; fi
+  rm -f /tmp/aira-launcher-check.$$.log
+  return $rc
+}
+
+dispatch() {
+  name="$1"; cmd="$2"
+  if ! cmd_available "$cmd"; then
+    echo "aira-launcher: '$name' is not available (missing: $(missing_bin "$cmd"))" >&2
+    return 1
+  fi
+  record_recent "$name"
+  real="$(resolve_cmd "$cmd")"
+  # shellcheck disable=SC2086
+  if [ -n "${DISPLAY:-}" ] && command -v xterm >/dev/null 2>&1; then
+    # shellcheck disable=SC2086
+    $real >/dev/null 2>&1 &
+  else
+    # shellcheck disable=SC2086
+    $real
+  fi
+}
+
+cmd_launch() {
+  ent="$(entry_by_name "${1:-}")"
+  if [ -z "$ent" ]; then
+    echo "aira-launcher: no application named '$1' (see --list)" >&2
+    return 1
+  fi
+  name="$(echo "$ent" | cut -d'|' -f1)"
+  cmd="$(echo "$ent" | cut -d'|' -f4)"
+  dispatch "$name" "$cmd"
+}
+
+show_matches() {
+  # $1=matches (name|cat|keys|cmd lines), $2=highlight index (1-based)
+  hi="${2:-1}"
+  echo "$1" | awk -F'|' -v hi="$hi" '{mark=(NR==hi)?">":" "; printf "  %s %d) %s  [%s]\n", mark, NR, $1, $2}'
+}
+
 cmd_text() {
-  echo "╔══════════════════════════════════════════════════════════╗"
-  echo "║              Aira Application Launcher                   ║"
-  echo "╚══════════════════════════════════════════════════════════╝"
+  echo "=================================================================="
+  echo "               Aira Application Launcher"
+  echo "=================================================================="
+  rec="$(show_recent)"
+  if [ -n "$rec" ]; then
+    echo "-- Recent --"
+    echo "$rec" | head -n 5 | sed 's/^/  * /'
+    echo
+  fi
+  echo "Categories: $(cmd_categories | tr '\n' ' ')"
   echo
-  printf "Search (empty = list all, q = quit): "
+  printf "Search text, cat:<Category>, empty = all  [q = quit]: "
   read pat
   [ "$pat" = "q" ] && return 0
-  if [ -z "$pat" ]; then
-    matches="$(cmd_list)"
-  else
-    lower="$(echo "$pat" | tr 'A-Z' 'a-z')"
-    matches="$(echo "$AIRA_APPS" | while IFS='|' read -r name keys cmd; do
-      line="$(echo "$name $keys" | tr 'A-Z' 'a-z')"
-      case "$line" in *"$lower"*) printf "%s|%s|%s\n" "$name" "$keys" "$cmd" ;; esac
-    done)"
-  fi
+  case "$pat" in
+    cat:*)
+      matches="$(cmd_category "${pat#cat:}")" ;;
+    "")
+      matches="$(cmd_list)" ;;
+    *)
+      lower="$(echo "$pat" | tr 'A-Z' 'a-z')"
+      matches="$(echo "$AIRA_APPS" | while IFS='|' read -r name cat keys cmd; do
+        line="$(echo "$name $cat $keys" | tr 'A-Z' 'a-z')"
+        case "$line" in *"$lower"*) printf "%s|%s|%s|%s\n" "$name" "$cat" "$keys" "$cmd" ;; esac
+      done)" ;;
+  esac
   if [ -z "$matches" ]; then echo "No applications match '$pat'."; return 0; fi
-  echo
-  echo "$matches" | awk -F'|' '{printf "  %d) %s\n", NR, $1}'
-  echo
-  printf "Launch [1-%s, q=cancel]: " "$(echo "$matches" | wc -l | tr -d ' ')"
-  read choice
-  case "$choice" in ''|q|Q) return 0 ;; esac
-  sel="$(echo "$matches" | sed -n "${choice}p" 2>/dev/null)"
-  [ -n "$sel" ] || { echo "Invalid choice."; return 1; }
-  cmd="$(echo "$sel" | awk -F'|' '{print $NF}')"
-  cmd="$(resolve_cmd "$cmd")"
-  # shellcheck disable=SC2086
-  if [ -n "${DISPLAY:-}" ]; then $cmd >/dev/null 2>&1 & else $cmd; fi
+  total="$(echo "$matches" | wc -l | tr -d ' ')"
+  hi=1
+  while true; do
+    echo
+    show_matches "$matches" "$hi"
+    echo
+    echo "  keys: j/k move, <number> or Enter launches $hi, / research, q cancel"
+    printf "  > "
+    read key
+    case "$key" in
+      q|Q) return 0 ;;
+      "") sel="$(echo "$matches" | sed -n "${hi}p")" ;;
+      j) hi=$((hi + 1)); [ "$hi" -gt "$total" ] && hi="$total"; continue ;;
+      k) hi=$((hi - 1)); [ "$hi" -lt 1 ] && hi=1; continue ;;
+      /) cmd_text; return $? ;;
+      *)
+        if printf "%s" "$key" | grep -qE '^[0-9]+$' && [ "$key" -ge 1 ] && [ "$key" -le "$total" ]; then
+          sel="$(echo "$matches" | sed -n "${key}p")"
+        else
+          echo "  Unknown key '$key'."; continue
+        fi
+        ;;
+    esac
+    name="$(echo "$sel" | cut -d'|' -f1)"
+    cmd="$(echo "$sel" | cut -d'|' -f4)"
+    dispatch "$name" "$cmd"
+    return $?
+  done
 }
 
 case "${1:---gui}" in
@@ -81,12 +230,26 @@ case "${1:---gui}" in
     if [ $# -lt 2 ]; then echo "Usage: aira-launcher --find PATTERN" >&2; exit 1; fi
     cmd_find "$2"
     ;;
+  --categories) cmd_categories ;;
+  --category)
+    if [ $# -lt 2 ]; then echo "Usage: aira-launcher --category NAME" >&2; exit 1; fi
+    cmd_category "$2"
+    ;;
+  --recent) show_recent ;;
+  --check) cmd_check ;;
+  --launch)
+    if [ $# -lt 2 ]; then echo "Usage: aira-launcher --launch NAME" >&2; exit 1; fi
+    cmd_launch "$2"
+    ;;
   --text) cmd_text ;;
   --gui)
     if [ -n "${DISPLAY:-}" ] && command -v xterm >/dev/null 2>&1; then
+      # Theme-aware launcher window (single-sourced via aira-theme).
+      _BG="$(aira-theme get AIRA_BG 2>/dev/null)"; [ -n "$_BG" ] || _BG="#0b1026"
+      _FG="$(aira-theme get AIRA_FG 2>/dev/null)"; [ -n "$_FG" ] || _FG="#e8ecff"
       exec xterm \
         -fa "Monospace" -fs 10 \
-        -bg "#0b1026" -fg "#e8ecff" \
+        -bg "$_BG" -fg "$_FG" \
         -sb -sl 200 \
         -T "Aira Application Launcher" \
         -geometry 62x28+200+80 \
@@ -97,7 +260,7 @@ case "${1:---gui}" in
     cmd_text
     ;;
   -h|--help|help)
-    echo "Usage: aira-launcher [--list|--find PATTERN|--text]"
+    echo "Usage: aira-launcher [--list|--find PATTERN|--categories|--category NAME|--recent|--check|--launch NAME|--text]"
     ;;
   *) echo "aira-launcher: unknown option '$1'" >&2; exit 1 ;;
 esac
