@@ -134,7 +134,7 @@
     <Option>centered</Option>
     <Option>layer:above</Option>
   </Group>
-  <Desktops count="4" width="2"/>
+  <Desktops count="4"/>
   <DoubleClickSpeed>400</DoubleClickSpeed>
   <DoubleClickDelta>4</DoubleClickDelta>
   <FocusModel>click</FocusModel>
@@ -161,13 +161,9 @@
   <Key mask="CA" key="Right">rdesktop</Key>
   <Key mask="CA" key="Up">udesktop</Key>
   <Key mask="CA" key="Down">ddesktop</Key>
-  <Key mask="CA" key="1">desktop1</Key>
-  <Key mask="CA" key="2">desktop2</Key>
-  <Key mask="CA" key="3">desktop3</Key>
-  <Key mask="CA" key="4">desktop4</Key>
-  <Key mask="AS" key="1">send1</Key>
-  <Key mask="AS" key="2">send2</Key>
-  <Key mask="AS" key="3">send3</Key>
-  <Key mask="AS" key="4">send4</Key>
+  <!-- JWM numeric-desktop syntax: key="#" + action desktop#/send# (the "#"
+       is substituted 1..N by JWM; desktop1/send1 are NOT valid actions). -->
+  <Key mask="CA" key="#">desktop#</Key>
+  <Key mask="AS" key="#">send#</Key>
   <Key mask="C" key="Escape">root:1</Key>
 </JWM>
