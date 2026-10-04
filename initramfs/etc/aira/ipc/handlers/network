@@ -1,10 +1,579 @@
 #!/bin/sh
-# network — read-only network facts over the Aira IPC bus.
-# Methods: interfaces | routes | dns
+# network — Aira networking control plane (Wave C5).
+# Aira owns NOTHING in the network stack: the kernel owns links, addresses
+# and routes; udhcpc owns DHCP; the resolver reads resolv.conf. This service
+# VALIDATES every request, performs ONLY the exact operation asked, then
+# REPORTS OBSERVED state — never optimistic claims (a DHCP command is not a
+# lease; link-up is not online; a resolv.conf edit is not working DNS).
+#
+# Methods (read, open): caps | list | status | interfaces | routes | dns | diag
+# Methods (write, PRIVILEGED): up | down | dhcp | static | route | setdns
+# Methods (profile, PRIVILEGED): profile show|save|apply|clear
+# Args: operands separated by "|" (no "|" or newline inside; rejected).
+#
+# States (observed, single token):
+#   DOWN          admin-down (or link absent)
+#   UP_NO_ADDRESS admin-up, no IPv4 configured
+#   DEGRADED      admin-up but carrier down / link-local only / addr or route half
+#   ONLINE        admin-up + carrier + global unicast IPv4 + default route
+#   ERROR         interface vanished mid-operation or state probe failed
+# lo is special-cased: up + 127/8 counts as ONLINE (it is the loopback bus).
+#
+# Handler contract: $1=method $2=args-string; stdout=payload; exit 0=OK, 3=ERR.
+PRIV_METHODS="up down dhcp static route setdns profile"
+
+# --- configuration paths (production defaults; tests override into sandboxes) ---
+RESOLV_CONF="${AIRA_NET_RESOLV:-/etc/resolv.conf}"
+RESOLV_MIRROR="${AIRA_NET_MIRROR:-/persist/etc/resolv.conf}"
+PROFILE_FILE="${AIRA_NET_PROFILE:-/persist/etc/aira/network.conf}"
+# Test seam: replaces the DHCP client binary (defaults to the real udhcpc).
+# Used to prove timeout/failure handling deterministically; production path
+# is unchanged. Documented in docs/architecture/WAVE-C-ARCHITECTURE.md.
+DHCP_CLIENT="${AIRA_NET_DHCP_CLIENT:-udhcpc}"
+# Test seam: overrides udhcpc lease-script discovery (production = search).
+DHCP_SCRIPT_OVERRIDE="${AIRA_NET_DHCP_SCRIPT:-}"
+DHCP_BUDGET="8"
+
+_n_err() { echo "$1"; exit 3; }
+
+# --- validation (nothing untrusted ever reaches a shell parser) ---
+_n_iface() {
+    case "$1" in ""|*"|"*) return 1 ;; esac
+    case "$1" in *"
+"*) return 1 ;; esac
+    # ifname charset: alnum plus . _ : - (aliases use @, which is rejected here
+    # because the bus splits operands on "|" and we refuse "@" to avoid any
+    # chance of alias/path ambiguity in later string ops).
+    case "$1" in *[!A-Za-z0-9_.:-]*) return 1 ;; esac
+    [ "${#1}" -le 15 ] || return 1
+    [ -d "/sys/class/net/$1" ] || return 1
+    return 0
+}
+
+_n_octet() {
+    case "$1" in ""|*[!0-9]*) return 1 ;; esac
+    case "$1" in 0) return 0 ;; 0*) return 1 ;; esac
+    [ "$1" -le 255 ] 2>/dev/null || return 1
+    return 0
+}
+
+_n_ipv4() {
+    _a="$1"
+    case "$_a" in *[!0-9.]*) return 1 ;; esac
+    _o1="${_a%%.*}"; _r="${_a#*.}"
+    case "$_r" in *"."*) ;; *) return 1 ;; esac
+    _o2="${_r%%.*}"; _r="${_r#*.}"
+    case "$_r" in *"."*) ;; *) return 1 ;; esac
+    _o3="${_r%%.*}"; _o4="${_r#*.}"
+    case "$_o4" in *"."*) return 1 ;; esac
+    _n_octet "$_o1" && _n_octet "$_o2" && _n_octet "$_o3" && _n_octet "$_o4" || return 1
+    return 0
+}
+
+# Unicast usable for assignment/gateway/dns (rejects 0/127/multicast/reserved).
+_n_unicast() {
+    _n_ipv4 "$1" || return 1
+    _f="${1%%.*}"
+    [ "$_f" -ge 1 ] 2>/dev/null || return 1
+    [ "$_f" -eq 127 ] 2>/dev/null && return 1
+    [ "$_f" -ge 224 ] 2>/dev/null && return 1
+    return 0
+}
+
+_n_prefix() {
+    case "$1" in ""|*[!0-9]*) return 1 ;; esac
+    [ "$1" -ge 0 ] 2>/dev/null || return 1
+    [ "$1" -le 32 ] 2>/dev/null || return 1
+    return 0
+}
+
+# --- observation (reads /proc + /sys + ip; never trusts requested state) ---
+_n_flags() { cat "/sys/class/net/$1/flags" 2>/dev/null || echo 0; }
+_n_is_up() {
+    _fl="$(_n_flags "$1")"
+    [ $(( _fl & 1 )) -ne 0 ] 2>/dev/null
+}
+_n_carrier() { cat "/sys/class/net/$1/carrier" 2>/dev/null || echo unknown; }
+_n_mac() { cat "/sys/class/net/$1/address" 2>/dev/null || echo unknown; }
+
+_n_addrs() {
+    ip -o -4 addr show dev "$1" 2>/dev/null | awk '{print $4}' | tr '\n' ',' | sed 's/,$//'
+}
+
+_n_has_global() {
+    ip -o -4 addr show dev "$1" scope global 2>/dev/null | grep -q .
+}
+
+_n_has_linklocal() {
+    ip -o -4 addr show dev "$1" scope link 2>/dev/null | grep -q .
+}
+
+_n_has_default() {
+    ip -o -4 route show default 2>/dev/null | grep -q .
+}
+
+_n_dns_servers() {
+    grep -E "^[ \t]*nameserver[ \t]" "$RESOLV_CONF" 2>/dev/null | awk '{print $2}' | tr '\n' ',' | sed 's/,$//'
+}
+
+# _n_state <iface>: prints one state token (see header table).
+_n_state() {
+    _if="$1"
+    [ -d "/sys/class/net/$_if" ] || { echo ERROR; return 0; }
+    if [ "$_if" = "lo" ]; then
+        _n_is_up "$_if" || { echo DOWN; return 0; }
+        ip -o -4 addr show dev lo 2>/dev/null | grep -q "127" && { echo ONLINE; return 0; }
+        echo UP_NO_ADDRESS; return 0
+    fi
+    _n_is_up "$_if" || { echo DOWN; return 0; }
+    [ "$(_n_carrier "$_if")" = "0" ] && { echo DEGRADED; return 0; }
+    if _n_has_global "$_if"; then
+        _n_has_default && { echo ONLINE; return 0; }
+        echo DEGRADED; return 0
+    fi
+    if _n_has_linklocal "$_if"; then echo DEGRADED; return 0; fi
+    echo UP_NO_ADDRESS; return 0
+}
+
+# --- DHCP helpers ---
+_n_udhcpc_script() {
+    if [ -n "$DHCP_SCRIPT_OVERRIDE" ]; then
+        [ -x "$DHCP_SCRIPT_OVERRIDE" ] && { printf "%s" "$DHCP_SCRIPT_OVERRIDE"; return 0; }
+        return 1
+    fi
+    for _s in /usr/share/udhcpc/default.script /etc/udhcpc/default.script; do
+        [ -x "$_s" ] && { printf "%s" "$_s"; return 0; }
+    done
+    return 1
+}
+
+_n_pidfile() { printf "/run/udhcpc.%s.pid" "$1"; }
+
+# Kill only udhcpc processes bound to THIS interface (no pkill in this image:
+# matches /proc/<pid>/cmdline via pidof, falling back to pidfile).
+_n_kill_stray() {
+    _if="$1"
+    _pf="$(_n_pidfile "$_if")"
+    if [ -f "$_pf" ]; then
+        _p="$(cat "$_pf" 2>/dev/null)"
+        case "$_p" in ''|*[!0-9]*) _p="" ;; esac
+        [ -n "$_p" ] && kill "$_p" 2>/dev/null || true
+        rm -f "$_pf" 2>/dev/null || true
+    fi
+    if command -v pidof >/dev/null 2>&1; then
+        for _p in $(pidof udhcpc 2>/dev/null); do
+            _cl="$(tr '\0' ' ' < "/proc/$_p/cmdline" 2>/dev/null || true)"
+            case "$_cl" in *"-i $_if "*) kill "$_p" 2>/dev/null || true ;; esac
+        done
+    fi
+    return 0
+}
+
+# Default DHCP interface: C2 settings store, read as a FILE (a handler must
+# never re-enter the bus), validated; falls back to the first non-lo netdev.
+_n_default_iface() {
+    _c=""
+    if [ -n "${AIRA_SETTINGS_CONF:-}" ]; then _c="$AIRA_SETTINGS_CONF";
+    elif mount 2>/dev/null | grep -q " /persist " && [ -f /persist/etc/aira/settings.conf ]; then _c=/persist/etc/aira/settings.conf;
+    elif [ -f /etc/aira/settings.conf ]; then _c=/etc/aira/settings.conf; fi
+    if [ -n "$_c" ]; then
+        _v="$(grep -E "^network.dhcp_iface=" "$_c" 2>/dev/null | tail -n 1 | cut -d= -f2-)"
+        _n_iface "$_v" 2>/dev/null && { printf "%s" "$_v"; return 0; }
+    fi
+    for _d in /sys/class/net/*; do
+        _n="$(basename "$_d")"
+        [ "$_n" = "lo" ] && continue
+        case "$_n" in *[!A-Za-z0-9_.:-]*) continue ;; esac
+        printf "%s" "$_n"; return 0
+    done
+    printf "eth0"
+}
+
+# --- profile persistence (atomic; validated on write AND on apply) ---
+_n_profile_get() {
+    [ -f "$PROFILE_FILE" ] || return 1
+    grep -E "^$1=" "$PROFILE_FILE" 2>/dev/null | tail -n 1 | cut -d= -f2-
+}
+
+_n_profile_set() { # key value (tmp+rename; last writer wins, never torn)
+    _d="$(dirname "$PROFILE_FILE")"
+    mkdir -p "$_d" 2>/dev/null || _n_err "ERROR: cannot create profile dir $_d"
+    [ -w "$_d" ] || _n_err "ERROR: profile dir not writable ($_d) — persistence unavailable"
+    _tmp="$PROFILE_FILE.tmp.$$"
+    [ -f "$PROFILE_FILE" ] && grep -vE "^$1=" "$PROFILE_FILE" 2>/dev/null > "$_tmp" || : > "$_tmp"
+    printf "%s=%s\n" "$1" "$2" >> "$_tmp" || { rm -f "$_tmp"; _n_err "ERROR: profile write failed"; }
+    chmod 644 "$_tmp" 2>/dev/null || true
+    mv -f "$_tmp" "$PROFILE_FILE" 2>/dev/null || { rm -f "$_tmp"; _n_err "ERROR: profile rename failed (disk full?)"; }
+    return 0
+}
+
+# _n_apply_static <iface> <addr> <prefix> <gw> <flush|no>: shared by the
+# `static` and `profile apply` paths so both validate identically.
+# Sets _APPLY_RESULT instead of echoing: an `exit` inside a command
+# substitution would only leave the SUBSHELL, silently discarding the error
+# message while the handler kept running.
+_n_apply_static() {
+    _APPLY_RESULT=""
+    _if="$1"; _addr="$2"; _px="$3"; _gw="$4"; _flush="$5"
+    _n_iface "$_if" || _n_err "ERROR: unknown interface: $_if"
+    [ "$_if" = "lo" ] && _n_err "denied: static on loopback is meaningless"
+    _n_unicast "$_addr" || _n_err "bad address: $_addr"
+    _n_prefix "$_px" || _n_err "bad prefix: $_px"
+    _n_unicast "$_gw" || _n_err "bad gateway: $_gw"
+    ip link set "$_if" up 2>/dev/null || _n_err "ERROR: link up failed"
+    # BusyBox `ip -o addr` emits "<n>: <if> inet <cidr> ... scope <s> <if>",
+    # so $4 is the CIDR and "scope global" lives later on the SAME line.
+    # Filtering must therefore happen BEFORE field extraction.
+    _cur="$(ip -o -4 addr show dev "$_if" 2>/dev/null | grep 'scope global' | awk '{print $4}' | tr '\n' ',')"
+    _want="$_addr/$_px"
+    if [ -z "$_cur" ]; then
+        ip addr add "$_want" dev "$_if" 2>/dev/null || _n_err "ERROR: address add failed"
+    else
+        _has="no"
+        for _c in "${_cur%,}"; do [ "$_c" = "$_want" ] && _has="yes"; done
+        if [ "$_has" = "yes" ]; then
+            :
+        elif [ "$_flush" = "flush" ]; then
+            ip addr flush dev "$_if" 2>/dev/null
+            ip addr add "$_want" dev "$_if" 2>/dev/null || _n_err "ERROR: address add failed after flush"
+        else
+            _n_err "conflict: $_if already has global address(s) $_cur — re-run with flush to replace"
+        fi
+    fi
+    _gwok=no
+    ip -o -4 route show default 2>/dev/null | grep -qF "via $_gw" && _gwok=yes
+    if [ "$_gwok" = "yes" ]; then
+        :
+    else
+        # Some ip(8) implementations reject `replace` when no matching route
+        # exists, so fall back to add. Surface stderr on total failure instead
+        # of swallowing the reason.
+        _rerr=""
+        ip route replace default via "$_gw" dev "$_if" 2>/tmp/.nerr || _rerr="$(cat /tmp/.nerr 2>/dev/null)"
+        if ip -o -4 route show default 2>/dev/null | grep -qF "via $_gw"; then
+            :
+        elif ! ip route add default via "$_gw" dev "$_if" 2>/tmp/.nerr; then
+            _rerr="$(_rerr; cat /tmp/.nerr 2>/dev/null)"
+            rm -f /tmp/.nerr 2>/dev/null
+            _n_err "ERROR: route replace/add failed: $(printf '%s' "$_rerr" | tr '\n' ';' | cut -c1-120)"
+        fi
+        rm -f /tmp/.nerr 2>/dev/null
+    fi
+    # Report whether anything actually changed, so repeated application is
+    # observably idempotent instead of silently re-issuing netlink commands.
+    if [ "$_has" = "yes" ] && [ "$_gwok" = "yes" ] && [ -n "$_cur" ]; then
+        _APPLY_RESULT="already-configured=$_want gw=$_gw"
+    else
+        _APPLY_RESULT="configured=$_want gw=$_gw changed=yes"
+    fi
+    return 0
+}
+
+# --- dns write (atomic; mirrors for boot persistence) ---
+_n_write_dns() { # ns1 [ns2 ns3]
+    [ -n "${1:-}" ] || _n_err "bad args: setdns needs 1-3 nameservers"
+    _d="$(dirname "$RESOLV_CONF")"
+    mkdir -p "$_d" 2>/dev/null || true
+    _tmp="$RESOLV_CONF.tmp.$$"
+    : > "$_tmp" 2>/dev/null || _n_err "ERROR: cannot write $RESOLV_CONF"
+    set -f
+    _old="$IFS"; IFS="|"
+    # shellcheck disable=SC2086
+    set -- $1
+    IFS="$_old"
+    set +f
+    _n=0
+    for _ns in "$@"; do
+        _n=$((_n+1))
+        [ "$_n" -le 3 ] || { rm -f "$_tmp"; _n_err "bad args: at most 3 nameservers"; }
+        _n_unicast "$_ns" || { rm -f "$_tmp"; _n_err "bad nameserver: $_ns"; }
+        printf "nameserver %s\n" "$_ns" >> "$_tmp" 2>/dev/null || { rm -f "$_tmp"; _n_err "ERROR: write failed"; }
+    done
+    chmod 644 "$_tmp" 2>/dev/null || true
+    mv -f "$_tmp" "$RESOLV_CONF" 2>/dev/null || { rm -f "$_tmp"; _n_err "ERROR: rename failed (disk full?)"; }
+    mkdir -p "$(dirname "$RESOLV_MIRROR")" 2>/dev/null
+    cp -f "$RESOLV_CONF" "$RESOLV_MIRROR" 2>/dev/null || true
+    return 0
+}
+
 m="$1"; a="${2:-}"
 case "$m" in
-  interfaces) ip -o addr 2>/dev/null | tr '\n' ';' || ifconfig 2>/dev/null | tr '\n' ';' ;;
-  routes) ip route 2>/dev/null | tr '\n' ';' || route -n 2>/dev/null | tr '\n' ';' ;;
-  dns) cat /etc/resolv.conf 2>/dev/null | tr '\n' ';' || echo "no-resolv.conf" ;;
-  *) echo "unknown method: $m (want interfaces|routes|dns)"; exit 3 ;;
+    caps)
+        _ip=no; command -v ip >/dev/null 2>&1 && _ip=yes
+        _dh=no; command -v udhcpc >/dev/null 2>&1 && _dh=yes
+        _ns=no; command -v nslookup >/dev/null 2>&1 && _ns=yes
+        _wf=no; _wwhy="no wireless interface (QEMU provides virtio-net only)"
+        for _i in /sys/class/net/*; do
+            _i="${_i%/}"
+            [ "$_i" = "/sys/class/net/*" ] && continue
+            [ -d "$_i/wireless" ] && _wf=yes
+        done
+        _rw=no; [ -w /etc ] 2>/dev/null && _rw=yes
+        echo "v=2;methods=caps,list,status,interfaces,routes,dns,diag,up,down,dhcp,static,route,setdns,profile"
+        echo "tools=ip:$_ip,udhcpc:$_dh,nslookup:$_ns"
+        echo "wifi=unsupported:$_wwhy"
+        echo "dhcp=budget:${DHCP_BUDGET}s,client:$DHCP_CLIENT"
+        echo "resolv=$RESOLV_CONF,writable-dir:$_rw,mirror:$RESOLV_MIRROR"
+        echo "profile=$PROFILE_FILE,exists:$([ -f "$PROFILE_FILE" ] && echo yes || echo no)"
+        ;;
+    list)
+        [ -n "$a" ] && _n_err "bad args: list takes no arguments"
+        for _d in /sys/class/net/*; do
+            [ -d "$_d" ] || continue
+            _if="$(basename "$_d")"
+            case "$_if" in *[!A-Za-z0-9_.:-]*) continue ;; esac
+            printf "%s|%s|%s|%s|%s\n" "$_if" "$(_n_state "$_if")" "$(_n_mac "$_if")" \
+                "$(_n_addrs "$_if" | sed 's/^$/none/')" "$(_n_carrier "$_if")"
+        done
+        ;;
+    status)
+        case "$a" in *"|"*) _n_err "bad args: status takes one interface" ;; esac
+        _n_iface "$a" || _n_err "ERROR: unknown interface: $a"
+        printf "iface=%s state=%s mac=%s addrs=%s carrier=%s route=%s dns=%s\n" \
+            "$a" "$(_n_state "$a")" "$(_n_mac "$a")" "$(_n_addrs "$a")" "$(_n_carrier "$a")" \
+            "$(_n_has_default && echo yes || echo no)" "$(_n_dns_servers)"
+        ;;
+    interfaces)
+        ip -o addr 2>/dev/null | tr '\n' ';' || ifconfig 2>/dev/null | tr '\n' ';'
+        ;;
+    routes)
+        ip route 2>/dev/null | tr '\n' ';' || route -n 2>/dev/null | tr '\n' ';'
+        ;;
+    dns)
+        [ -n "$a" ] && _n_err "bad args: dns takes no arguments (use setdns to change)"
+        if [ -f "$RESOLV_CONF" ]; then
+            cat "$RESOLV_CONF" 2>/dev/null | tr '\n' ';' || echo "no-resolv.conf"
+        else
+            echo "absent:no-resolv.conf"
+        fi
+        ;;
+    diag)
+        case "$a" in *"|"*) _n_err "bad args: diag takes one target" ;; esac
+        [ -n "$a" ] || _n_err "bad args: diag needs a target"
+        case "$a" in *"
+"*|*" "*) _n_err "bad target" ;; esac
+        [ "${#a}" -le 253 ] || _n_err "bad target: too long"
+        _ping="fail"; _rtt="?"
+        _po="$(timeout -k 1 5 ping -c1 -W2 "$a" 2>&1 || true)"
+        case "$_po" in *" 0% packet loss"*|*" 0% loss"*) _ping="ok" ;; esac
+        _rtt="$(printf "%s" "$_po" | grep -E "time=" | head -n 1 | sed 's/.*time=\([0-9.]*\).*/\1/')"
+        [ -n "$_rtt" ] || _rtt="?"
+        _res="skipped"
+        case "$a" in
+            *[!0-9.]*)
+                if command -v nslookup >/dev/null 2>&1; then
+                    if timeout -k 1 5 nslookup "$a" >/dev/null 2>&1; then _res="ok"; else _res="fail"; fi
+                fi ;;
+            *) _res="n/a-literal" ;;
+        esac
+        printf "target=%s ping=%s rtt_ms=%s resolve=%s\n" "$a" "$_ping" "$_rtt" "$_res"
+        ;;
+    up)
+        case "$a" in *"|"*) _n_err "bad args: up takes one interface" ;; esac
+        _n_iface "$a" || _n_err "ERROR: unknown interface: $a"
+        ip link set "$a" up 2>/dev/null || _n_err "ERROR: link up failed"
+        echo "iface=$a state=$(_n_state "$a")"
+        ;;
+    down)
+        case "$a" in *"|"*) _n_err "bad args: down takes one interface" ;; esac
+        _n_iface "$a" || _n_err "ERROR: unknown interface: $a"
+        [ "$a" = "lo" ] && _n_err "denied: loopback stays up"
+        ip link set "$a" down 2>/dev/null || _n_err "ERROR: link down failed"
+        echo "iface=$a state=$(_n_state "$a")"
+        ;;
+    dhcp)
+        case "$a" in *"|"*) _n_err "bad args: dhcp takes optional interface" ;; esac
+        _if="${a:-$(_n_default_iface)}"
+        _n_iface "$_if" || _n_err "ERROR: unknown interface: $_if"
+        [ "$_if" = "lo" ] && _n_err "denied: DHCP on loopback is meaningless"
+        command -v "$DHCP_CLIENT" >/dev/null 2>&1 || _n_err "UNAVAILABLE: DHCP client missing ($DHCP_CLIENT)"
+        _script="$(_n_udhcpc_script)" || _n_err "UNAVAILABLE: no udhcpc lease script"
+        ip link set "$_if" up 2>/dev/null || _n_err "ERROR: link up failed"
+        _n_kill_stray "$_if"
+        # Inner KILL timeout strictly inside the 10s dispatcher budget so a
+        # slow/absent server can never orphan the client past our verdict.
+        # Output goes to a FILE, not a command substitution: a hung client
+        # that leaves grandchildren holding the substitution's stdout pipe
+        # would otherwise block the handler for as long as they live.
+        _cf="/tmp/.ndhcp.$$"
+        timeout -k 2 "$DHCP_BUDGET" "$DHCP_CLIENT" -i "$_if" -n -q -t 2 -T 2 \
+            -p "$(_n_pidfile "$_if")" -s "$_script" > "$_cf" 2>&1
+        _crc=$?
+        _out="$(head -c 400 "$_cf" 2>/dev/null)"
+        rm -f "$_cf" 2>/dev/null || true
+        rm -f "$(_n_pidfile "$_if")" 2>/dev/null || true
+        # Report the client exit status so a timeout is distinguishable from a
+        # clean "no offer" refusal.
+        case "$_crc" in
+            124|137|143) _cnote="client timeout (${DHCP_BUDGET}s budget)" ;;
+            0) _cnote="client exit 0" ;;
+            *) _cnote="client exit $_crc" ;;
+        esac
+        # The lease script must have actually configured the interface. A client
+        # that exits 0 without configuring anything is a FAILURE, not success.
+        _la="$(_n_addrs "$_if")"
+        if [ -z "$_la" ]; then
+            _hint="$(printf "%s" "$_out" | tail -n 2 | tr '\n' ';' | cut -c1-160)"
+            printf "iface=%s status=%s addrs=none note=%s, no lease configured [%s]\n" \
+                "$_if" "$(_n_state "$_if")" "$_cnote" "${_hint:-no-client-output}"
+            exit 3
+        fi
+        _st="$(_n_state "$_if")"
+        _gw="$(ip -o -4 route show default 2>/dev/null | awk '{print $3}' | head -n 1)"
+        _dns="$(_n_dns_servers)"
+        if [ -n "$_la" ] && [ "$_st" = "ONLINE" ]; then
+            printf "iface=%s lease=%s gw=%s dns=%s status=ONLINE\n" "$_if" "$_la" "${_gw:-none}" "${_dns:-none}"
+        else
+            _hint="$(printf "%s" "$_out" | tail -n 2 | tr '\n' ';' | cut -c1-160)"
+            printf "iface=%s status=%s addrs=%s note=%s, no usable lease [%s]\n" \
+                "$_if" "$_st" "${_la:-none}" "$_cnote" "${_hint:-no-client-output}"
+            exit 3
+        fi
+        ;;
+    static)
+        _pipes="$(printf "%s" "$a" | tr -cd '|' | wc -c)"
+        case "$_pipes" in 3|4) ;; *) _n_err "bad args: static takes iface|addr|prefix|gw[|flush]" ;; esac
+        _if="${a%%|*}"; _rest="${a#*|}"
+        _addr="${_rest%%|*}"; _pxgw="${_rest#*|}"
+        _px="${_pxgw%%|*}"; _gwr="${_pxgw#*|}"
+        _gw="${_gwr%%|*}"; _flush="${_gwr#*|}"
+        [ "$_flush" = "$_gw" ] && _flush="no"
+        case "$_flush" in flush|no) ;; *) _n_err "bad args: 5th field must be flush" ;; esac
+        _n_apply_static "$_if" "$_addr" "$_px" "$_gw" "$_flush" || exit 3
+        echo "iface=$_if addr=$_addr/$_px gw=$_gw $_APPLY_RESULT state=$(_n_state "$_if")"
+        ;;
+    route)
+        # `del` takes NO operands; `add` takes exactly gw|iface.
+        _verb="${a%%|*}"
+        case "$_verb" in
+            del)
+                case "$a" in del|"") ;; *) _n_err "bad args: route del takes no operands" ;; esac
+                ;;
+            add)
+                case "$a" in *"|"*) ;; *) _n_err "bad args: route add takes gw|iface" ;; esac
+                ;;
+            *) _n_err "bad args: route takes add|gw|iface or del" ;;
+        esac
+        _r1="${a#*|}"
+        _gw2="${_r1%%|*}"; _if2="${_r1#*|}"
+        case "$_verb" in
+            add)
+                _n_unicast "$_gw2" || _n_err "bad gateway: $_gw2"
+                _n_iface "$_if2" || _n_err "ERROR: unknown interface: $_if2"
+                if ! ip -o -4 route show default 2>/dev/null | grep -qF "via $_gw2"; then
+                    if ! ip route replace default via "$_gw2" dev "$_if2" 2>/tmp/.nrerr \
+                       && ! ip route add default via "$_gw2" dev "$_if2" 2>>/tmp/.nrerr; then
+                        _rerr="$(cat /tmp/.nrerr 2>/dev/null | tr '\n' ';' | cut -c1-120)"
+                        rm -f /tmp/.nrerr 2>/dev/null
+                        _n_err "ERROR: default route install failed: ${_rerr:-unknown}"
+                    fi
+                fi
+                rm -f /tmp/.nrerr 2>/dev/null
+                echo "default via $_gw2 dev $_if2" ;;
+del)
+                # Delete ONLY default routes. NEVER "ip route flush": some
+                # ip(8) builds treat a trailing selector loosely and drop the
+                # whole table, which destroys connected/subnet routes.
+                # Each default route is deleted by replaying its own attributes
+                # (via/dev/metric/proto/scope/...), because deletion matches on
+                # the full attribute set.
+                _rl_all="$(ip -o -4 route show default 2>/dev/null)"
+                if [ -z "$_rl_all" ]; then
+                    _n_err "ERROR: no default route to delete"
+                fi
+                # The verdict comes from re-reading the table afterwards, not from
+                # a variable set inside the pipeline subshell (which cannot
+                # propagate out).
+                printf '%s\n' "$_rl_all" | while IFS= read -r _rl; do
+                    [ -n "$_rl" ] || continue
+                    # keep only route attributes; drop -o decorations/trailing \s
+                    _attrs="$(printf '%s' "$_rl" | sed 's/^default //; s/\\$//; s/[[:space:]]*$//')"
+                    if [ -z "$_attrs" ]; then
+                        ip route del default 2>/dev/null
+                    else
+                        # shellcheck disable=SC2086
+                        ip route del default $_attrs 2>/dev/null
+                    fi
+                    break
+                done
+                if ip -o -4 route show default 2>/dev/null | grep -q .; then
+                    _n_err "ERROR: default route could not be deleted"
+                fi
+                echo "default route deleted (was:${_rl_all})"
+                exit 0 ;;
+            *) _n_err "bad args: route takes add|gw|iface or del" ;;
+        esac
+        ;;
+    setdns)
+        # reject empty fields (leading/trailing/double pipe) and any whitespace
+        case "$a" in
+            ""|"|"*|*"|"|*"||"*) _n_err "bad args: setdns needs 1-3 nameservers (no empty fields)" ;;
+        esac
+        case "$a" in
+            *[[:space:]]*) _n_err "bad args: setdns nameservers are pipe-separated (no spaces)" ;;
+        esac
+        _n_write_dns "$a" || exit 3
+        echo "dns=$(_n_dns_servers)"
+        ;;
+    profile)
+        _sub="${a%%|*}"
+        case "$a" in *"|"*) _rest="${a#*|}" ;; *) _rest="" ;; esac
+        case "$_sub" in
+            show)
+                [ -z "$_rest" ] || _n_err "bad args: profile show takes no operands"
+                [ -f "$PROFILE_FILE" ] || { echo "profile=absent path=$PROFILE_FILE"; exit 0; }
+                printf "profile=%s\n" "$PROFILE_FILE"
+                sed 's/^/profile./' "$PROFILE_FILE" 2>/dev/null ;;
+            save)
+                # args: save|dhcp|iface  OR  save|static|iface|addr|prefix|gw
+                _mode="${_rest%%|*}"
+                _rest2="${_rest#*|}"
+                _pif="${_rest2%%|*}"
+                _rest3="${_rest2#*|}"
+                case "$_mode" in
+                    dhcp)
+                        _n_iface "$_pif" || _n_err "ERROR: unknown interface: $_pif"
+                        [ "$_pif" = "lo" ] && _n_err "denied: dhcp profile on loopback"
+                        _n_profile_set mode dhcp
+                        _n_profile_set iface "$_pif" || exit 3
+                        echo "profile saved mode=dhcp iface=$_pif" ;;
+                    static)
+                        _paddr="${_rest3%%|*}"; _ppxgw="${_rest3#*|}"
+                        _ppx="${_ppxgw%%|*}"; _pgw="${_ppxgw#*|}"
+                        _n_iface "$_pif" || _n_err "ERROR: unknown interface: $_pif"
+                        [ "$_pif" = "lo" ] && _n_err "denied: static profile on loopback"
+                        _n_unicast "$_paddr" || _n_err "bad address: $_paddr"
+                        _n_prefix "$_ppx" || _n_err "bad prefix: $_ppx"
+                        _n_unicast "$_pgw" || _n_err "bad gateway: $_pgw"
+                        _n_profile_set mode static
+                        _n_profile_set iface "$_pif" || exit 3
+                        _n_profile_set address "$_paddr/$_ppx" || exit 3
+                        _n_profile_set gateway "$_pgw" || exit 3
+                        echo "profile saved mode=static iface=$_pif addr=$_paddr/$_ppx gw=$_pgw" ;;
+                    *) _n_err "bad args: profile save takes dhcp|iface or static|iface|addr|prefix|gw" ;;
+                esac ;;
+            apply)
+                [ -z "$_rest" ] || _n_err "bad args: profile apply takes no operands"
+                [ -f "$PROFILE_FILE" ] || { echo "profile=absent (nothing to apply)"; exit 0; }
+                _pmode="$(_n_profile_get mode)"
+                _pif="$(_n_profile_get iface)"
+                case "$_pmode" in dhcp|static) ;; *) _n_err "ERROR: invalid profile mode: ${_pmode:-empty}" ;; esac
+                _n_iface "$_pif" || _n_err "ERROR: profile interface unavailable: ${_pif:-empty}"
+                if [ "$_pmode" = "dhcp" ]; then
+                    "$0" dhcp "$_pif" || exit 3
+                    echo "profile applied mode=dhcp iface=$_pif"
+                else
+                    _paddr="$(_n_profile_get address)"; _pgw="$(_n_profile_get gateway)"
+                    _paddr_only="${_paddr%%/*}"; _ppx="${_paddr#*/}"
+                    [ "$_paddr_only" = "$_paddr" ] && _ppx=24
+                    _n_apply_static "$_pif" "$_paddr_only" "$_ppx" "$_pgw" flush || exit 3
+                    echo "profile applied mode=static iface=$_pif addr=$_paddr_only/$_ppx gw=$_pgw $_APPLY_RESULT state=$(_n_state "$_pif")"
+                fi ;;
+            clear)
+                [ -z "$_rest" ] || _n_err "bad args: profile clear takes no operands"
+                rm -f "$PROFILE_FILE" 2>/dev/null || _n_err "ERROR: cannot remove profile"
+                echo "profile cleared path=$PROFILE_FILE" ;;
+            *) _n_err "bad args: profile takes show|save|apply|clear" ;;
+        esac ;;
+    *) echo "unknown method: $m (want caps|list|status|interfaces|routes|dns|diag|up|down|dhcp|static|route|setdns|profile)"; exit 3 ;;
 esac

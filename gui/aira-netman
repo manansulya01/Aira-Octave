@@ -2,9 +2,29 @@
 # AiraOS Network Manager - real interface/IP state + DHCP renew + diagnostics.
 export DISPLAY="${DISPLAY:-:0}"
 
+# C5: IPC-backed control plane (bus-first CLI, identical local fallback).
+NET_CLI="aira-net"
+command -v "$NET_CLI" >/dev/null 2>&1 || {
+    for _c in /usr/bin/aira-net /persist/usr/bin/aira-net; do
+        [ -x "$_c" ] && NET_CLI="$_c" && break
+    done
+}
+
 if [ "${1:-}" = "--once" ]; then
     echo "=== AiraOS Network Manager ==="
     echo "hostname: $(hostname 2>/dev/null)"
+    if command -v "$NET_CLI" >/dev/null 2>&1 && "$NET_CLI" list 2>/dev/null; then
+        echo "--- routes ---"
+        "$NET_CLI" routes 2>/dev/null | tr ';' '\n' | while IFS= read -r line; do
+            echo "  $line"
+        done
+        echo "--- dns ---"
+        "$NET_CLI" dns 2>/dev/null | tr ';' '\n' | while IFS= read -r line; do
+            echo "  $line"
+        done
+        exit 0
+    fi
+    echo "(control plane missing — direct fallback below)"
     echo "--- interfaces ---"
     ip -o link show 2>/dev/null | while IFS= read -r line; do
         echo "  $line"
@@ -27,50 +47,99 @@ if [ "${1:-}" = "--once" ]; then
 fi
 
 if [ "${1:-}" = "--menu" ]; then
+    _have_cli=0
+    command -v "$NET_CLI" >/dev/null 2>&1 && _have_cli=1
     while true; do
         clear
         "$0" --once
         echo
         echo "Actions:"
-        echo "  1) Renew DHCP (eth0)    2) Show interface details    3) Ping test"
-        echo "  4) Show routing table     5) Show DNS config           q) Quit"
+        echo "  1) DHCP lease           2) Interface status          3) Diagnostics"
+        echo "  4) Show routing table   5) Show DNS config           6) Static IPv4"
+        echo "  7) Set DNS servers      q) Quit"
         echo
         printf "Choice: "
-        read choice
+        read -r choice
         case "$choice" in
             1)
-                for _s in /usr/share/udhcpc/default.script /etc/udhcpc/default.script; do
-                    if [ -x "$_s" ]; then _SCRIPT="$_s"; break; fi
-                done
-                echo "Renewing DHCP on eth0..."
-                if [ -n "${_SCRIPT:-}" ]; then
-                    udhcpc -i eth0 -n -q -t 3 -s "$_SCRIPT" 2>&1 | head -n 15
+                printf "Interface [eth0]: "
+                read -r _if
+                [ -n "$_if" ] || _if="eth0"
+                if [ "$_have_cli" = "1" ]; then
+                    "$NET_CLI" dhcp "$_if" 2>&1 | head -n 10 || echo "(DHCP failed — see error above)"
                 else
-                    udhcpc -i eth0 -n -q -t 3 2>&1 | head -n 15
+                    for _s in /usr/share/udhcpc/default.script /etc/udhcpc/default.script; do
+                        if [ -x "$_s" ]; then _SCRIPT="$_s"; break; fi
+                    done
+                    echo "Renewing DHCP on $_if (direct fallback)..."
+                    if [ -n "${_SCRIPT:-}" ]; then
+                        udhcpc -i "$_if" -n -q -t 3 -s "$_SCRIPT" 2>&1 | head -n 15
+                    else
+                        udhcpc -i "$_if" -n -q -t 3 2>&1 | head -n 15
+                    fi
                 fi
-                printf "Press Enter..."; read _
+                printf "Press Enter..."; read -r _
                 ;;
             2)
-                echo "--- Interface Details ---"
-                ip -d link show 2>/dev/null | head -n 30
-                printf "Press Enter..."; read _
+                printf "Interface: "
+                read -r _if2
+                if [ "$_have_cli" = "1" ] && [ -n "$_if2" ]; then
+                    "$NET_CLI" status "$_if2" 2>&1
+                else
+                    ip -d link show 2>/dev/null | head -n 30
+                fi
+                printf "Press Enter..."; read -r _
                 ;;
             3)
-                echo "--- Ping Test ---"
-                ping -c 4 8.8.8.8 2>&1 | tail -n 10
-                echo
-                ping -c 4 1.1.1.1 2>&1 | tail -n 10
-                printf "Press Enter..."; read _
+                printf "Target [8.8.8.8]: "
+                read -r _t
+                [ -n "$_t" ] || _t="8.8.8.8"
+                if [ "$_have_cli" = "1" ]; then
+                    "$NET_CLI" diag "$_t" 2>&1
+                else
+                    ping -c 4 "$_t" 2>&1 | tail -n 10
+                fi
+                printf "Press Enter..."; read -r _
                 ;;
             4)
                 echo "--- Routing Table ---"
-                ip route show 2>/dev/null
-                printf "Press Enter..."; read _
+                if [ "$_have_cli" = "1" ]; then
+                    "$NET_CLI" routes 2>/dev/null | tr ';' '\n'
+                else
+                    ip route show 2>/dev/null
+                fi
+                printf "Press Enter..."; read -r _
                 ;;
             5)
                 echo "--- DNS Configuration ---"
-                cat /etc/resolv.conf 2>/dev/null
-                printf "Press Enter..."; read _
+                if [ "$_have_cli" = "1" ]; then
+                    "$NET_CLI" dns 2>/dev/null | tr ';' '\n'
+                else
+                    cat /etc/resolv.conf 2>/dev/null
+                fi
+                printf "Press Enter..."; read -r _
+                ;;
+            6)
+                printf "Interface: "; read -r _si
+                printf "Address (IPv4): "; read -r _sa
+                printf "Prefix (0-32): "; read -r _sp
+                printf "Gateway: "; read -r _sg
+                if [ "$_have_cli" = "1" ]; then
+                    "$NET_CLI" static "$_si" "$_sa" "$_sp" "$_sg" 2>&1 || echo "(rejected — see error above)"
+                else
+                    echo "(control plane missing — cannot configure)"
+                fi
+                printf "Press Enter..."; read -r _
+                ;;
+            7)
+                printf "Nameservers (space-separated, max 3): "; read -r _ns
+                if [ "$_have_cli" = "1" ] && [ -n "$_ns" ]; then
+                    # shellcheck disable=SC2086
+                    "$NET_CLI" setdns $_ns 2>&1 || echo "(rejected — see error above)"
+                else
+                    echo "(control plane missing — cannot configure)"
+                fi
+                printf "Press Enter..."; read -r _
                 ;;
             q|Q) break ;;
         esac

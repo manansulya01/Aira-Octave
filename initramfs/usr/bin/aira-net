@@ -1,0 +1,125 @@
+#!/bin/sh
+# aira-net — networking control-plane CLI (Wave C5).
+# Bus-first (service "network"); identical local-handler fallback.
+# Reads are open; mutations require the root token over the bus
+# (or euid 0 for the local path) — enforced by the backend in both paths.
+set -u
+HANDLER="${AIRA_NET_HANDLER:-/etc/aira/ipc/handlers/network}"
+LIB="/usr/lib/aira-ipc.sh"
+HAVE_LIB=0
+if [ -f "$LIB" ]; then
+    # shellcheck disable=SC1091
+    . "$LIB" 2>/dev/null && HAVE_LIB=1
+fi
+if [ "$HAVE_LIB" = "0" ]; then
+    aira_ipc_available() { return 1; }
+    aira_ipc_call() { return 1; }
+fi
+
+usage() {
+    cat <<'EOF'
+aira-net — Aira networking control plane (C5)
+  aira-net caps                       methods, tools, wifi status
+  aira-net list                       interfaces + observed state
+  aira-net status <iface>             DOWN/UP_NO_ADDRESS/ONLINE/DEGRADED/ERROR
+  aira-net interfaces | routes | dns  raw facts (legacy readers)
+  aira-net diag <target>              ping + resolve probe
+  aira-net up <iface>                 privileged
+  aira-net down <iface>               privileged (never loopback)
+  aira-net dhcp [iface]               privileged (bounded, verified lease)
+  aira-net static <iface> <addr> <prefix> <gw> [flush]  privileged (idempotent)
+  aira-net route add <gw> <iface> | route del    privileged
+  aira-net setdns <ns1> [ns2] [ns3]   privileged (atomic + mirror)
+  aira-net profile show                persisted profile (if any)
+  aira-net profile save dhcp <iface>   persist DHCP profile to /persist
+  aira-net profile save static <iface> <addr> <prefix> <gw>
+  aira-net profile apply              re-apply persisted profile
+  aira-net profile clear              forget persisted profile
+States are OBSERVED: link-up is not ONLINE; a DHCP command is not a lease.
+EOF
+}
+
+via_bus() { # $1=method $2=args-string — prints response, returns bus verdict
+    if aira_ipc_call network "$1" "$2" 2>/dev/null; then
+        printf "%s\n" "$_AIRA_IPC_RESPONSE"
+        return 0
+    fi
+    # Preserve the bus error so callers can report WHY (denied vs unreachable).
+    printf "%s\n" "$_AIRA_IPC_ERROR" >&2
+    return 1
+}
+
+via_local() { # $1=method $2=args-string
+    [ -x "$HANDLER" ] || { echo "aira-net: handler missing: $HANDLER" >&2; return 1; }
+    "$HANDLER" "$1" "$2"
+}
+
+_BUSUP=""
+_bus_reachable() {
+    [ -n "$_BUSUP" ] && { [ "$_BUSUP" = "1" ]; return; }
+    if aira_ipc_available 2>/dev/null; then _BUSUP=1; else _BUSUP=0; fi
+    [ "$_BUSUP" = "1" ]
+}
+
+# run_op <method> <args> [privileged]
+# Local fallback exists ONLY for connectivity loss. If the bus answered and
+# rejected the request (authorization/validation), that verdict is final:
+# falling back to direct execution would re-run a privileged mutation outside
+# the token gate, which is exactly the bypass this CLI must not contain.
+run_op() {
+    if _bus_reachable; then
+        via_bus "$1" "$2"
+        return $?
+    fi
+    via_local "$1" "$2"
+}
+
+_join_bar() { # join "$@" with "|"
+    _o=""; _s=""
+    for _x in "$@"; do _o="$_o$_s$_x"; _s="|"; done
+    printf "%s" "$_o"
+}
+
+cmd="${1:-help}"
+case "$cmd" in
+    help|--help|-h) usage ;;
+    caps|interfaces|routes|dns) run_op "$cmd" "" ;;
+    list|status|diag|up|down|dhcp)
+        case "$cmd" in status|diag|up|down) [ -n "${2:-}" ] || { echo "usage: aira-net $cmd <arg>" >&2; exit 2; } ;; esac
+        run_op "$cmd" "${2:-}"
+        ;;
+    static)
+        [ -n "${2:-}" ] && [ -n "${3:-}" ] && [ -n "${4:-}" ] && [ -n "${5:-}" ] \
+            || { echo "usage: aira-net static <iface> <addr> <prefix> <gw> [flush]" >&2; exit 2; }
+        case "${6:-}" in
+            ""|flush) _fl="${6:-no}" ;;
+            *) echo "usage: aira-net static <iface> <addr> <prefix> <gw> [flush]" >&2; exit 2 ;;
+        esac
+        run_op static "$2|$3|$4|$5|$_fl"
+        ;;
+    route)
+        case "${2:-}" in
+            add) [ -n "${3:-}" ] && [ -n "${4:-}" ] || { echo "usage: aira-net route add <gw> <iface>" >&2; exit 2; }
+                 run_op route "add|$3|$4" ;;
+            del) run_op route "del" ;;
+            *) echo "usage: aira-net route add <gw> <iface> | route del" >&2; exit 2 ;;
+        esac
+        ;;
+    setdns)
+        [ -n "${2:-}" ] || { echo "usage: aira-net setdns <ns1> [ns2] [ns3]" >&2; exit 2; }
+        shift
+        run_op setdns "$(_join_bar "$@")"
+        ;;
+    profile)
+        case "${2:-}" in
+            show|apply|clear) [ -n "${3:-}" ] && { echo "usage: aira-net profile $2" >&2; exit 2; }; run_op profile "$2" ;;
+            save)
+                shift 2
+                [ "$#" -ge 2 ] || { echo "usage: aira-net profile save dhcp <iface> | ... static <iface> <addr> <prefix> <gw>" >&2; exit 2; }
+                run_op profile "save|$(_join_bar "$@")"
+                ;;
+            *) echo "usage: aira-net profile show|apply|clear|save ..." >&2; exit 2 ;;
+        esac
+        ;;
+    *) echo "unknown: $cmd (try: aira-net help)" >&2; exit 2 ;;
+esac

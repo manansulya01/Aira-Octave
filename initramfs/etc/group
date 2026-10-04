@@ -8,4 +8,5 @@ floppy:x:25:
 video:x:44:
 audio:x:29:
 netdev:x:108:
+disk:x:6:
 nogroup:x:65534:

@@ -793,3 +793,95 @@ host 31/31; shell 107/107; features 52/52; guest `===== MONTEST PASS =====`
 **Deferred honestly:** instantaneous cpu% (would cost 1s sleep per call);
 per-process CPU% on BusyBox (fallback rows carry `?`); monitor-overhead
 accounting under load (idle-only measurement so far).
+
+## 18. C5 Record — 2026-10-04 (Network Control Plane)
+
+**Ownership boundary:** Aira owns no networking. The kernel owns links,
+addresses and routes; `udhcpc` owns DHCP; the resolver reads `resolv.conf`.
+The service validates, performs exactly the requested operation, then reports
+**observed** state.
+
+**State model (observed, never assumed):** `DOWN` (admin-down/absent),
+`UP_NO_ADDRESS` (up, no IPv4), `DEGRADED` (carrier down / link-local only /
+address-or-route half), `ONLINE` (up + carrier + global unicast + default
+route), `ERROR` (interface vanished). `lo` is special-cased (up + 127/8 =
+ONLINE) because it is the loopback bus.
+
+**Deliverables:**
+- `initramfs/etc/aira/ipc/handlers/network` (v2): open reads
+  `caps|list|status|interfaces|routes|dns|diag`; privileged mutations
+  `up|down|dhcp|static|route|setdns|profile`. Validation: interface charset +
+  length + existence; IPv4 octets (leading zeros rejected); prefix 0-32;
+  unicast-only gateway/DNS; no `@`, `|`, newline, space, metacharacters;
+  arg-count checks per method; no `eval`.
+- Profile persistence: `profile show|save|apply|clear` →
+  `/persist/etc/aira/network.conf` (atomic tmp+rename, 0644). Applied by the
+  real boot path (`aira-net-setup`) with DHCP fallback.
+- `initramfs/usr/bin/aira-net`: bus-first CLI. **Local fallback only when the
+  bus is unreachable** — a bus rejection is final (never re-run locally, which
+  would bypass the token gate).
+- `gui/aira-netman`: `--once`/`--menu` routed through the control plane with
+  direct-CLI fallbacks.
+- `scripts/test-net.sh` 115 host checks; `guest-nettest.sh` 47 guest checks;
+  `guest-netpersist.sh` cross-boot verifier; `guest-devperm.sh` device-permission
+  verifier; new `/init` stanzas `aira_nettest=1`, `aira_netpersist=1`,
+  `aira_devperm=1`.
+
+**Bugs found and fixed (all caught by tests, none cosmetic):**
+1. **`/dev/*` were 0600 root-only** (no `mdev.conf`) — *every* unprivileged
+   process failed to redirect output, so `aira-net`/`aira-ipc` could not run
+   as uid 1000 at all. Added `initramfs/etc/mdev.conf` + defence-in-depth
+   `chmod` in `/init`. Proven by `aira_devperm=1`.
+2. **`/etc/shadow` was world-readable 0644** (cpio carries 0644 because the
+   tree cannot preserve modes) — fixed to root:root 0640 in `/init`; the
+   devperm test now asserts aira cannot read it.
+3. **CLI privilege bypass:** `aira-net` fell back to local handler execution
+   after a bus *denial*, re-running mutations outside the token gate. Local
+   fallback is now only for unreachability.
+4. **Destructive route deletion:** my first `route del` used
+   `ip route flush default`, which wiped the **entire** route table (including
+   the connected subnet route) on this ip(8). Replaced with attribute-exact
+   per-route deletion; `route add` now falls back `replace`→`add` and surfaces
+   the kernel error instead of swallowing it.
+5. **`route del` rejected as "bad args"** — a bare verb has no `|`, so the
+   generic arity check rejected it.
+6. **DHCP "success" from a no-op client:** success was inferred from a
+   pre-existing lease, so a client exiting 0 without configuring anything
+   reported ONLINE. Now requires a lease produced *by this run*; client exit
+   status is reported (`client exit N` / `client timeout`).
+7. **DHCP hang was unbounded:** output capture via command substitution let a
+   grandchild holding the pipe block the handler for the full `sleep`. Output
+   now goes to a file; hang is bounded to 8s with no orphan.
+8. **BusyBox `ip -o addr` field order:** filtering after `awk '{print $4}'`
+   destroyed the `scope global` test (field 4 is the CIDR). Filter before
+   extraction.
+9. **Build:** entry points could be packed non-executable (core.fileMode=false),
+   making `/init` silently skip guest scripts. `build-initramfs.sh` now
+   enforces and verifies exec bits.
+
+**Measured (host):** `list+status` avg 196 ms over 5 runs; handler is a single
+fork. DHCP budget 8 s inside the 10 s dispatcher timeout.
+
+**Guest evidence (`--net user`, virtio-net, SLIRP 10.0.2.0/24):**
+- `c5-nettest14.log` — NETTEST PASS, 47 OK / 0 FAIL: real DHCP lease,
+  observed ONLINE, gateway ping, resolv.conf populated, static idempotency,
+  invalid-static rejection with unchanged state, route del → DEGRADED
+  (honesty) → restore, setdns + /persist mirror, link down/up cycle,
+  unprivileged denial (bus, local handler, and CLI), cross-uid checks,
+  5× concurrent reads, profile save/apply/corrupt-refusal, injected no-lease
+  and hang (bounded 8 s, no strays), static conflict + explicit flush.
+- `c5-netpersist2.log` — NETPERSIST PASS: profile survived reboot on /persist;
+  boot service applied it; teardown → `profile apply` → ONLINE.
+- `c5-devperm2.log` — DEVPERM PASS: /dev nodes world-usable, shadow + IPC token
+  denied, aira reaches the bus and reads state, link mutation denied.
+
+**Not proven (honest gaps):** external Internet reachability (SLIRP `ping
+8.8.8.8` = fail; gateway/DNS-in-guest verified only), Wi-Fi (unsupported — no
+wireless hardware or `iw` in this image), DNS *resolution* end-to-end
+(`nslookup` present, no external resolver reachable), IPv6 (not implemented —
+`ip` is IPv4-oriented here), DHCP on an interface without a server (needs a
+second NIC; SLIRP always offers), profile encryption.
+
+**Regression:** C0 107/107, C1 56/56, C2 55/55, C3 37/37, C4 31/31, C5 115/115
+host; guest FILEOPS/SETTINGS/TERMTEST/MONTEST/NETTEST/NETPERSIST/DEVPERM/
+AUTOTEST (130 OK / 0 FAIL) all PASS against the freshly rebuilt image.

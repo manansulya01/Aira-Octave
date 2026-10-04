@@ -17,6 +17,12 @@ mkdir -p /tmp /run /dev/pts /dev/shm /var/log/airaos /persist /home/aira /root
 chown 1000:1000 /home/aira 2>/dev/null || true
 chmod 700 /root 2>/dev/null || true
 chmod 755 /home/aira 2>/dev/null || true
+# Credential files must never be world-readable. The cpio carries 0644 (the
+# working tree cannot preserve modes, see core.fileMode=false), so fix here.
+# Verified by the aira_devperm=1 guest test.
+if [ -f /etc/shadow ]; then chown root:root /etc/shadow 2>/dev/null || true; chmod 640 /etc/shadow 2>/dev/null || true; fi
+if [ -f /etc/gshadow ]; then chown root:root /etc/gshadow 2>/dev/null || true; chmod 640 /etc/gshadow 2>/dev/null || true; fi
+if [ -f /etc/passwd ]; then chmod 644 /etc/passwd 2>/dev/null || true; fi
 mount -t tmpfs tmpfs /tmp 2>/dev/null
 mount -t tmpfs tmpfs /run 2>/dev/null
 mount -t tmpfs tmpfs /dev/shm 2>/dev/null
@@ -34,7 +40,19 @@ fi
 # `mdev -s` scan is the correct call here (no hotplug-helper write).
 if [ -x /bin/mdev ]; then
   echo "[init] populating /dev via mdev"
+  # /etc/mdev.conf governs node permissions; without it mdev -s creates
+  # everything 0600 root-only, which breaks every unprivileged process that
+  # redirects output (/dev/null). See initramfs/etc/mdev.conf.
   /bin/mdev -s 2>/dev/null
+  # Defence in depth: if mdev.conf was missing from the image, the standard
+  # null/zero/random nodes must still be usable by unprivileged users.
+  for _n in null zero full random urandom; do
+    if [ -c "/dev/$_n" ] && [ ! -r "/dev/$_n" -o ! -w "/dev/$_n" ]; then
+      chmod 666 "/dev/$_n" 2>/dev/null || true
+    fi
+  done
+  if [ -c /dev/tty ]; then chmod 666 /dev/tty 2>/dev/null || true; fi
+  if [ -c /dev/ptmx ]; then chmod 666 /dev/ptmx 2>/dev/null || true; fi
 fi
 
 # Boot log header
@@ -186,6 +204,37 @@ if grep -q "aira_monitest=1" /proc/cmdline 2>/dev/null; then
     exec /sbin/guest-monitest.sh
   else
     echo "[init] guest-monitest.sh missing"
+  fi
+fi
+
+# Network verification (discovery, DHCP, states, cycles, denial).
+# Needs virtual networking: boot with --net user.
+if grep -q "aira_nettest=1" /proc/cmdline 2>/dev/null; then
+  echo "[init] aira_nettest=1 detected, running network verification"
+  if [ -x /sbin/guest-nettest.sh ]; then
+    exec /sbin/guest-nettest.sh
+  else
+    echo "[init] guest-nettest.sh missing"
+  fi
+fi
+
+# Cross-boot network persistence verification (second boot after aira_nettest=1).
+if grep -q "aira_netpersist=1" /proc/cmdline 2>/dev/null; then
+  echo "[init] aira_netpersist=1 detected, running network persistence verification"
+  if [ -x /sbin/guest-netpersist.sh ]; then
+    exec /sbin/guest-netpersist.sh
+  else
+    echo "[init] guest-netpersist.sh missing"
+  fi
+fi
+
+# Device-permission verification (unprivileged /dev usability, DAC on priv nodes).
+if grep -q "aira_devperm=1" /proc/cmdline 2>/dev/null; then
+  echo "[init] aira_devperm=1 detected, running device-permission verification"
+  if [ -x /sbin/guest-devperm.sh ]; then
+    exec /sbin/guest-devperm.sh
+  else
+    echo "[init] guest-devperm.sh missing"
   fi
 fi
 

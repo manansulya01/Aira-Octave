@@ -1,22 +1,65 @@
 #!/bin/sh
-# Bring up loopback + eth0 via DHCP (best effort, never fatal).
+# Bring up loopback + a persisted/DHCP address on the first non-loopback netdev
+# (best effort, never fatal). Boot contract:
+#   1. loopback up + 127.0.0.1/8
+#   2. if a persisted profile exists -> aira-net profile apply (validated)
+#   3. otherwise fall back to DHCP on the first non-lo interface
+# Any failure is reported and boot continues (recovery shell must still work).
+export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+echo "[net] lo up"
 ip link set lo up 2>/dev/null
 ip addr add 127.0.0.1/8 dev lo 2>/dev/null
-echo "[net] lo up"
-if ip link show eth0 2>/dev/null | grep -q eth0; then
-  echo "[net] eth0 found, trying DHCP"
-  ip link set eth0 up 2>/dev/null
-  # -s script applies the lease (without it udhcpc obtains but never configures IP).
-  for _s in /usr/share/udhcpc/default.script /etc/udhcpc/default.script; do
-    if [ -x "$_s" ]; then SCRIPT="$_s"; break; fi
-  done
-  if [ -n "${SCRIPT:-}" ]; then
-    udhcpc -i eth0 -n -q -t 3 -s "$SCRIPT" 2>&1 | head -n 20 || echo "[net] DHCP failed or not available (static/user-net may be needed)"
-  else
-    udhcpc -i eth0 -n -q -t 3 2>&1 | head -n 20 || echo "[net] DHCP failed or not available (static/user-net may be needed)"
-  fi
-  ip addr show eth0 2>/dev/null
-else
-  echo "[net] no eth0 (QEMU default e1000 should appear; try --net user for virtio-net)"
+
+IF=""
+for d in /sys/class/net/*; do
+  n=$(basename "$d" 2>/dev/null)
+  [ "$n" = "lo" ] && continue
+  case "$n" in *[!A-Za-z0-9_.:-]*) continue ;; esac
+  IF="$n"
+  break
+done
+
+if [ -z "$IF" ]; then
+  echo "[net] no non-loopback interface (boot with --net user to attach one)"
+  echo "[net] done"
+  exit 0
 fi
+echo "[net] interface: $IF"
+
+NET_CLI=""
+for c in /usr/bin/aira-net /persist/usr/bin/aira-net; do
+  [ -x "$c" ] && NET_CLI="$c" && break
+done
+
+if [ -n "$NET_CLI" ]; then
+  if "$NET_CLI" profile show 2>/dev/null | grep -q "^profile="; then
+    echo "[net] persisted profile found — applying via control plane"
+    if "$NET_CLI" profile apply 2>&1 | sed 's/^/[net] /'; then
+      echo "[net] profile applied"
+      "$NET_CLI" status "$IF" 2>/dev/null | sed 's/^/[net] /'
+      echo "[net] done"
+      exit 0
+    fi
+    echo "[net] profile apply FAILED — falling back to DHCP"
+  else
+    echo "[net] no persisted profile (profile show: absent)"
+  fi
+fi
+
+# Direct DHCP fallback (also used when no control plane is present).
+SCRIPT=""
+for s in /usr/share/udhcpc/default.script /etc/udhcpc/default.script; do
+  [ -x "$s" ] && SCRIPT="$s" && break
+done
+echo "[net] requesting DHCP on $IF"
+ip link set "$IF" up 2>/dev/null
+if [ -n "$SCRIPT" ]; then
+  timeout -k 2 8 udhcpc -i "$IF" -n -q -t 2 -T 2 -p "/run/udhcpc.$IF.pid" -s "$SCRIPT" 2>&1 | head -n 20 \
+    || echo "[net] DHCP failed (static/user-net may be needed)"
+else
+  timeout -k 2 8 udhcpc -i "$IF" -n -q -t 2 -T 2 -s /bin/sh 2>&1 | head -n 20 \
+    || echo "[net] DHCP failed (no lease script)"
+fi
+rm -f "/run/udhcpc.$IF.pid" 2>/dev/null
+ip addr show "$IF" 2>/dev/null | head -n 6
 echo "[net] done"
