@@ -58,7 +58,14 @@ for d in "$DLDIR"/*.deb; do
 done
 
 # Aira GUI files
-mkdir -p "$STAGE/etc/jwm" "$STAGE/usr/bin" "$STAGE/etc/aira"
+mkdir -p "$STAGE/etc/jwm" "$STAGE/usr/bin" "$STAGE/etc/aira" "$STAGE/usr/lib"
+# C0: shared IPC client lib (canonical: usr/lib/aira-ipc.sh) for /persist apps
+if [ -f "$ROOT/usr/lib/aira-ipc.sh" ]; then
+  cp -f "$ROOT/usr/lib/aira-ipc.sh" "$STAGE/usr/lib/aira-ipc.sh"
+  chmod 644 "$STAGE/usr/lib/aira-ipc.sh"
+else
+  echo "ERROR: $ROOT/usr/lib/aira-ipc.sh missing (C0 shared API)" | tee -a "$LOG"; exit 1
+fi
 cp -f "$ROOT/gui/aira-jwmrc" "$STAGE/etc/jwm/aira-jwmrc"
 cp -f "$ROOT/gui/aira-jwmrc.classic" "$STAGE/etc/jwm/aira-jwmrc.classic"
 [ -f "$STAGE/etc/aira/theme.conf" ] || cp -f "$ROOT/gui/aira-theme.conf.default" "$STAGE/etc/aira/theme.conf"

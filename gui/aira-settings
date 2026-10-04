@@ -4,6 +4,14 @@
 # Controls perform real actions or clearly expose read-only state.
 export DISPLAY="${DISPLAY:-:0}"
 
+# Shared IPC client (C0). Resilient: fall back to direct reads if lib/bus missing.
+if [ -f /usr/lib/aira-ipc.sh ]; then
+    # shellcheck disable=SC1091
+    . /usr/lib/aira-ipc.sh
+else
+    aira_ipc_available() { return 1; }
+fi
+
 # Check for graphical mode (styling single-sourced via theme engine).
 if [ -n "${DISPLAY:-}" ] && command -v xterm >/dev/null 2>&1 && [ "${1:-}" != "--text" ]; then
     _SBG="$(aira-theme get AIRA_BG 2>/dev/null)"; [ -n "$_SBG" ] || _SBG="#0b1026"
@@ -111,7 +119,7 @@ show_security() {
     else
         printf "│ User account 'aira': %-41s │\n" "NOT FOUND"
     fi
-    if command -v aira-ipc >/dev/null 2>&1 && aira-ipc ping >/dev/null 2>&1; then
+    if aira_ipc_available; then
         printf "│ IPC bus:     %-48s │\n" "RUNNING (authenticated)"
     else
         printf "│ IPC bus:     %-48s │\n" "NOT RUNNING"

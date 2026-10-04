@@ -4,7 +4,18 @@
 ONCE=""
 [ "${1:-}" = "--once" ] && ONCE="1"
 
+# Shared IPC client (C0). Resilient: fall back to direct reads if lib/bus missing.
+if [ -f /usr/lib/aira-ipc.sh ]; then
+    # shellcheck disable=SC1091
+    . /usr/lib/aira-ipc.sh
+else
+    aira_ipc_available() { return 1; }
+    aira_ipc_call() { _AIRA_IPC_ERROR="ipc library missing"; return 1; }
+    aira_ipc_call_first() { _AIRA_IPC_ERROR="ipc library missing"; return 1; }
+fi
+
 INFO="$(mktemp /tmp/aira-sysinfo.XXXXXX 2>/dev/null || echo /tmp/aira-sysinfo.$$)"
+_ipc_available=0
 
 {
     echo "AiraOS-Octave System Information"
@@ -12,19 +23,36 @@ INFO="$(mktemp /tmp/aira-sysinfo.XXXXXX 2>/dev/null || echo /tmp/aira-sysinfo.$$
     echo
     cat /etc/os-release 2>/dev/null
     echo
-    if command -v aira-ipc >/dev/null 2>&1 && aira-ipc ping >/dev/null 2>&1; then
+    if aira_ipc_available; then
+        _ipc_available=1
         echo "[via Aira IPC bus]"
         echo "--- system.version ---"
-        aira-ipc call system version 2>/dev/null
+        if aira_ipc_call_first system version; then
+            printf "%s\n" "$_AIRA_IPC_RESPONSE_FIRST"
+        else
+            echo "(unavailable: $_AIRA_IPC_ERROR)"
+        fi
         echo
         echo "--- system.info ---"
-        aira-ipc call system info 2>/dev/null | tr ';' '\n'
+        if aira_ipc_call system info; then
+            printf "%s\n" "$_AIRA_IPC_RESPONSE"
+        else
+            echo "(unavailable: $_AIRA_IPC_ERROR)"
+        fi
         echo
         echo "--- system.memory ---"
-        aira-ipc call system memory 2>/dev/null | tr ';' '\n'
+        if aira_ipc_call system memory; then
+            printf "%s\n" "$_AIRA_IPC_RESPONSE"
+        else
+            echo "(unavailable: $_AIRA_IPC_ERROR)"
+        fi
         echo
         echo "--- storage.persist ---"
-        aira-ipc call storage persist 2>/dev/null | tr ';' '\n'
+        if aira_ipc_call storage persist; then
+            printf "%s\n" "$_AIRA_IPC_RESPONSE"
+        else
+            echo "(unavailable: $_AIRA_IPC_ERROR)"
+        fi
         echo
     else
         echo "[direct: IPC bus unreachable]"

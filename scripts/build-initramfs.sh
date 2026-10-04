@@ -20,6 +20,17 @@ echo "LOG=$LOG"
 if [ ! -x "$SRC/init" ]; then echo "ERROR: $SRC/init missing/executable" | tee -a "$LOG"; exit 1; fi
 if [ ! -f "$SRC/bin/busybox" ]; then echo "ERROR: $SRC/bin/busybox missing" | tee -a "$LOG"; exit 1; fi
 
+# C0: canonical IPC client lib lives at usr/lib/aira-ipc.sh; sync into
+# initramfs source so /usr/lib/aira-ipc.sh exists in-guest (gui apps source it).
+if [ -f "$ROOT/usr/lib/aira-ipc.sh" ]; then
+  mkdir -p "$SRC/usr/lib"
+  cp -f "$ROOT/usr/lib/aira-ipc.sh" "$SRC/usr/lib/aira-ipc.sh"
+  echo "SYNC usr/lib/aira-ipc.sh -> initramfs/usr/lib/aira-ipc.sh" | tee -a "$LOG"
+else
+  echo "ERROR: $ROOT/usr/lib/aira-ipc.sh missing (C0 shared API)" | tee -a "$LOG"; exit 1
+fi
+if [ ! -f "$SRC/usr/lib/aira-ipc.sh" ]; then echo "ERROR: usr/lib/aira-ipc.sh missing in initramfs source" | tee -a "$LOG"; exit 1; fi
+
 # Build to temp, verify, then replace (keep .bak)
 TMP="$OUTDIR/initramfs-$TS.cpio"
 (
