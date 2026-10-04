@@ -1,0 +1,20 @@
+# AiraOS centralized settings schema v1 (Wave C2).
+# Format per line: key|type|default|constraint|cap|description
+#   type: enum | int | bool | string
+#   constraint: enum values (comma-separated) | int min-max | string regex | bool -
+#   cap: always | wifi | backlight | mixer (hardware needed to APPLY;
+#        get/list always work; set is rejected UNAVAILABLE when cap absent)
+# Lines starting with # are comments. Unknown keys in the store are preserved
+# on read but reported by validate and rejected by set.
+system.hostname|string|aira-octave|^[A-Za-z0-9][A-Za-z0-9-]{0,62}$|always|machine hostname (applies to /etc/hostname live)
+system.timezone|string|UTC|^[A-Za-z0-9_+/-]{1,64}$|always|timezone name (stored; /etc/timezone mirror)
+appearance.theme|enum|aira-night|aira-night,aira-ocean,aira-day,aira-sunset,aira-forest,aira-contrast|always|desktop theme (applies via aira-theme)
+appearance.wallpaper|enum|night-weave|night-weave,ocean-tide,day-mist,sunset-ember,forest-moss,midnight|always|wallpaper preset (applies via aira-wallpaper)
+appearance.night|bool|on|-|always|night mode (applies via aira-theme AIRA_NIGHT)
+display.opacity|int|90|30-100|always|panel opacity percent (applies via aira-theme AIRA_OPACITY)
+network.dhcp_iface|string|eth0|^[a-z0-9]{1,16}$|always|interface used for DHCP renew actions
+network.wifi|enum|off|off,on|wifi|wifi radio (UNAVAILABLE: QEMU has no wifi)
+audio.volume|int|70|0-100|mixer|master volume (UNAVAILABLE: no ALSA mixer in guest)
+audio.mute|bool|off|-|mixer|master mute (UNAVAILABLE: no ALSA mixer in guest)
+power.brightness|int|80|5-100|backlight|display brightness (UNAVAILABLE: no backlight in guest)
+security.lock_timeout|int|300|0-3600|always|session lock delay seconds (stored; enforced when locker exists)

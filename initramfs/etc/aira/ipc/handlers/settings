@@ -1,0 +1,331 @@
+#!/bin/sh
+# settings — centralized configuration store (Wave C2).
+# Methods: caps | get | set | reset | list | validate
+# Args encoding: operands separated by "|" (values never contain "|" or
+#   newline — rejected by validation).
+# Privilege: get/list/caps/validate are open. set/reset are PRIVILEGED.
+# Store: AIRA_SETTINGS_CONF override, else /persist/etc/aira/settings.conf
+#   when /persist is mounted, else /etc/aira/settings.conf. Schema:
+#   AIRA_SETTINGS_SCHEMA override, else /etc/aira/settings-schema (v1).
+# Safety: typed validation, capability gating (UNAVAILABLE honesty), atomic
+#   tmp+rename writes, flock when available, unknown lines preserved verbatim
+#   (reported by validate, never silently dropped).
+# Handler contract: $1=method $2=args-string; stdout=payload; exit 0=OK, 3=ERR.
+PRIV_METHODS="set reset"
+
+_s_err() { echo "$1"; exit 3; }
+
+_s_conf() {
+    if [ -n "${AIRA_SETTINGS_CONF:-}" ]; then printf "%s" "$AIRA_SETTINGS_CONF"; return 0; fi
+    if mount 2>/dev/null | grep -q " /persist " && { [ -w /persist/etc/aira 2>/dev/null ] || [ -f /persist/etc/aira/settings.conf ]; }; then
+        printf "/persist/etc/aira/settings.conf"
+    else
+        printf "/etc/aira/settings.conf"
+    fi
+}
+
+_s_schema() {
+    if [ -n "${AIRA_SETTINGS_SCHEMA:-}" ]; then printf "%s" "$AIRA_SETTINGS_SCHEMA"; return 0; fi
+    printf "/etc/aira/settings-schema"
+}
+
+# _s_field <schema-line> <n>: cut pipe field n.
+_s_field() { printf "%s" "$1" | cut -d'|' -f"$2"; }
+
+# _s_spec <key>: print schema line for key, or return 1.
+# Exact field match via awk (never regex: keys contain "." and "|" is special).
+_s_spec() {
+    _sch="$(_s_schema)"
+    [ -f "$_sch" ] || return 1
+    _line="$(awk -F'|' -v k="$1" '$1 == k { print; exit }' "$_sch" 2>/dev/null)"
+    [ -n "$_line" ] || return 1
+    printf "%s\n" "$_line"
+}
+
+# _s_ns_keys <namespace>: print schema keys under "ns." (exact prefix).
+_s_ns_keys() {
+    _sch="$(_s_schema)"
+    [ -f "$_sch" ] || return 1
+    awk -F'|' -v ns="$1" 'index($1, ns ".") == 1 { print $1 }' "$_sch" 2>/dev/null
+}
+
+# _s_valid_key <key>: 0 if well-formed and in schema.
+_s_valid_key() {
+    case "$1" in *"
+"*) return 1 ;; esac
+    case "$1" in *"|"*) return 1 ;; esac
+    case "$1" in [a-z]*.*) ;; *) return 1 ;; esac
+    case "$1" in *[!a-z0-9_.]*) return 1 ;; esac
+    _s_spec "$1" >/dev/null 2>&1
+}
+
+# _s_check_value <type> <constraint> <value>: 0 if valid.
+_s_check_value() {
+    case "$3" in *"
+"*|*"|"*) return 1 ;; esac
+    case "$1" in
+        bool) case "$3" in on|off|true|false|1|0) return 0 ;; *) return 1 ;; esac ;;
+        int)
+            case "$3" in ''|*[!0-9-]*) return 1 ;; esac
+            _lo="${2%%-*}"; _hi="${2##*-}"
+            [ "$3" -ge "$_lo" ] 2>/dev/null || return 1
+            [ "$3" -le "$_hi" ] 2>/dev/null || return 1
+            return 0 ;;
+        enum)
+            _want="$3"
+            _old="$IFS"; IFS=","
+            # shellcheck disable=SC2086
+            set -- $2
+            IFS="$_old"
+            for _v in "$@"; do [ "$_want" = "$_v" ] && return 0; done
+            return 1 ;;
+        string)
+            printf "%s" "$3" | grep -Eq "$2" 2>/dev/null || return 1
+            return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
+# Capability probes (honest hardware detection; shared pattern with UI).
+_s_has_wifi() {
+    for _i in /sys/class/net/*; do
+        [ "$_i" = "/sys/class/net/*" ] && break
+        [ -d "$_i/wireless" ] && return 0
+    done
+    return 1
+}
+_s_has_backlight() {
+    for _b in /sys/class/backlight/*; do
+        [ "$_b" = "/sys/class/backlight/*" ] && break
+        return 0
+    done
+    return 1
+}
+_s_has_mixer() {
+    command -v amixer >/dev/null 2>&1 || return 1
+    amixer sget Master >/dev/null 2>&1
+}
+# _s_cap_ok <cap>: 0 if capability present (always=yes).
+_s_cap_ok() {
+    case "$1" in
+        always) return 0 ;;
+        wifi) _s_has_wifi ;;
+        backlight) _s_has_backlight ;;
+        mixer) _s_has_mixer ;;
+        *) return 1 ;;
+    esac
+}
+_s_cap_why() {
+    case "$1" in
+        wifi) printf "no wifi hardware (QEMU has virtio-net only)" ;;
+        backlight) printf "no backlight device" ;;
+        mixer) printf "no ALSA Master mixer" ;;
+        *) printf "unknown capability" ;;
+    esac
+}
+
+# Store read: effective value for key (store override, else schema default).
+_s_get() {
+    _c="$(_s_conf)"
+    _v="$(grep -E "^$1=" "$_c" 2>/dev/null | tail -n 1 | cut -d= -f2-)"
+    if [ -n "$_v" ]; then printf "%s" "$_v"; return 0; fi
+    _spec="$(_s_spec "$1")" || return 1
+    _s_field "$_spec" 3
+}
+
+# Appliers: make stored value live. 0=applied (or nothing to do), 1=failed.
+_s_apply() {
+    case "$1" in
+        system.hostname)
+            hostname "$2" 2>/dev/null || return 1
+            printf "%s\n" "$2" > /etc/hostname 2>/dev/null || return 1
+            printf "%s\n" "$2" > /persist/etc/hostname 2>/dev/null || true
+            return 0 ;;
+        system.timezone)
+            printf "%s\n" "$2" > /etc/timezone 2>/dev/null || true
+            printf "%s\n" "$2" > /persist/etc/timezone 2>/dev/null || true
+            return 0 ;;
+        appearance.theme)
+            command -v aira-theme >/dev/null 2>&1 || return 1
+            aira-theme use "$2" >/dev/null 2>&1 ;;
+        appearance.wallpaper)
+            command -v aira-wallpaper >/dev/null 2>&1 || return 1
+            aira-wallpaper --set "$2" >/dev/null 2>&1 ;;
+        appearance.night)
+            command -v aira-theme >/dev/null 2>&1 || return 1
+            case "$2" in on|true|1) _nv="on" ;; *) _nv="off" ;; esac
+            aira-theme set AIRA_NIGHT "$_nv" >/dev/null 2>&1 ;;
+        display.opacity)
+            command -v aira-theme >/dev/null 2>&1 || return 1
+            _op="$(awk -v p="$2" 'BEGIN{printf "%.2f", p/100}' 2>/dev/null || true)"
+            [ -n "$_op" ] || return 1
+            aira-theme set AIRA_OPACITY "$_op" >/dev/null 2>&1 ;;
+        network.wifi)
+            command -v iw >/dev/null 2>&1 || return 1
+            return 0 ;;
+        audio.volume)
+            amixer -q sset Master "$2%" >/dev/null 2>&1 ;;
+        audio.mute)
+            case "$2" in on|true|1|mute) amixer -q sset Master mute >/dev/null 2>&1 ;;
+            *) amixer -q sset Master unmute >/dev/null 2>&1 ;; esac ;;
+        power.brightness)
+            for _b in /sys/class/backlight/*/brightness; do
+                [ -w "$_b" ] || continue
+                _max="$(cat "${_b%/*}/max_brightness" 2>/dev/null || echo 100)"
+                _raw="$(awk -v p="$2" -v m="$_max" 'BEGIN{printf "%d", p*m/100}' 2>/dev/null || true)"
+                [ -n "$_raw" ] || return 1
+                echo "$_raw" > "$_b" 2>/dev/null && return 0
+            done
+            return 1 ;;
+        network.dhcp_iface|security.lock_timeout)
+            return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
+# Atomic store write of key=value (flock when available, tmp+rename).
+_s_store() {
+    _c="$(_s_conf)"
+    _d="$(dirname "$_c")"
+    mkdir -p "$_d" 2>/dev/null || _s_err "store failed: cannot create $(dirname "$_c")"
+    _lk="$_c.lock"
+    : > "$_lk" 2>/dev/null || true
+    _locked=0
+    if command -v flock >/dev/null 2>&1; then
+        exec 9>"$_lk" 2>/dev/null && { flock -x 9 2>/dev/null && _locked=1; } || true
+    fi
+    _tmp="$_c.tmp.$$"
+    grep -vE "^$1=" "$_c" 2>/dev/null > "$_tmp" || true
+    printf "%s=%s\n" "$1" "$2" >> "$_tmp" || { rm -f "$_tmp"; [ "$_locked" = "1" ] && { flock -u 9 2>/dev/null; exec 9>&-; }; _s_err "store failed: write error"; }
+    chmod 644 "$_tmp" 2>/dev/null || true
+    mv -f "$_tmp" "$_c" 2>/dev/null || { rm -f "$_tmp"; [ "$_locked" = "1" ] && { flock -u 9 2>/dev/null; exec 9>&-; }; _s_err "store failed: rename error (disk full?)"; }
+    [ "$_locked" = "1" ] && { flock -u 9 2>/dev/null; exec 9>&-; }
+    return 0
+}
+
+# Remove key override (reset to default).
+_s_unstore() {
+    _c="$(_s_conf)"
+    [ -f "$_c" ] || return 0
+    _tmp="$_c.tmp.$$"
+    grep -vE "^$1=" "$_c" 2>/dev/null > "$_tmp" || true
+    chmod 644 "$_tmp" 2>/dev/null || true
+    mv -f "$_tmp" "$_c" 2>/dev/null || { rm -f "$_tmp"; _s_err "store failed: rename error"; }
+    return 0
+}
+
+m="$1"; a="${2:-}"
+case "$m" in
+    caps)
+        _sch="$(_s_schema)"
+        [ -f "$_sch" ] || _s_err "schema missing: $_sch"
+        grep -vE "^#|^$" "$_sch" 2>/dev/null | while IFS= read -r _line; do
+            _k="$(printf "%s" "$_line" | cut -d'|' -f1)"
+            _t="$(printf "%s" "$_line" | cut -d'|' -f2)"
+            _con="$(printf "%s" "$_line" | cut -d'|' -f4)"
+            _cap="$(printf "%s" "$_line" | cut -d'|' -f5)"
+            if _s_cap_ok "$_cap"; then _av="available";
+            else _av="UNAVAILABLE: $(_s_cap_why "$_cap")"; fi
+            printf "%s|%s|%s|%s|%s\n" "$_k" "$_t" "$_con" "$_cap" "$_av"
+        done
+        ;;
+    get)
+        case "$a" in *"|"*) _s_err "bad args: get takes one key" ;; esac
+        _s_valid_key "$a" || _s_err "unknown key: $a"
+        _v="$(_s_get "$a")" || _s_err "no value for: $a"
+        printf "%s=%s\n" "$a" "$_v"
+        ;;
+    set)
+        _k="${a%%|*}"; _v="${a#*|}"
+        case "$a" in *"|"*) ;; *) _s_err "bad args: set takes key|value" ;; esac
+        _s_valid_key "$_k" || _s_err "unknown key: $_k"
+        _spec="$(_s_spec "$_k")"
+        _s_check_value "$(_s_field "$_spec" 2)" "$(_s_field "$_spec" 4)" "$_v" \
+            || _s_err "invalid value for $_k"
+        _cap="$(_s_field "$_spec" 5)"
+        _s_cap_ok "$_cap" || _s_err "UNAVAILABLE: $(_s_cap_why "$_cap")"
+        _s_apply "$_k" "$_v" || _s_err "apply failed for $_k (system untouched, nothing stored)"
+        _s_store "$_k" "$_v" || exit 3
+        printf "%s=%s\n" "$_k" "$_v"
+        ;;
+    reset)
+        case "$a" in *"|"*) _s_err "bad args: reset takes key, namespace, or all" ;; esac
+        if [ "$a" = "all" ]; then
+            # Factory reset: rebuild the store from schema defaults only, so
+            # unknown/malformed lines (reported by validate) are purged.
+            _c="$(_s_conf)"
+            _d="$(dirname "$_c")"
+            mkdir -p "$_d" 2>/dev/null || _s_err "store failed: cannot create $_d"
+            _tmp="$_c.tmp.$$"
+            _sch="$(_s_schema)"
+            [ -f "$_sch" ] || _s_err "schema missing"
+            : > "$_tmp" 2>/dev/null || _s_err "store failed: write error"
+            grep -vE "^#|^$" "$_sch" 2>/dev/null | while IFS= read -r _line; do
+                _k="${_line%%|*}"
+                _rest="${_line#*|}"
+                _type="${_rest%%|*}"
+                _rest="${_rest#*|}"
+                _def="${_rest%%|*}"
+                [ -n "$_k" ] || continue
+                printf "%s=%s\n" "$_k" "$_def" >> "$_tmp" || break
+            done
+            chmod 644 "$_tmp" 2>/dev/null || true
+            mv -f "$_tmp" "$_c" 2>/dev/null || { rm -f "$_tmp"; _s_err "store failed: rename error"; }
+            grep -vE "^#|^$" "$_sch" 2>/dev/null | cut -d'|' -f1 | while IFS= read -r _k; do
+                [ -n "$_k" ] || continue
+                _spec="$(_s_spec "$_k")"
+                _s_apply "$_k" "$(_s_field "$_spec" 3)" >/dev/null 2>&1 || true
+            done
+            echo "reset all to defaults"
+        elif _s_valid_key "$a" 2>/dev/null; then
+            _spec="$(_s_spec "$a")"
+            _def="$(_s_field "$_spec" 3)"
+            _s_unstore "$a"
+            _s_apply "$a" "$_def" >/dev/null 2>&1 || true
+            printf "%s=%s\n" "$a" "$_def"
+        else
+            case "$a" in *[!a-z]*) _s_err "unknown key or namespace: $a" ;; esac
+            _n=0
+            for _k in $(_s_ns_keys "$a"); do
+                _spec="$(_s_spec "$_k")"
+                _def="$(_s_field "$_spec" 3)"
+                _s_unstore "$_k"
+                _s_apply "$_k" "$_def" >/dev/null 2>&1 || true
+                _n=$((_n+1))
+            done
+            [ "$_n" -gt 0 ] || _s_err "unknown key or namespace: $a"
+            echo "reset namespace $a ($_n keys)"
+        fi
+        ;;
+    list)
+        case "$a" in *"|"*) _s_err "bad args: list takes optional namespace" ;; esac
+        _sch="$(_s_schema)"
+        [ -f "$_sch" ] || _s_err "schema missing"
+        grep -vE "^#|^$" "$_sch" 2>/dev/null | cut -d'|' -f1 | while IFS= read -r _k; do
+            [ -n "$_k" ] || continue
+            if [ -n "$a" ]; then case "$_k" in "$a".*) ;; *) continue ;; esac; fi
+            _v="$(_s_get "$_k" 2>/dev/null || true)"
+            printf "%s=%s\n" "$_k" "$_v"
+        done
+        ;;
+    validate)
+        _sch="$(_s_schema)"
+        [ -f "$_sch" ] || _s_err "schema missing: $_sch"
+        _c="$(_s_conf)"
+        _issues=0
+        if [ -f "$_c" ]; then
+            while IFS= read -r _line || [ -n "$_line" ]; do
+                case "$_line" in ""|\#*) continue ;; esac
+                case "$_line" in *=*) ;; *) echo "ISSUE: malformed line: $(printf "%s" "$_line" | cut -c1-60)"; _issues=$((_issues+1)); continue ;; esac
+                _k="${_line%%=*}"; _v="${_line#*=}"
+                if ! _s_valid_key "$_k" 2>/dev/null; then echo "ISSUE: unknown key: $_k"; _issues=$((_issues+1)); continue; fi
+                _spec="$(_s_spec "$_k")"
+                _s_check_value "$(_s_field "$_spec" 2)" "$(_s_field "$_spec" 4)" "$_v" 2>/dev/null \
+                    || { echo "ISSUE: invalid value for $_k"; _issues=$((_issues+1)); }
+            done < "$_c"
+        fi
+        if [ "$_issues" = "0" ]; then echo "clean";
+        else echo "issues=$_issues"; fi
+        ;;
+    *) echo "unknown method: $m (want caps|get|set|reset|list|validate)"; exit 3 ;;
+esac

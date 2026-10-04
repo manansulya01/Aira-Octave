@@ -174,11 +174,36 @@ show_about() {
     echo
 }
 
+# C2: central settings store (bus-first CLI, local fallback identical).
+CFG_CLI="aira-cfg"
+command -v "$CFG_CLI" >/dev/null 2>&1 || {
+    for _c in /usr/bin/aira-cfg /persist/usr/bin/aira-cfg; do
+        [ -x "$_c" ] && CFG_CLI="$_c" && break
+    done
+}
+
+show_managed() {
+    echo "┌─ MANAGED SETTINGS (central store) ────────────────────────────────────────────┐"
+    if command -v "$CFG_CLI" >/dev/null 2>&1; then
+        "$CFG_CLI" list 2>/dev/null | while IFS= read -r line; do
+            printf "│ %-58s │\n" "$(printf "%s" "$line" | cut -c1-58)"
+        done
+        "$CFG_CLI" caps 2>/dev/null | grep "UNAVAILABLE" | while IFS= read -r line; do
+            printf "│ %-58s │\n" "$(printf "%s" "$line" | cut -d'|' -f1,5 | tr '|' ' ' | cut -c1-58)"
+        done
+    else
+        printf "│ %-58s │\n" "(aira-cfg missing — store unavailable)"
+    fi
+    echo "└────────────────────────────────────────────────────────────────────────────┘"
+    echo
+}
+
 # Main menu loop
 while true; do
     clear
     show_header
     show_system
+    show_managed
     show_display
     show_network
     show_storage
@@ -187,22 +212,51 @@ while true; do
     show_applications
     show_about
     echo "Actions:"
-    echo "  1) Set hostname          2) Renew DHCP (eth0)       3) Open System Monitor"
+    echo "  1) Set hostname (managed) 2) Renew DHCP (eth0)       3) Open System Monitor"
     echo "  4) Open Network Manager  5) Open Package Center     6) Run Diagnostics"
+    echo "  7) Set theme (managed)   8) Night mode (managed)    9) Opacity (managed)"
     echo "  q) Quit"
     echo
     printf "Choice: "
-    read choice
+    read -r choice
     case "$choice" in
         1)
             printf "New hostname: "
-            read newhost
+            read -r newhost
             if [ -n "$newhost" ]; then
-                echo "$newhost" > /etc/hostname
-                hostname "$newhost" 2>/dev/null
-                echo "Hostname set to: $newhost"
+                if command -v "$CFG_CLI" >/dev/null 2>&1 && "$CFG_CLI" set system.hostname "$newhost" 2>&1; then
+                    echo "Hostname set to: $newhost (managed store)"
+                else
+                    echo "$newhost" > /etc/hostname
+                    hostname "$newhost" 2>/dev/null
+                    echo "Hostname set to: $newhost (direct fallback)"
+                fi
             fi
-            printf "Press Enter..."; read _
+            printf "Press Enter..."; read -r _
+            ;;
+        7)
+            printf "Theme name: "
+            read -r th
+            if [ -n "$th" ]; then
+                "$CFG_CLI" set appearance.theme "$th" 2>&1 || echo "(rejected — see error above)"
+            fi
+            printf "Press Enter..."; read -r _
+            ;;
+        8)
+            printf "Night on/off: "
+            read -r nv
+            if [ -n "$nv" ]; then
+                "$CFG_CLI" set appearance.night "$nv" 2>&1 || echo "(rejected — see error above)"
+            fi
+            printf "Press Enter..."; read -r _
+            ;;
+        9)
+            printf "Opacity 30-100: "
+            read -r ov
+            if [ -n "$ov" ]; then
+                "$CFG_CLI" set display.opacity "$ov" 2>&1 || echo "(rejected — see error above)"
+            fi
+            printf "Press Enter..."; read -r _
             ;;
         2)
             for _s in /usr/share/udhcpc/default.script /etc/udhcpc/default.script; do
@@ -213,7 +267,7 @@ while true; do
             else
                 udhcpc -i eth0 -n -q -t 3 2>&1 | head -n 10
             fi
-            printf "Press Enter..."; read _
+            printf "Press Enter..."; read -r _
             ;;
         3) aira-sysmon ;;
         4) aira-netman ;;

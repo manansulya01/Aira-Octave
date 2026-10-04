@@ -159,6 +159,16 @@ if grep -q "aira_fileops=1" /proc/cmdline 2>/dev/null; then
   fi
 fi
 
+# Settings verification (central store get/set/reset/validate + attacks).
+if grep -q "aira_settingstest=1" /proc/cmdline 2>/dev/null; then
+  echo "[init] aira_settingstest=1 detected, running settings verification"
+  if [ -x /sbin/guest-settingstest.sh ]; then
+    exec /sbin/guest-settingstest.sh
+  else
+    echo "[init] guest-settingstest.sh missing"
+  fi
+fi
+
 # Automated in-guest test mode (for scripts/test-*.sh): cmdline contains aira_autotest=1
 if grep -q "aira_autotest=1" /proc/cmdline 2>/dev/null; then
   echo "[init] aira_autotest=1 detected, running guest autotest"

@@ -697,3 +697,34 @@ VERIFIED (host + guest, bus + local paths).
 ops only — safer default); trash/recycle spec; progress/cancel streaming
 (single-request/response bus has no streaming verb); `files` write access for
 non-root desktop users (requires D3 session/ownership work first).
+
+## 15. C2 Record — 2026-10-04 (Centralized Settings)
+
+**Deliverables:**
+- `initramfs/etc/aira/settings-schema` (v1, 12 keys, 6 namespaces): typed
+  (enum/int/bool/string), constraints, `always|wifi|backlight|mixer` caps.
+- `initramfs/etc/aira/ipc/handlers/settings`: `caps|get|list|validate` open;
+  `set|reset` PRIVILEGED. Validate → capability-gate (UNAVAILABLE honesty) →
+  apply → atomic store. Unknown store lines preserved (validate reports);
+  `reset all` rebuilds factory state (purges corruption).
+- `initramfs/usr/bin/aira-cfg`: bus-first CLI, identical local fallback.
+- `gui/aira-settings`: MANAGED SETTINGS section (live store + UNAVAILABLE
+  rows); hostname/theme/night/opacity actions routed through the store.
+- `initramfs/sbin/guest-settingstest.sh` + `/init` `aira_settingstest=1`
+  stanza: 23 guest checks.
+- `scripts/test-settings.sh`: 55 host checks (validation, corruption,
+  unwritable-store, concurrency atomicity, CLI fallback, UI smoke).
+
+**Bugs caught by tests (fixed):** GNU-ERE `\|` alternation in key lookup made
+every key resolve to the first schema line (wrong specs, unknown keys
+accepted) — replaced with exact `awk -F'|'` match + `_s_ns_keys` helper.
+`reset all` left corrupt lines behind — now rebuilds factory store.
+
+**Evidence:** host 55/55; shell 107/107; features 52/52; guest with drive →
+`===== SETTINGS TEST PASS =====` (23/23: bus path, /persist durability,
+live hostname apply, corruption, concurrency last-writer-wins,
+unprivileged denial; log `c2-settings.log`).
+
+**Deferred honestly:** double-boot persistence proof (store prefers /persist
+when mounted — verified; reboot round-trip still open); per-key change
+events; non-root writer roles (needs D3).

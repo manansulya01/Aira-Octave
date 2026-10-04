@@ -1,0 +1,73 @@
+#!/bin/sh
+# aira-cfg — centralized settings CLI (Wave C2).
+# Bus-first (service "settings"); falls back to direct local handler exec
+# with identical semantics when the bus is unreachable.
+set -u
+HANDLER="${AIRA_SETTINGS_HANDLER:-/etc/aira/ipc/handlers/settings}"
+LIB="/usr/lib/aira-ipc.sh"
+HAVE_LIB=0
+if [ -f "$LIB" ]; then
+    # shellcheck disable=SC1091
+    . "$LIB" 2>/dev/null && HAVE_LIB=1
+fi
+if [ "$HAVE_LIB" = "0" ]; then
+    aira_ipc_available() { return 1; }
+    aira_ipc_call() { return 1; }
+fi
+
+usage() {
+    cat <<'EOF'
+aira-cfg — Aira centralized settings (C2)
+  aira-cfg caps                      schema + per-key availability
+  aira-cfg get <key>                 effective value
+  aira-cfg set <key> <value>         validate + apply + store (privileged)
+  aira-cfg reset <key|ns|all>        restore defaults
+  aira-cfg list [namespace]          effective values
+  aira-cfg validate                  report unknown/invalid stored lines
+Keys: system.hostname, system.timezone, appearance.theme/wallpaper/night,
+  display.opacity, network.dhcp_iface, network.wifi, audio.volume/mute,
+  power.brightness, security.lock_timeout.
+Hardware-gated keys report UNAVAILABLE instead of pretending to work.
+EOF
+}
+
+via_bus() { # $1=method $2=args-string
+    if aira_ipc_available 2>/dev/null && aira_ipc_call settings "$1" "$2" 2>/dev/null; then
+        printf "%s\n" "$_AIRA_IPC_RESPONSE"
+        return 0
+    fi
+    return 1
+}
+
+via_local() { # $1=method $2=args-string
+    [ -x "$HANDLER" ] || { echo "aira-cfg: handler missing: $HANDLER" >&2; return 1; }
+    "$HANDLER" "$1" "$2"
+}
+
+run_op() { # $1=method $2=args-string
+    if via_bus "$1" "$2"; then return 0; fi
+    via_local "$1" "$2"
+}
+
+cmd="${1:-help}"
+case "$cmd" in
+    help|--help|-h) usage ;;
+    caps) run_op caps "" ;;
+    validate) run_op validate "" ;;
+    get)
+        [ -n "${2:-}" ] || { echo "usage: aira-cfg get <key>" >&2; exit 2; }
+        run_op get "$2"
+        ;;
+    set)
+        [ -n "${2:-}" ] && [ -n "${3:-}" ] || { echo "usage: aira-cfg set <key> <value>" >&2; exit 2; }
+        run_op set "$2|$3"
+        ;;
+    reset)
+        [ -n "${2:-}" ] || { echo "usage: aira-cfg reset <key|namespace|all>" >&2; exit 2; }
+        run_op reset "$2"
+        ;;
+    list)
+        run_op list "${2:-}"
+        ;;
+    *) echo "unknown: $cmd (try: aira-cfg help)" >&2; exit 2 ;;
+esac
