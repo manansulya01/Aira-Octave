@@ -2,9 +2,22 @@
 # AiraOS System Monitor - real-time CPU, memory, processes, storage, network monitoring.
 export DISPLAY="${DISPLAY:-:0}"
 
+STAT_CLI="aira-sysstat"
+command -v "$STAT_CLI" >/dev/null 2>&1 || {
+    for _c in /usr/bin/aira-sysstat /persist/usr/bin/aira-sysstat; do
+        [ -x "$_c" ] && STAT_CLI="$_c" && break
+    done
+}
+
 if [ "${1:-}" = "--once" ]; then
-    # One-shot output for tests/integrations
-    echo "=== AiraOS System Monitor ($(date '+%H:%M:%S')) ==="
+    # C4: single-snapshot backend (one IPC/handler call, not a dozen spawns).
+    if command -v "$STAT_CLI" >/dev/null 2>&1; then
+        echo "=== AiraOS System Monitor ($(date '+%H:%M:%S')) ==="
+        if "$STAT_CLI" snapshot 2>/dev/null; then exit 0; fi
+        echo "(snapshot backend failed — direct fallback below)"
+    fi
+    # Direct fallback (no backend): legacy multi-spawn implementation.
+    echo "=== AiraOS System Monitor ($(date '+%H:%M:%S')) [direct] ==="
     echo "--- cpu ---"
     grep -m1 "model name" /proc/cpuinfo 2>/dev/null
     awk '/^cpu /{printf "cpu user=%s nice=%s sys=%s idle=%s iowait=%s\n",$2,$3,$4,$5,$6}' /proc/stat 2>/dev/null
@@ -33,7 +46,19 @@ if [ "${1:-}" = "--once" ]; then
     exit 0
 fi
 
-# Graphical mode - run in xterm with live updates (theme single-sourced).
+# Graphical mode - single-backend watch (C4); legacy loop as fallback.
+if [ -n "${DISPLAY:-}" ] && command -v xterm >/dev/null 2>&1 && command -v "$STAT_CLI" >/dev/null 2>&1; then
+    _MBG="$(aira-theme get AIRA_BG 2>/dev/null)"; [ -n "$_MBG" ] || _MBG="#0b1026"
+    _MFG="$(aira-theme get AIRA_FG 2>/dev/null)"; [ -n "$_MFG" ] || _MFG="#e8ecff"
+    exec xterm \
+        -fa "Monospace" -fs 10 \
+        -bg "$_MBG" -fg "$_MFG" \
+        -sb -sl 1000 \
+        -T "AiraOS System Monitor" \
+        -geometry 100x40+180+110 \
+        -name aira-sysmon \
+        -e "$STAT_CLI" watch 2
+fi
 if [ -n "${DISPLAY:-}" ] && command -v xterm >/dev/null 2>&1; then
     _MBG="$(aira-theme get AIRA_BG 2>/dev/null)"; [ -n "$_MBG" ] || _MBG="#0b1026"
     _MFG="$(aira-theme get AIRA_FG 2>/dev/null)"; [ -n "$_MFG" ] || _MFG="#e8ecff"

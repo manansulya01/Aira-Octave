@@ -763,3 +763,33 @@ duplicating it; claimed-uid-0 trust hole closed (token-only privilege).
 **Deferred honestly:** SIGKILL escalation path (operator uses kill(1));
 per-session CPU/mem accounting; scrollback persistence; remote/headless
 PTY allocation (no screen/tmux class daemon — xterm only).
+
+## 17. C4 Record — 2026-10-04 (Efficient Monitoring)
+
+**Deliverables:**
+- `initramfs/etc/aira/ipc/handlers/sysstat` (read-only, no privilege gate):
+  `caps|snapshot`. One fork emits cpu (avg-since-boot %, model, count),
+  load, uptime, mem/swap, procs count + top-8, storage (/ + /persist),
+  net counters, thermal/battery (only when sysfs exposes them), services.
+- `initramfs/usr/bin/aira-sysstat`: bus-first CLI + `watch [N]`.
+- `gui/aira-sysmon`: `--once` via single snapshot call (legacy multi-spawn
+  body kept as fallback); graphical mode uses `watch 2`.
+- `initramfs/sbin/guest-monitest.sh` + `/init` `aira_monitest=1`: 23 checks
+  (sections, caps-vs-reality sensor honesty, bus discipline, 3× speed,
+  watch frames, sysmon-backend integration).
+- `scripts/test-sysstat.sh`: 31 host checks incl. measured overhead.
+
+**Bugs caught by testing (fixed):** handler exited 1 on healthy systems
+(trailing `&&` as last command → explicit `exit 0`); BusyBox `ps -o`
+unsupported in guest → plain-`ps` fallback rows; stale Oct-1 rootfs image
+served pre-C4 GUI apps to guests (sysmon-backend check failed honestly) →
+rebuilt rootfs via incremental build-gui + build-rootfs, then re-proved
+FILEOPS + TERMTEST + MONTEST against the fresh image.
+
+**Evidence:** host snapshot avg 123ms/144ms end-to-end (measured);
+host 31/31; shell 107/107; features 52/52; guest `===== MONTEST PASS =====`
+(23/23 incl. 3 snapshots in 2-3s; logs `c4-monitest3.log`).
+
+**Deferred honestly:** instantaneous cpu% (would cost 1s sleep per call);
+per-process CPU% on BusyBox (fallback rows carry `?`); monitor-overhead
+accounting under load (idle-only measurement so far).

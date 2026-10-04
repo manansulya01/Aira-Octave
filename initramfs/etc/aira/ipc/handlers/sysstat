@@ -1,0 +1,145 @@
+#!/bin/sh
+# sysstat — single-snapshot system metrics (Wave C4).
+# One handler fork replaces a dozen client-side process spawns per refresh.
+# Methods: caps | snapshot (read-only, open — no PRIV_METHODS line).
+# Honesty rules: cpu% is the average since boot (HZ cancels in ratios; no
+#   1s sleep tax per call — instantaneous mode deliberately deferred);
+#   thermal/battery sections appear only when sysfs exposes them, and caps
+#   reports sensor presence so clients never invent values.
+# Output: one "section" per line, key=value; multi-row data uses
+#   "name|field|field" rows. Newlines are bus-flattened to ";" as usual.
+# Handler contract: $1=method $2=args-string; stdout=payload; exit 0=OK, 3=ERR.
+
+_s_err() { echo "$1"; exit 3; }
+
+_s_has_thermal() {
+    for _z in /sys/class/thermal/thermal_zone*/temp; do
+        [ "$_z" = "/sys/class/thermal/thermal_zone*/temp" ] && break
+        return 0
+    done
+    return 1
+}
+
+_s_has_battery() {
+    for _b in /sys/class/power_supply/BAT*/capacity; do
+        [ "$_b" = "/sys/class/power_supply/BAT*/capacity" ] && break
+        return 0
+    done
+    return 1
+}
+
+_s_sanitize() { printf "%s" "$1" | tr '|\n' '??'; }
+
+m="$1"; a="${2:-}"
+case "$m" in
+    caps)
+        _th=no; _s_has_thermal && _th=yes
+        _ba=no; _s_has_battery && _ba=yes
+        echo "v=1;methods=caps,snapshot;cpu=avg-since-boot;thermal=$_th;battery=$_ba"
+        ;;
+    snapshot)
+        [ -n "$a" ] && _s_err "bad args: snapshot takes no arguments"
+        # --- cpu (jiffies since boot; ratios only) ---
+        if [ -f /proc/stat ]; then
+            _cpu="$(awk '/^cpu /{t=$2+$3+$4+$5+$6+$7+$8; b=$2+$3+$4+$7+$8; printf "%d %d %d %d %d", t, b, $2+$3, $4, $5+$6}' /proc/stat 2>/dev/null)"
+            _t="${_cpu%% *}"; _r="${_cpu#* }"
+            _b="${_r%% *}"; _r="${_r#* }"
+            _u="${_r%% *}"; _r="${_r#* }"
+            _s="${_r%% *}"; _i="${_r##* }"
+            if [ "${_t:-0}" -gt 0 ] 2>/dev/null; then
+                echo "cpu.busy_pct=$((_b*100/_t))"
+                echo "cpu.user_pct=$((_u*100/_t))"
+                echo "cpu.sys_pct=$((_s*100/_t))"
+                echo "cpu.idle_pct=$((_i*100/_t))"
+            fi
+        fi
+        _model="$(grep -m1 'model name' /proc/cpuinfo 2>/dev/null | cut -d: -f2- | sed 's/^ //')"
+        [ -n "$_model" ] && echo "cpu.model=$(_s_sanitize "$_model")"
+        echo "cpu.cpus=$(grep -c '^processor' /proc/cpuinfo 2>/dev/null || echo 0)"
+        # --- load + uptime ---
+        awk '{printf "load.1=%s\nload.5=%s\nload.15=%s\n", $1, $2, $3}' /proc/loadavg 2>/dev/null
+        _up="$(cut -d' ' -f1 /proc/uptime 2>/dev/null || echo 0)"
+        echo "uptime.s=${_up%%.*}"
+        # --- memory ---
+        _mt="$(awk '/^MemTotal:/{print $2}' /proc/meminfo 2>/dev/null || true)"
+        _ma="$(awk '/^MemAvailable:/{print $2}' /proc/meminfo 2>/dev/null || true)"
+        _st="$(awk '/^SwapTotal:/{print $2}' /proc/meminfo 2>/dev/null || true)"
+        _sf="$(awk '/^SwapFree:/{print $2}' /proc/meminfo 2>/dev/null || true)"
+        [ -n "$_mt" ] && echo "mem.total_kb=$_mt"
+        if [ -n "$_mt" ] && [ -n "$_ma" ] && [ "$_mt" -gt 0 ] 2>/dev/null; then
+            echo "mem.avail_kb=$_ma"
+            echo "mem.used_pct=$(( (($_mt-$_ma))*100/_mt ))"
+        fi
+        [ -n "$_st" ] && echo "swap.total_kb=$_st"
+        [ -n "$_sf" ] && echo "swap.free_kb=$_sf"
+        # --- processes (single ps; busybox fallback without -o) ---
+        _pc="$(ls -d /proc/[0-9]* 2>/dev/null | wc -l)"
+        echo "procs.count=${_pc:-0}"
+        _top="$(ps -o pid,user,pcpu,pmem,comm 2>/dev/null | tail -n +2 | head -n 8 || true)"
+        if [ -n "$_top" ]; then
+            printf "%s\n" "$_top" | while IFS= read -r _pl; do
+                _pl="$(printf "%s" "$_pl" | tr -s ' ')"
+                _ppid="${_pl%% *}"; _px="${_pl#* }"
+                _puser="${_px%% *}"; _px="${_px#* }"
+                _pcpu="${_px%% *}"; _px="${_px#* }"
+                _pmem="${_px%% *}"; _pcomm="${_px#* }"
+                printf "top=%s|%s|%s|%s|%s\n" "$_ppid" "$(_s_sanitize "$_puser")" "$_pcpu" "$_pmem" "$(_s_sanitize "$_pcomm")"
+            done
+        else
+            ps 2>/dev/null | tail -n +2 | head -n 8 | while IFS= read -r _q1 _q2 _q3 _q4 _qrest; do
+                [ -n "$_q1" ] || continue
+                printf "top=%s|%s|?|?|%s\n" "$_q1" "$(_s_sanitize "$_q2")" "$(_s_sanitize "$_qrest")"
+            done
+        fi
+        # --- storage (df -k, / and /persist) ---
+        df -k / 2>/dev/null | tail -n 1 | {
+            IFS=' ' read -r _fs _tot _used _av _pct _mp || true
+            [ -n "$_tot" ] && printf "storage=/|%s|%s|%s|%s\n" "$_tot" "$_used" "$_av" "$_pct"
+        }
+        if mount 2>/dev/null | grep -q " /persist "; then
+            df -k /persist 2>/dev/null | tail -n 1 | {
+                IFS=' ' read -r _fs _tot _used _av _pct _mp || true
+                [ -n "$_tot" ] && printf "storage=/persist|%s|%s|%s|%s\n" "$_tot" "$_used" "$_av" "$_pct"
+            }
+        fi
+        # --- network counters ---
+        if [ -f /proc/net/dev ]; then
+            grep -E ':' /proc/net/dev 2>/dev/null | grep -v "face|" | while IFS= read -r _nl; do
+                _if="${_nl%%:*}"; _if="$(printf "%s" "$_if" | tr -d ' ')"
+                _nums="$(printf "%s" "${_nl#*:}" | tr -s ' ' | sed 's/^ //')"
+                _rx="${_nums%% *}"
+                _tx="$(printf "%s" "$_nums" | tr ' ' '\n' | sed -n '9p')"
+                case "$_if" in ""|*"|"*|*" "*) continue ;; esac
+                printf "net=%s|%s|%s\n" "$_if" "${_rx:-0}" "${_tx:-0}"
+            done
+        fi
+        # --- thermal (only when present) ---
+        if _s_has_thermal; then
+            for _t in /sys/class/thermal/thermal_zone*/temp; do
+                _z="$(basename "$(dirname "$_t")")"
+                _raw="$(cat "$_t" 2>/dev/null || true)"
+                case "$_raw" in ''|*[!0-9]*) continue ;; esac
+                printf "thermal=%s|%s\n" "$_z" "$((_raw/1000))"
+            done
+        fi
+        # --- battery (only when present) ---
+        if _s_has_battery; then
+            for _c in /sys/class/power_supply/BAT*/capacity; do
+                _b="$(basename "$(dirname "$_c")")"
+                _cap="$(cat "$_c" 2>/dev/null || true)"
+                _stt="$(cat "$(dirname "$_c")/status" 2>/dev/null || echo unknown)"
+                printf "battery=%s|%s|%s\n" "$_b" "$(_s_sanitize "$_cap")" "$(_s_sanitize "$_stt")"
+            done
+        fi
+        # --- services (single status call) ---
+        if [ -x /sbin/aira-init ]; then
+            _ss="$(/sbin/aira-init status 2>/dev/null || true)"
+            _run="$(printf "%s" "$_ss" | grep -c running || true)"
+            _fail="$(printf "%s" "$_ss" | grep -E "failed|dead" | cut -d: -f1 | tr '\n' ',' || true)"
+            echo "svc.running=${_run:-0}"
+            [ -n "$_fail" ] && echo "svc.failed=$(_s_sanitize "$_fail")"
+        fi
+        exit 0
+        ;;
+    *) echo "unknown method: $m (want caps|snapshot)"; exit 3 ;;
+esac

@@ -1,0 +1,62 @@
+#!/bin/sh
+# aira-sysstat — single-snapshot metrics CLI (Wave C4).
+# Bus-first (service "sysstat"); identical local-handler fallback.
+set -u
+HANDLER="${AIRA_SYSSTAT_HANDLER:-/etc/aira/ipc/handlers/sysstat}"
+LIB="/usr/lib/aira-ipc.sh"
+HAVE_LIB=0
+if [ -f "$LIB" ]; then
+    # shellcheck disable=SC1091
+    . "$LIB" 2>/dev/null && HAVE_LIB=1
+fi
+if [ "$HAVE_LIB" = "0" ]; then
+    aira_ipc_available() { return 1; }
+    aira_ipc_call() { return 1; }
+fi
+
+usage() {
+    cat <<'EOF'
+aira-sysstat — system snapshot (C4)
+  aira-sysstat caps                  capabilities + sensor presence
+  aira-sysstat snapshot              cpu mem load uptime procs storage net sensors
+  aira-sysstat watch [N]              snapshot every N seconds (default 2)
+One bus/handler call replaces a dozen client-side spawns per refresh.
+cpu% is the average since boot (instantaneous mode deferred honestly).
+EOF
+}
+
+via_bus() { # $1=method $2=args-string
+    if aira_ipc_available 2>/dev/null && aira_ipc_call sysstat "$1" "$2" 2>/dev/null; then
+        printf "%s\n" "$_AIRA_IPC_RESPONSE"
+        return 0
+    fi
+    return 1
+}
+
+via_local() { # $1=method $2=args-string
+    [ -x "$HANDLER" ] || { echo "aira-sysstat: handler missing: $HANDLER" >&2; return 1; }
+    "$HANDLER" "$1" "$2"
+}
+
+run_op() { # $1=method $2=args-string
+    if via_bus "$1" "$2"; then return 0; fi
+    via_local "$1" "$2"
+}
+
+cmd="${1:-help}"
+case "$cmd" in
+    help|--help|-h) usage ;;
+    caps) run_op caps "" ;;
+    snapshot) run_op snapshot "" ;;
+    watch)
+        _n="${2:-2}"
+        case "$_n" in ''|*[!0-9]*) echo "bad interval" >&2; exit 2 ;; esac
+        while true; do
+            clear 2>/dev/null || true
+            echo "=== AiraOS System Monitor ($(date '+%H:%M:%S' 2>/dev/null)) ==="
+            run_op snapshot "" || exit 1
+            sleep "$_n"
+        done
+        ;;
+    *) echo "unknown: $cmd (try: aira-sysstat help)" >&2; exit 2 ;;
+esac

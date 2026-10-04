@@ -179,6 +179,16 @@ if grep -q "aira_termtest=1" /proc/cmdline 2>/dev/null; then
   fi
 fi
 
+# Monitor verification (single-snapshot backend + honesty + speed).
+if grep -q "aira_monitest=1" /proc/cmdline 2>/dev/null; then
+  echo "[init] aira_monitest=1 detected, running monitor verification"
+  if [ -x /sbin/guest-monitest.sh ]; then
+    exec /sbin/guest-monitest.sh
+  else
+    echo "[init] guest-monitest.sh missing"
+  fi
+fi
+
 # Automated in-guest test mode (for scripts/test-*.sh): cmdline contains aira_autotest=1
 if grep -q "aira_autotest=1" /proc/cmdline 2>/dev/null; then
   echo "[init] aira_autotest=1 detected, running guest autotest"
