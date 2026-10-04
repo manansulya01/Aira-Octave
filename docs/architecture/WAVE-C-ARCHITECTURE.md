@@ -728,3 +728,38 @@ unprivileged denial; log `c2-settings.log`).
 **Deferred honestly:** double-boot persistence proof (store prefers /persist
 when mounted — verified; reboot round-trip still open); per-key change
 events; non-root writer roles (needs D3).
+
+## 16. C3 Record — 2026-10-04 (Terminal Sessions)
+
+**Architecture (honest split):** kernel owns PTYs, xterm owns window/PTY/
+resize/signals/scrollback/clipboard; Aira owns SESSION lifecycle the desktop
+lacked (fire-and-forget xterms): tracked spawn, ownership, limits, cleanup.
+
+**Deliverables:**
+- `initramfs/etc/aira/ipc/handlers/terms`: `caps|list` open;
+  `spawn|kill|cleanup` PRIVILEGED. Validated
+  shell (basename allowlist + executable) and cwd; per-session VSZ cap 1G;
+  one file per session (no shared rewrite races); max 32; self-kill by uid,
+  others only via root token (self-claimed uid 0 grants nothing);
+  TERM-only signaling (no SIGKILL escalation); xterm stderr captured to
+  session `.err` (kept on failure, orphan-pruned by cleanup).
+- `initramfs/usr/bin/aira-term`: bus-first CLI, identical local fallback.
+- `gui/aira-terminal`: `--list/--kill/--cleanup/--once`; default launch via
+  tracked spawn with direct-xterm fallback; CWD no longer interpolated.
+- `initramfs/sbin/guest-termtest.sh` + `/init` `aira_termtest=1`: 24 checks
+  incl. kernel-ptmx proof, PTY-master proof, concurrency, privilege denial.
+- `scripts/test-terms.sh`: 37 host checks.
+
+**Bugs caught by testing (fixed):** 512M VSZ cap killed xterm at startup
+(Xft/mesa mmap) → 1G + `.err` capture; hand-rolled `Xvfb :99` died on the
+missing `/usr/bin/xkbcomp` compat symlink — test now uses the PRODUCTION
+`aira-session --headless` path (which owns X bring-up) instead of
+duplicating it; claimed-uid-0 trust hole closed (token-only privilege).
+
+**Evidence:** host 37/37; shell 107/107; guest with drive →
+`===== TERMTEST PASS =====` (24/24 incl. real spawn, PTY master held,
+3 concurrent, kill+reap; log `c3-termtest7.log`).
+
+**Deferred honestly:** SIGKILL escalation path (operator uses kill(1));
+per-session CPU/mem accounting; scrollback persistence; remote/headless
+PTY allocation (no screen/tmux class daemon — xterm only).

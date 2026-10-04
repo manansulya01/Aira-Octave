@@ -1,0 +1,61 @@
+#!/bin/sh
+# aira-term — terminal session CLI (Wave C3).
+# Bus-first (service "terms"); identical local-handler fallback.
+# Spawning needs DISPLAY + xterm; otherwise UNAVAILABLE (honest headless).
+set -u
+HANDLER="${AIRA_TERMS_HANDLER:-/etc/aira/ipc/handlers/terms}"
+LIB="/usr/lib/aira-ipc.sh"
+HAVE_LIB=0
+if [ -f "$LIB" ]; then
+    # shellcheck disable=SC1091
+    . "$LIB" 2>/dev/null && HAVE_LIB=1
+fi
+if [ "$HAVE_LIB" = "0" ]; then
+    aira_ipc_available() { return 1; }
+    aira_ipc_call() { return 1; }
+fi
+
+usage() {
+    cat <<'EOF'
+aira-term — Aira terminal sessions (C3)
+  aira-term caps                       service capabilities
+  aira-term list                       live/dead session table
+  aira-term spawn [cwd] [shell]        tracked xterm (needs DISPLAY)
+  aira-term kill <id>                  TERM own session (root-token: any)
+  aira-term cleanup                    reap dead entries
+PTY/resize/signals/scrollback/clipboard are owned by kernel/xterm;
+this layer owns tracking, ownership, limits, and cleanup.
+EOF
+}
+
+via_bus() { # $1=method $2=args-string
+    if aira_ipc_available 2>/dev/null && aira_ipc_call terms "$1" "$2" 2>/dev/null; then
+        printf "%s\n" "$_AIRA_IPC_RESPONSE"
+        return 0
+    fi
+    return 1
+}
+
+via_local() { # $1=method $2=args-string
+    [ -x "$HANDLER" ] || { echo "aira-term: handler missing: $HANDLER" >&2; return 1; }
+    "$HANDLER" "$1" "$2"
+}
+
+run_op() { # $1=method $2=args-string
+    if via_bus "$1" "$2"; then return 0; fi
+    via_local "$1" "$2"
+}
+
+cmd="${1:-help}"
+case "$cmd" in
+    help|--help|-h) usage ;;
+    caps) run_op caps "" ;;
+    list) run_op list "" ;;
+    cleanup) run_op cleanup "" ;;
+    spawn) run_op spawn "${2:-$HOME}|${3:-sh}" ;;
+    kill)
+        [ -n "${2:-}" ] || { echo "usage: aira-term kill <id>" >&2; exit 2; }
+        run_op kill "$2"
+        ;;
+    *) echo "unknown: $cmd (try: aira-term help)" >&2; exit 2 ;;
+esac

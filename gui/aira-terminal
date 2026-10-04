@@ -3,9 +3,29 @@
 # copy/paste support, multiple window support, and shell environment integration.
 export DISPLAY="${DISPLAY:-:0}"
 
+# C3: tracked sessions via aira-term (bus-first, local fallback identical).
+TERM_CLI="aira-term"
+command -v "$TERM_CLI" >/dev/null 2>&1 || {
+    for _c in /usr/bin/aira-term /persist/usr/bin/aira-term; do
+        [ -x "$_c" ] && TERM_CLI="$_c" && break
+    done
+}
+if [ "${1:-}" = "--list" ]; then shift; exec "$TERM_CLI" list; fi
+if [ "${1:-}" = "--cleanup" ]; then shift; exec "$TERM_CLI" cleanup; fi
+if [ "${1:-}" = "--kill" ]; then _k="${2:-}"; [ -n "$_k" ] || { echo "usage: aira-terminal --kill <id>" >&2; exit 2; }; exec "$TERM_CLI" kill "$_k"; fi
+
 # Determine shell
 SHELL="${SHELL:-/bin/sh}"
 [ -x "$SHELL" ] || SHELL="/bin/sh"
+
+if [ "${1:-}" = "--once" ]; then
+    _OBG="$(aira-theme get AIRA_BG 2>/dev/null)"; [ -n "$_OBG" ] || _OBG="#0b1026"
+    echo "shell=$SHELL"
+    echo "cwd=${2:-$HOME}"
+    echo "bg=$_OBG"
+    echo "session-cli=$TERM_CLI"
+    exit 0
+fi
 
 # Working directory
 CWD="${1:-$HOME}"
@@ -13,6 +33,15 @@ CWD="${1:-$HOME}"
 # Aira styling is single-sourced via the theme engine (fallback = night).
 _TBG="$(aira-theme get AIRA_BG 2>/dev/null)"; [ -n "$_TBG" ] || _TBG="#0b1026"
 _TFG="$(aira-theme get AIRA_FG 2>/dev/null)"; [ -n "$_TFG" ] || _TFG="#e8ecff"
+
+# Tracked session when the backend is reachable; direct xterm otherwise.
+# (spawn detaches + registers; the id is visible via --list for --kill.)
+if command -v "$TERM_CLI" >/dev/null 2>&1 && [ -n "${DISPLAY:-}" ] && command -v xterm >/dev/null 2>&1; then
+    if "$TERM_CLI" spawn "$CWD" "$(basename "$SHELL")" >/dev/null 2>&1; then
+        exit 0
+    fi
+    # fall through to direct launch on spawn failure
+fi
 
 # Launch xterm with Aira styling and proper terminal features
 exec xterm \

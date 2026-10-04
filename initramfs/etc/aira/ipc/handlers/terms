@@ -1,0 +1,206 @@
+#!/bin/sh
+# terms — terminal session registry (Wave C3).
+# The kernel owns PTYs and xterm owns its window/PTY; this service owns the
+# SESSION lifecycle supervisorship the desktop previously lacked: tracked
+# spawn (validated shell/cwd, resource limits, reparent-to-init detach),
+# ownership ( callers may only signal their own sessions unless root-token
+# granted), liveness listing, stale-entry cleanup.
+# Methods: caps | list | spawn | kill | cleanup
+# Args encoding: operands separated by "|" (no "|" or newline inside).
+# Privilege: list/caps open; spawn/kill/cleanup PRIVILEGED (process control).
+# Registry: AIRA_TERMS_DIR override, else /run/aira-terms; one file per
+# session "<id>.session" (no shared-file rewrite races). Max 32 sessions.
+# Handler contract: $1=method $2=args-string; stdout=payload; exit 0=OK, 3=ERR.
+PRIV_METHODS="spawn kill cleanup"
+TERMS_MAX="32"
+
+_t_err() { echo "$1"; exit 3; }
+
+_t_dir() {
+    if [ -n "${AIRA_TERMS_DIR:-}" ]; then printf "%s" "$AIRA_TERMS_DIR"; return 0; fi
+    printf "/run/aira-terms"
+}
+
+# Caller uid: bus sender ("uid:name") when dispatched, else local euid.
+_t_caller_uid() {
+    if [ -n "${AIRA_IPC_SENDER:-}" ]; then
+        printf "%s" "${AIRA_IPC_SENDER%%:*}"
+    else
+        id -u 2>/dev/null || echo 0
+    fi
+}
+
+# Caller is privileged only via root token when dispatched (a self-claimed
+# sender uid of 0 without token grants nothing); locally, euid 0.
+_t_caller_priv() {
+    if [ -n "${AIRA_IPC_SENDER:-}" ]; then
+        [ "${AIRA_IPC_AUTH:-denied}" = "granted" ] && return 0
+        return 1
+    fi
+    [ "$(id -u 2>/dev/null)" = "0" ]
+}
+
+# _t_norm <path>: same policy as files (absolute, no .., no encoded, no |).
+_t_norm() {
+    _p="$1"
+    [ -n "$_p" ] || return 1
+    case "$_p" in *"
+"*) return 1 ;; esac
+    case "$_p" in *"|"*) return 1 ;; esac
+    case "$_p" in
+        *%00*|*%2e*|*%2E*|*%2f*|*%2F*|*%5c*|*%5C*) return 1 ;;
+    esac
+    case "$_p" in /*) ;; *) return 1 ;; esac
+    _p="$(printf "%s" "$_p" | tr -s '/')"
+    case "$_p" in /) printf "/\n"; return 0 ;; esac
+    _p="${_p%/}"
+    _rest="${_p#/}"
+    _out=""
+    while [ -n "$_rest" ]; do
+        case "$_rest" in
+            */*) _comp="${_rest%%/*}"; _rest="${_rest#*/}" ;;
+            *) _comp="$_rest"; _rest="" ;;
+        esac
+        case "$_comp" in
+            ""|.) continue ;;
+            "..") return 1 ;;
+            *) _out="$_out/$_comp" ;;
+        esac
+    done
+    printf "%s\n" "${_out:-/}"
+    return 0
+}
+
+# _t_entry <id>: print session file path if id is well-formed.
+_t_entry() {
+    case "$1" in *"
+"*) return 1 ;; esac
+    case "$1" in *"|"*|*"/"*|"."|"..") return 1 ;; esac
+    case "$1" in *[!a-z0-9-]*) return 1 ;; esac
+    printf "%s/%s.session" "$(_t_dir)" "$1"
+}
+
+_t_alive() { kill -0 "$1" 2>/dev/null; }
+
+m="$1"; a="${2:-}"
+case "$m" in
+    caps)
+        echo "v=1;methods=caps,list,spawn,kill,cleanup;max=$TERMS_MAX;pty=kernel/xterm;scrollback=2000(xterm -sl);limits=vsz1G-per-session"
+        ;;
+    list)
+        _d="$(_t_dir)"
+        [ -d "$_d" ] || exit 0
+        for _f in "$_d"/*.session; do
+            [ -f "$_f" ] || continue
+            _id="$(basename "$_f" .session)"
+            _pid="$(grep -E "^pid=" "$_f" 2>/dev/null | cut -d= -f2)"
+            _uid="$(grep -E "^uid=" "$_f" 2>/dev/null | cut -d= -f2)"
+            _cwd="$(grep -E "^cwd=" "$_f" 2>/dev/null | cut -d= -f2-)"
+            _st="dead"
+            [ -n "$_pid" ] && _t_alive "$_pid" && _st="live"
+            printf "%s|%s|%s|%s|%s\n" "$_id" "${_pid:-?}" "${_uid:-?}" "$_st" "$_cwd"
+        done
+        ;;
+    spawn)
+        _cwd_raw="${a%%|*}"; _rest="${a#*|}"
+        _sh_raw=""; _title=""
+        case "$a" in *"|"*) _sh_raw="${_rest%%|*}"; _t2="${_rest#*|}"; case "$_rest" in *"|"*) _title="$_t2" ;; esac ;; *)
+            _t_err "bad args: spawn takes cwd|shell[|title]" ;;
+        esac
+        command -v xterm >/dev/null 2>&1 || _t_err "UNAVAILABLE: xterm not installed"
+        [ -n "${DISPLAY:-}" ] || _t_err "UNAVAILABLE: no DISPLAY (headless session host)"
+        _cwd="$(_t_norm "$_cwd_raw")" || _t_err "bad cwd: rejected"
+        [ -d "$_cwd" ] || _t_err "bad cwd: not a directory"
+        case "$_sh_raw" in ""|*"/"*|*"-"*|*"."*) _t_err "bad shell: rejected" ;; esac
+        _sh=""
+        for _cand in /bin/"$_sh_raw" /usr/bin/"$_sh_raw"; do
+            [ -x "$_cand" ] && _sh="$_cand" && break
+        done
+        [ -n "$_sh" ] || _t_err "bad shell: not executable"
+        _d="$(_t_dir)"
+        mkdir -p "$_d" 2>/dev/null || _t_err "registry failed"
+        _n="$(ls "$_d"/*.session 2>/dev/null | wc -l)"
+        case "$_n" in ''|*[!0-9]*) _n=0 ;; esac
+        [ "$_n" -ge "$TERMS_MAX" ] && _t_err "session table full ($TERMS_MAX)"
+        _id="t$(date +%s 2>/dev/null || echo 0)-$$-${RANDOM:-0}"
+        _id="$(printf "%s" "$_id" | tr -c 'a-z0-9-' '-' | cut -c1-32)"
+        _uid="$(_t_caller_uid)"
+        _TBG=""; _TFG=""
+        if command -v aira-theme >/dev/null 2>&1; then
+            _TBG="$(aira-theme get AIRA_BG 2>/dev/null)"; _TFG="$(aira-theme get AIRA_FG 2>/dev/null)"
+        fi
+        [ -n "$_TBG" ] || _TBG="#0b1026"
+        [ -n "$_TFG" ] || _TFG="#e8ecff"
+        [ -n "$_title" ] || _title="AiraOS Terminal"
+        # Detached session leader: reparented to init on handler exit.
+        # cwd/shell passed as argv (never interpolated). Per-session VSZ
+        # cap 1G (xterm+Xft/fontconfig/mesa routinely exceed 512M virtual).
+        # xterm stderr goes to the session .err log (kept on failure, else
+        # removed) so immediate exits are diagnosable, not silent.
+        _errf="$_d/$_id.err"
+        (
+            ulimit -v 1048576 2>/dev/null || true
+            cd "$_cwd" 2>/dev/null || exit 1
+            exec xterm -fa "Monospace" -fs 11 -bg "$_TBG" -fg "$_TFG" \
+                -sb -sl 2000 -rightbar -T "$_title" -name aira-terminal \
+                -xrm "XTerm*selectToClipboard: true" \
+                -e "$_sh" </dev/null >/dev/null 2>"$_errf"
+        ) &
+        _pid=$!
+        sleep 1
+        if ! _t_alive "$_pid"; then
+            wait "$_pid" 2>/dev/null
+            _diag="$(head -c 200 "$_errf" 2>/dev/null | tr '\n' ';')"
+            [ -n "$_diag" ] || _diag="no xterm error output"
+            _t_err "spawn failed (xterm exited immediately: $_diag)"
+        fi
+        rm -f "$_errf" 2>/dev/null
+        {
+            echo "pid=$_pid"
+            echo "uid=$_uid"
+            echo "display=${DISPLAY:-}"
+            echo "cwd=$_cwd"
+            echo "shell=$_sh"
+            echo "started=$(date +%s 2>/dev/null || echo 0)"
+        } > "$_d/$_id.session" 2>/dev/null || { kill "$_pid" 2>/dev/null; _t_err "registry failed"; }
+        echo "$_id"
+        ;;
+    kill)
+        case "$a" in *"|"*) _t_err "bad args: kill takes one session id" ;; esac
+        _f="$(_t_entry "$a")" || _t_err "bad session id"
+        [ -f "$_f" ] || _t_err "no such session"
+        _pid="$(grep -E "^pid=" "$_f" 2>/dev/null | cut -d= -f2)"
+        _uid="$(grep -E "^uid=" "$_f" 2>/dev/null | cut -d= -f2)"
+        [ -n "$_pid" ] || _t_err "corrupt session entry"
+        if ! _t_caller_priv; then
+            [ "$(_t_caller_uid)" = "$_uid" ] || _t_err "denied: session owned by uid $_uid"
+        fi
+        if _t_alive "$_pid"; then
+            kill "$_pid" 2>/dev/null || _t_err "signal failed"
+            echo "signalled $a ($_pid)"
+        else
+            rm -f "$_f" 2>/dev/null
+            echo "reaped $a (already dead)"
+        fi
+        ;;
+    cleanup)
+        _d="$(_t_dir)"
+        [ -d "$_d" ] || { echo "removed=0 active=0"; exit 0; }
+        _rem=0; _act=0
+        for _f in "$_d"/*.session; do
+            [ -f "$_f" ] || continue
+            _pid="$(grep -E "^pid=" "$_f" 2>/dev/null | cut -d= -f2)"
+            if [ -n "$_pid" ] && _t_alive "$_pid"; then
+                _act=$((_act+1))
+            else
+                rm -f "$_f" 2>/dev/null && _rem=$((_rem+1))
+            fi
+        done
+        for _e in "$_d"/*.err; do
+            [ -f "$_e" ] || continue
+            [ -f "${_e%.err}.session" ] || rm -f "$_e" 2>/dev/null
+        done
+        echo "removed=$_rem active=$_act"
+        ;;
+    *) echo "unknown method: $m (want caps|list|spawn|kill|cleanup)"; exit 3 ;;
+esac

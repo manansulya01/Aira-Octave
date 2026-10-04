@@ -169,6 +169,16 @@ if grep -q "aira_settingstest=1" /proc/cmdline 2>/dev/null; then
   fi
 fi
 
+# Terminal session verification (tracked spawn/kill/cleanup + PTY proof).
+if grep -q "aira_termtest=1" /proc/cmdline 2>/dev/null; then
+  echo "[init] aira_termtest=1 detected, running terminal verification"
+  if [ -x /sbin/guest-termtest.sh ]; then
+    exec /sbin/guest-termtest.sh
+  else
+    echo "[init] guest-termtest.sh missing"
+  fi
+fi
+
 # Automated in-guest test mode (for scripts/test-*.sh): cmdline contains aira_autotest=1
 if grep -q "aira_autotest=1" /proc/cmdline 2>/dev/null; then
   echo "[init] aira_autotest=1 detected, running guest autotest"
