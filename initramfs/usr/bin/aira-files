@@ -1,0 +1,81 @@
+#!/bin/sh
+# aira-files — IPC-backed file operations CLI (Wave C1).
+# Uses the Aira IPC bus (service "files") when reachable; otherwise executes
+# the same handler locally, so semantics are identical in both paths.
+# All operands are passed as fixed argv — never interpolated into shell.
+# Multi-operand methods join operands with "|" on the wire (paths may contain
+# spaces; "|" and newline inside paths are rejected by the backend).
+set -u
+HANDLER="${AIRA_FILES_HANDLER:-/etc/aira/ipc/handlers/files}"
+LIB="/usr/lib/aira-ipc.sh"
+HAVE_LIB=0
+if [ -f "$LIB" ]; then
+    # shellcheck disable=SC1091
+    . "$LIB" 2>/dev/null && HAVE_LIB=1
+fi
+if [ "$HAVE_LIB" = "0" ]; then
+    aira_ipc_available() { return 1; }
+    aira_ipc_call() { return 1; }
+fi
+
+usage() {
+    cat <<'EOF'
+aira-files — IPC-backed file operations (C1)
+  aira-files caps
+  aira-files list <dir> [--hidden]
+  aira-files stat <path>
+  aira-files mkdir <path>
+  aira-files rename <src> <dst>      (atomic, no clobber)
+  aira-files copy <src> <dst>        (file only, no clobber, partial cleaned)
+  aira-files move <src> <dst>        (no clobber)
+  aira-files delete <path>           (file/link, or empty dir only)
+Writes outside /root /home /tmp /persist /var/lib/airapkg/repo are denied.
+Protected paths (root.token, shadow) are denied even for reads.
+EOF
+}
+
+via_bus() { # $1=method $2=args-string
+    if aira_ipc_available 2>/dev/null && aira_ipc_call files "$1" "$2" 2>/dev/null; then
+        printf "%s\n" "$_AIRA_IPC_RESPONSE"
+        return 0
+    fi
+    return 1
+}
+
+via_local() { # $1=method $2=args-string
+    [ -x "$HANDLER" ] || { echo "aira-files: handler missing: $HANDLER" >&2; return 1; }
+    "$HANDLER" "$1" "$2"
+}
+
+run_op() { # $1=method $2=args-string
+    if via_bus "$1" "$2"; then return 0; fi
+    via_local "$1" "$2"
+}
+
+cmd="${1:-help}"
+case "$cmd" in
+    help|--help|-h) usage ;;
+    caps) run_op caps "" ;;
+    list)
+        [ -n "${2:-}" ] || { echo "usage: aira-files list <dir> [--hidden]" >&2; exit 2; }
+        _h="0"; [ "${3:-}" = "--hidden" ] && _h="1"
+        run_op list "$2|$_h"
+        ;;
+    stat)
+        [ -n "${2:-}" ] || { echo "usage: aira-files stat <path>" >&2; exit 2; }
+        run_op stat "$2"
+        ;;
+    mkdir)
+        [ -n "${2:-}" ] || { echo "usage: aira-files mkdir <path>" >&2; exit 2; }
+        run_op mkdir "$2"
+        ;;
+    rename|copy|move)
+        [ -n "${2:-}" ] && [ -n "${3:-}" ] || { echo "usage: aira-files $cmd <src> <dst>" >&2; exit 2; }
+        run_op "$cmd" "$2|$3"
+        ;;
+    delete)
+        [ -n "${2:-}" ] || { echo "usage: aira-files delete <path>" >&2; exit 2; }
+        run_op delete "$2"
+        ;;
+    *) echo "unknown: $cmd (try: aira-files help)" >&2; exit 2 ;;
+esac

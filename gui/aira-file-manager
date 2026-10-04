@@ -3,6 +3,50 @@
 # Configured for AiraOS with proper theme, keybindings, and integration.
 export DISPLAY="${DISPLAY:-:0}"
 
+# C1: IPC-backed mode (no X needed). Backend = Aira IPC "files" service via
+# aira-files (bus when reachable, identical local handler otherwise).
+FILES_CLI="aira-files"
+command -v "$FILES_CLI" >/dev/null 2>&1 || {
+    for _c in /usr/bin/aira-files /persist/usr/bin/aira-files; do
+        [ -x "$_c" ] && FILES_CLI="$_c" && break
+    done
+}
+if [ "${1:-}" = "--once" ]; then
+    shift
+    exec "$FILES_CLI" list "${1:-/root}"
+fi
+if [ "${1:-}" = "--text" ]; then
+    shift
+    _DIR="${1:-/root}"
+    _HID="0"
+    while true; do
+        clear
+        echo "=== AiraOS File Manager (IPC) : $_DIR ==="
+        if ! "$FILES_CLI" list "$_DIR" $([ "$_HID" = "1" ] && echo --hidden) 2>&1; then
+            echo "(listing failed — see error above)"
+        fi
+        echo
+        echo "  l) list  s) stat  m) mkdir  r) rename  c) copy  v) move  d) delete"
+        echo "  h) toggle hidden  g) go to dir  u) up  q) quit"
+        printf "Choice: "
+        read -r _ch
+        case "$_ch" in
+            l) "$FILES_CLI" list "$_DIR" $([ "$_HID" = "1" ] && echo --hidden); printf "Enter..."; read -r _ ;;
+            s) printf "Path: "; read -r _p; "$FILES_CLI" stat "$_p"; printf "Enter..."; read -r _ ;;
+            m) printf "New dir: "; read -r _p; "$FILES_CLI" mkdir "$_p"; printf "Enter..."; read -r _ ;;
+            r) printf "Src: "; read -r _s; printf "Dst: "; read -r _d; "$FILES_CLI" rename "$_s" "$_d"; printf "Enter..."; read -r _ ;;
+            c) printf "Src: "; read -r _s; printf "Dst: "; read -r _d; "$FILES_CLI" copy "$_s" "$_d"; printf "Enter..."; read -r _ ;;
+            v) printf "Src: "; read -r _s; printf "Dst: "; read -r _d; "$FILES_CLI" move "$_s" "$_d"; printf "Enter..."; read -r _ ;;
+            d) printf "Delete path: "; read -r _p; "$FILES_CLI" delete "$_p"; printf "Enter..."; read -r _ ;;
+            h) [ "$_HID" = "1" ] && _HID="0" || _HID="1" ;;
+            g) printf "Dir: "; read -r _DIR ;;
+            u) _DIR="${_DIR%/*}"; [ -n "$_DIR" ] || _DIR="/" ;;
+            q|Q) break ;;
+        esac
+    done
+    exit 0
+fi
+
 # Create mc config directory and configuration for Aira theme
 MC_CONFIG_DIR="$HOME/.config/mc"
 mkdir -p "$MC_CONFIG_DIR"

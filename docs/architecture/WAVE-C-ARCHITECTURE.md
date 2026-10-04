@@ -653,3 +653,47 @@ transport, connection pooling. Documented as future work; no fake API added.
 **Evidence:** `sh -n` on lib + both consumers PASS;
 `scripts/test-shell.sh` 107/107 PASS (2026-10-03);
 `git diff` for this milestone touches only C0 files listed below.
+
+**C0 guest close-out (2026-10-04):** rebuilt initramfs from source and booted
+QEMU `aira_autotest=1` → `===== GUEST AUTOTEST PASS =====`, 128 OK / 0 FAIL
+(log `logs/final-completion/c0-autotest.log`, preserved on disk, untracked).
+Covers ping/list/all service calls, priv-denial ×2, malformed/version/id/
+service/method violations, oversize, post-abuse ping, 10× repeat, 5×
+concurrent, event cap, handler-timeout, crash/recovery, daemon kill/restart.
+C0 status: IMPLEMENTED + TESTED + VERIFIED.
+
+## 14. C1 Record — 2026-10-04 (IPC-backed Files)
+
+**Deliverables:**
+- `initramfs/etc/aira/ipc/handlers/files` (service `files`): `caps|list|stat`
+  open; `mkdir|rename|copy|move|delete` PRIVILEGED (root token, same precedent
+  as `services` start/stop). Args are `|`-separated (spaces OK; `|`/newline
+  rejected). No `eval`; fixed argv only (`cp/mv/mkdir/rm/rmdir/stat` + `--`).
+- Path policy: absolute-only; `..`/encoded (`%00 %2e %2f %5c`)/pipe/newline
+  rejected; `//`+`/./` collapsed; symlink targets resolved and re-checked;
+  reads deny `root.token`+`shadow`/`gshadow`; writes confined to
+  `/root /home /tmp /persist /var/lib/airapkg/repo`; symlink sources refused
+  for copy; destinations never clobbered; non-empty dirs never deleted;
+  partial copies cleaned; cross-fs move = copy+unlink with rollback.
+- `initramfs/usr/bin/aira-files`: bus-first CLI, local-handler fallback with
+  identical semantics (fallback proven by host suite with no bus present).
+- `gui/aira-file-manager`: new `--once <dir>` (testable listing) and `--text`
+  (IPC browser: list/stat/mkdir/rename/copy/move/delete, hidden toggle);
+  graphical `mc` backend unchanged and still present in drive image.
+- `initramfs/sbin/guest-fileops.sh`: +26 IPC checks (ops + non-empty refusal
+  + 4 attack rejections + bus-traversal + unprivileged-write denial).
+- `scripts/test-files.sh`: 56 host checks (handler direct + CLI fallback +
+  attacks + spaced names + manager `--once`).
+
+**Evidence:** host `test-files.sh` 56/56; `test-shell.sh` 107/107;
+`test-features.sh` 52/52; guest `aira_fileops=1` WITH drive →
+`===== FILEOPS PASS =====` (26/26 incl. mc backend; log
+`logs/final-completion/c1-fileops-drive.log`). Diskless boot shows the
+pre-existing `mc missing` INFO/FAIL (mc ships in rootfs image, not initramfs)
+— mode-dependent, not a C1 defect. C1 status: IMPLEMENTED + TESTED +
+VERIFIED (host + guest, bus + local paths).
+
+**Deferred honestly:** recursive copy/tree delete over IPC (explicit per-file
+ops only — safer default); trash/recycle spec; progress/cancel streaming
+(single-request/response bus has no streaming verb); `files` write access for
+non-root desktop users (requires D3 session/ownership work first).

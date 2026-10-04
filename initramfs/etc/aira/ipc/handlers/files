@@ -1,0 +1,227 @@
+#!/bin/sh
+# files — IPC-backed filesystem operations (Wave C1).
+# Methods: caps | list | stat | mkdir | rename | copy | move | delete
+# Args encoding: operands are separated by "|" (paths may contain spaces;
+#   "|" and newline are forbidden inside paths and rejected).
+# Privilege: list/stat/caps are open (read-only). mkdir/rename/copy/move/delete
+#   are PRIVILEGED (root token) — enforced by aira-ipc-handle via PRIV_METHODS.
+# Safety: canonicalization, traversal rejection, encoded-traversal rejection,
+#   symlink-escape protection, writable-root policy, protected-path deny list.
+#   Never evals input; only fixed argv calls (cp/mv/mkdir/rm/stat) with "--".
+# Handler contract: $1=method $2=args-string; stdout=payload; exit 0=OK, 3=ERR.
+PRIV_METHODS="mkdir rename copy move delete"
+
+# Writable roots for mutating methods (absolute, normalized).
+FILES_WRITABLE="/root /home /tmp /persist /var/lib/airapkg/repo"
+# Read-deny exact files (sensitive even for list/stat).
+FILES_READ_DENY="/run/aira-ipc/root.token /etc/shadow /etc/gshadow"
+
+_files_err() { echo "$1"; exit 3; }
+
+# _files_norm <path>: print normalized absolute path, or return 1.
+# Rejects: empty, newline, "|", %00/%2e/%2f/%5c (any case), non-absolute,
+# ".." components. Collapses //, /./ and trailing slash.
+_files_norm() {
+    _p="$1"
+    [ -n "$_p" ] || return 1
+    case "$_p" in *"
+"*) return 1 ;; esac
+    case "$_p" in *"|"*) return 1 ;; esac
+    case "$_p" in
+        *%00*|*%2e*|*%2E*|*%2f*|*%2F*|*%5c*|*%5C*) return 1 ;;
+    esac
+    case "$_p" in /*) ;; *) return 1 ;; esac
+    _p="$(printf "%s" "$_p" | tr -s '/')"
+    case "$_p" in /) printf "/\n"; return 0 ;; esac
+    _p="${_p%/}"
+    # Strip leading slash for component walk.
+    _rest="${_p#/}"
+    _out=""
+    while [ -n "$_rest" ]; do
+        case "$_rest" in
+            */*) _comp="${_rest%%/*}"; _rest="${_rest#*/}" ;;
+            *) _comp="$_rest"; _rest="" ;;
+        esac
+        case "$_comp" in
+            ""|.) continue ;;
+            "..") return 1 ;;
+            *) _out="$_out/$_comp" ;;
+        esac
+    done
+    printf "%s\n" "${_out:-/}"
+    return 0
+}
+
+# _files_under <path> <root>: 0 if path == root or strictly under root/.
+_files_under() {
+    [ "$1" = "$2" ] && return 0
+    case "$1" in "$2"/*) return 0 ;; *) return 1 ;; esac
+}
+
+# _files_denied_read <norm>: 0 if read must be refused.
+_files_denied_read() {
+    for _d in $FILES_READ_DENY; do
+        [ "$1" = "$_d" ] && return 0
+    done
+    return 1
+}
+
+# _files_resolve <norm>: best-effort symlink resolution of existing path.
+# Prints resolved path (or input if unresolvable / tools absent).
+_files_resolve() {
+    if command -v readlink >/dev/null 2>&1; then
+        readlink -f "$1" 2>/dev/null || printf "%s" "$1"
+    elif command -v realpath >/dev/null 2>&1; then
+        realpath "$1" 2>/dev/null || printf "%s" "$1"
+    else
+        printf "%s" "$1"
+    fi
+}
+
+# _files_check <path> <mode>: validate + print usable path, or exit 3.
+# mode=r: normalized path, deny-list + symlink-escape enforced.
+# mode=w: additionally requires path under a writable root (resolved parent).
+_files_check() {
+    _raw="$1"; _mode="$2"
+    _n="$(_files_norm "$_raw")" || _files_err "bad path: rejected"
+    if [ "$_mode" = "r" ]; then
+        _files_denied_read "$_n" && _files_err "denied: protected path"
+        if [ -e "$_n" ] || [ -L "$_n" ]; then
+            _r="$(_files_resolve "$_n")"
+            _rn="$(_files_norm "$_r")" || _files_err "bad path: resolves outside filesystem"
+            _files_denied_read "$_rn" && _files_err "denied: symlink escapes to protected path"
+            printf "%s" "$_rn"
+        else
+            printf "%s" "$_n"
+        fi
+        return 0
+    fi
+    # write mode: parent must exist (except mkdir of top-level root child —
+    # parent "/" always exists); resolve parent, re-anchor basename.
+    _dir="${_n%/*}"; [ -n "$_dir" ] || _dir="/"
+    [ -d "$_dir" ] || _files_err "no such directory: parent missing"
+    _rd="$(_files_resolve "$_dir")"
+    _rdn="$(_files_norm "$_rd")" || _files_err "bad path: parent resolves outside filesystem"
+    _base="${_n##*/}"
+    case "$_base" in ""|.|..) _files_err "bad path: bad final component" ;; esac
+    case "$_rdn" in /) _full="/$_base" ;; *) _full="$_rdn/$_base" ;; esac
+    _ok=0
+    for _w in $FILES_WRITABLE; do
+        _files_under "$_full" "$_w" && _ok=1
+    done
+    [ "$_ok" = "1" ] || _files_err "denied: outside writable roots"
+    _files_denied_read "$_full" && _files_err "denied: protected path"
+    printf "%s" "$_full"
+    return 0
+}
+
+# _files_sanitize <name>: replace "|" and newline with "?" for wire safety.
+_files_sanitize() { printf "%s" "$1" | tr '|\n' '??'; }
+
+# _files_entry <fullpath>: print "name|type|size|mode|mtime" (sanitized name).
+_files_entry() {
+    _f="$1"
+    _name="$(_files_sanitize "${_f##*/}")"
+    if [ -L "$_f" ]; then _t="link";
+    elif [ -d "$_f" ]; then _t="dir";
+    elif [ -f "$_f" ]; then _t="file";
+    else _t="other"; fi
+    _sz="0"; _mo="?"; _mt="0"
+    if command -v stat >/dev/null 2>&1; then
+        _st="$(stat -c '%s|%a|%Y' -- "$_f" 2>/dev/null || true)"
+        case "$_st" in
+            *"|"*"|"*) _sz="${_st%%|*}"; _rest="${_st#*|}"; _mo="${_rest%%|*}"; _mt="${_rest#*|}" ;;
+        esac
+    fi
+    printf "%s|%s|%s|%s|%s\n" "$_name" "$_t" "$_sz" "$_mo" "$_mt"
+}
+
+m="$1"; a="${2:-}"
+case "$m" in
+    caps)
+        echo "v=1;methods=caps,list,stat,mkdir,rename,copy,move,delete;writes=$(printf "%s" "$FILES_WRITABLE" | tr ' ' ',')"
+        ;;
+    list)
+        _dir_raw="${a%%|*}"
+        _flag="${a#*|}"
+        case "$a" in *"|"*) ;; *) _flag="0" ;; esac
+        [ "$_dir_raw" = "$_flag" ] && _flag="0"
+        _d="$(_files_check "$_dir_raw" r)" || exit 3
+        [ -d "$_d" ] || _files_err "not a directory"
+        for _e in "$_d"/* "$_d"/.*; do
+            [ -e "$_e" ] || [ -L "$_e" ] || continue
+            _b="${_e##*/}"
+            case "$_b" in .|..) continue ;; esac
+            case "$_b" in
+                .*) [ "$_flag" = "1" ] || continue ;;
+            esac
+            _files_entry "$_e"
+        done
+        ;;
+    stat)
+        case "$a" in *"|"*) _files_err "bad args: stat takes one path" ;; esac
+        _p="$(_files_check "$a" r)" || exit 3
+        [ -e "$_p" ] || [ -L "$_p" ] || _files_err "no such file"
+        _files_entry "$_p"
+        ;;
+    mkdir)
+        case "$a" in *"|"*) _files_err "bad args: mkdir takes one path" ;; esac
+        _p="$(_files_check "$a" w)" || exit 3
+        [ -e "$_p" ] || [ -L "$_p" ] && _files_err "exists"
+        mkdir -- "$_p" 2>/dev/null || _files_err "mkdir failed (disk full or permission?)"
+        echo "created $_p"
+        ;;
+    rename)
+        _s_raw="${a%%|*}"; _d_raw="${a#*|}"
+        case "$a" in *"|"*) ;; *) _files_err "bad args: rename takes src|dst" ;; esac
+        _s="$(_files_check "$_s_raw" w)" || exit 3
+        _d="$(_files_check "$_d_raw" w)" || exit 3
+        [ -e "$_s" ] || [ -L "$_s" ] || _files_err "no such file"
+        [ -e "$_d" ] || [ -L "$_d" ] && _files_err "destination exists (no clobber)"
+        mv -- "$_s" "$_d" 2>/dev/null || _files_err "rename failed"
+        echo "renamed to $_d"
+        ;;
+    copy)
+        _s_raw="${a%%|*}"; _d_raw="${a#*|}"
+        case "$a" in *"|"*) ;; *) _files_err "bad args: copy takes src|dst" ;; esac
+        _s="$(_files_check "$_s_raw" r)" || exit 3
+        _d="$(_files_check "$_d_raw" w)" || exit 3
+        [ -L "$_s" ] && _files_err "symlink source not followed (copy file contents explicitly)"
+        [ -f "$_s" ] || _files_err "not a regular file (dirs: create + copy contents)"
+        [ -e "$_d" ] || [ -L "$_d" ] && _files_err "destination exists (no clobber)"
+        cp -p -- "$_s" "$_d" 2>/dev/null || { rm -f -- "$_d" 2>/dev/null; _files_err "copy failed (cleaned partial; disk full?)"; }
+        echo "copied to $_d"
+        ;;
+    move)
+        _s_raw="${a%%|*}"; _d_raw="${a#*|}"
+        case "$a" in *"|"*) ;; *) _files_err "bad args: move takes src|dst" ;; esac
+        _s="$(_files_check "$_s_raw" w)" || exit 3
+        _d="$(_files_check "$_d_raw" w)" || exit 3
+        [ -e "$_s" ] || [ -L "$_s" ] || _files_err "no such file"
+        [ -e "$_d" ] || [ -L "$_d" ] && _files_err "destination exists (no clobber)"
+        if mv -- "$_s" "$_d" 2>/dev/null; then
+            echo "moved to $_d"
+        else
+            # Cross-filesystem fallback: copy + unlink (no clobber, cleanup).
+            [ -L "$_s" ] && _files_err "move failed"
+            [ -f "$_s" ] || _files_err "move failed (not a regular file)"
+            cp -p -- "$_s" "$_d" 2>/dev/null || { rm -f -- "$_d" 2>/dev/null; _files_err "move failed (cleaned partial)"; }
+            rm -f -- "$_s" 2>/dev/null || { rm -f -- "$_d" 2>/dev/null; _files_err "move failed (source kept, partial cleaned)"; }
+            echo "moved to $_d"
+        fi
+        ;;
+    delete)
+        case "$a" in *"|"*) _files_err "bad args: delete takes one path" ;; esac
+        _p="$(_files_check "$a" w)" || exit 3
+        if [ -L "$_p" ] || [ -f "$_p" ]; then
+            rm -f -- "$_p" 2>/dev/null || _files_err "delete failed"
+            echo "deleted $_p"
+        elif [ -d "$_p" ]; then
+            rmdir -- "$_p" 2>/dev/null || _files_err "dir not empty (remove contents first)"
+            echo "removed dir $_p"
+        else
+            _files_err "no such file"
+        fi
+        ;;
+    *) echo "unknown method: $m (want caps|list|stat|mkdir|rename|copy|move|delete)"; exit 3 ;;
+esac
