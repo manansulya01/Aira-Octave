@@ -32,6 +32,10 @@ aira — AiraOS-Octave system command
 EOF
 }
 cmd="${1:-help}"
+# Sub-commands take their own arguments; the dispatcher must not swallow them.
+case "$cmd" in
+  doctor) shift || true ;;
+esac
 case "$cmd" in
   help|--help|-h) usage ;;
   info)

@@ -368,7 +368,14 @@ fi
 /usr/bin/aira status > /tmp/aira-status-ipc.out 2>&1
 t_contains "aira status via IPC" /tmp/aira-status-ipc.out "via IPC bus"
 /usr/bin/aira doctor > /tmp/aira-doctor.out 2>&1 && echo "GUEST-TEST OK: aira doctor" || { echo "GUEST-TEST FAIL: aira doctor"; cat /tmp/aira-doctor.out 2>&1; PASS=0; }
-t_contains "doctor ipc" /tmp/aira-doctor.out "ipc(bus ping): PASS"
+# aira-doctor (C7) reports "area check STATUS detail" in a column-aligned
+# layout, so assertions must tolerate the padding between fields.
+t_contains "doctor ipc bus PASS" /tmp/aira-doctor.out "ipc  *bus  *PASS"
+t_contains "doctor kernel release" /tmp/aira-doctor.out "kernel  *release  *PASS"
+t_contains "doctor storage df" /tmp/aira-doctor.out "storage  *df  *PASS"
+/usr/bin/aira-doctor --json > /tmp/aira-doctor.json 2>&1
+t_contains "doctor json" /tmp/aira-doctor.json '"summary"'
+t_contains "doctor json checks" /tmp/aira-doctor.json '"checks"'
 
 echo "--- storage ---"
 df > /tmp/df.out 2>&1 && echo "GUEST-TEST OK: df works" || { echo "GUEST-TEST FAIL: df"; PASS=0; }
