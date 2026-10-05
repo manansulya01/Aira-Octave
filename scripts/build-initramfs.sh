@@ -44,9 +44,13 @@ for x in \
   "$SRC/sbin/guest-monitest.sh" "$SRC/sbin/guest-settingstest.sh" \
   "$SRC/sbin/guest-termtest.sh" "$SRC/sbin/guest-nettest.sh" \
   "$SRC/sbin/guest-netpersist.sh" "$SRC/sbin/guest-devperm.sh" \
+  "$SRC/sbin/guest-doctest.sh" \
+  "$SRC/etc/aira/doctor-probes" \
+  "$SRC/etc/aira/settings-schema" \
   "$SRC/usr/bin/aira" "$SRC/usr/bin/aira-ipc" "$SRC/usr/bin/aira-files" \
   "$SRC/usr/bin/aira-cfg" "$SRC/usr/bin/aira-term" "$SRC/usr/bin/aira-sysstat" \
-  "$SRC/usr/bin/aira-net" "$SRC/usr/bin/aira-net-setup" \
+      "$SRC/usr/bin/aira-net" "$SRC/usr/bin/aira-net-setup" \
+  "$SRC/usr/bin/aira-doctor" \
   "$SRC/usr/bin/aira-info" "$SRC/usr/bin/aira-log" "$SRC/usr/bin/aira-user" \
   "$SRC/usr/bin/aira-power" "$SRC/usr/bin/aira-audio" "$SRC/usr/bin/aird-info" \
   "$SRC/usr/bin/aira-sdk" "$SRC/usr/bin/aira-demo" \
@@ -63,7 +67,9 @@ done
 # Verify the critical dispatch targets really are executable in the SOURCE tree.
 for need in init sbin/aira-ipc-handle sbin/guest-nettest.sh \
             sbin/guest-netpersist.sh sbin/guest-devperm.sh \
-            usr/bin/aira-net etc/aira/ipc/handlers/network; do
+            usr/bin/aira-net usr/bin/aira-doctor \
+            etc/aira/doctor-probes etc/aira/settings-schema \
+            etc/aira/ipc/handlers/network; do
   if [ ! -x "$SRC/$need" ]; then
     echo "ERROR: $need is not executable in initramfs source" | tee -a "$LOG"; exit 1
   fi

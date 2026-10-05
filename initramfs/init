@@ -228,6 +228,16 @@ if grep -q "aira_netpersist=1" /proc/cmdline 2>/dev/null; then
   fi
 fi
 
+# Diagnostics verification (aira-doctor vs observed state + fault detection).
+if grep -q "aira_doctor=1" /proc/cmdline 2>/dev/null; then
+  echo "[init] aira_doctor=1 detected, running diagnostics verification"
+  if [ -x /sbin/guest-doctest.sh ]; then
+    exec /sbin/guest-doctest.sh
+  else
+    echo "[init] guest-doctest.sh missing"
+  fi
+fi
+
 # Device-permission verification (unprivileged /dev usability, DAC on priv nodes).
 if grep -q "aira_devperm=1" /proc/cmdline 2>/dev/null; then
   echo "[init] aira_devperm=1 detected, running device-permission verification"

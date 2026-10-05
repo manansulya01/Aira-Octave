@@ -122,10 +122,15 @@ case "$cmd" in
     echo "===== END DIAGNOSE ====="
     ;;
   doctor)
-    # Real health check: probes kernel, services, IPC, storage, network directly.
-    # Exit 0 only if core checks pass; prints PASS/FAIL per area (never fakes).
+    # C7: delegate to aira-doctor (observed-state, machine-readable). Kept as a
+    # single implementation so `aira doctor` and `aira-doctor` can never drift.
+    if [ -x /usr/bin/aira-doctor ]; then
+      exec /usr/bin/aira-doctor "$@"
+    fi
+    # Fallback: inline probe (only reached if aira-doctor is missing).
     _fail=0
     echo "===== AIRA DOCTOR $VER ====="
+    echo "WARN: aira-doctor not installed; using reduced inline probe"
     if grep -q "Linux version" /proc/version 2>/dev/null || uname -a 2>/dev/null | grep -q Linux; then echo "kernel: PASS ($(uname -r 2>/dev/null))"; else echo "kernel: FAIL"; _fail=1; fi
     if [ -f /etc/os-release ] && grep -q AiraOS-Octave /etc/os-release 2>/dev/null; then echo "userspace: PASS"; else echo "userspace: FAIL"; _fail=1; fi
     if /sbin/aira-init status syslog 2>/dev/null | grep -q running; then echo "services(syslog): PASS"; else echo "services(syslog): FAIL"; _fail=1; fi

@@ -885,3 +885,67 @@ second NIC; SLIRP always offers), profile encryption.
 **Regression:** C0 107/107, C1 56/56, C2 55/55, C3 37/37, C4 31/31, C5 115/115
 host; guest FILEOPS/SETTINGS/TERMTEST/MONTEST/NETTEST/NETPERSIST/DEVPERM/
 AUTOTEST (130 OK / 0 FAIL) all PASS against the freshly rebuilt image.
+
+## 19. C6 Record — 2026-10-04 (Package Platform Hardening)
+
+`airapkg` was already atomic-ish and traversal-hardened; the real gaps were
+duplicate members, a non-atomic DB commit, no transaction log, and no
+sandbox root.
+
+**Changes:**
+1. **Duplicate archive members rejected.** Extraction order previously decided
+   the winner, so an archive could pass validation with one member and install a
+   different one. Now every member is checked against a seen-set.
+2. **Atomic DB commit.** `rm -rf <db>/<pkg> && mv <staged>` was not atomic: a
+   crash between them left the payload on disk with no DB record. The old entry
+   is now moved aside and restored if the rename fails.
+3. **Transaction log** (`$DB/transactions.log`, overridable): `tx=install|commit|
+   remove|rollback` with begin/commit/failed records.
+4. **Payload root** (`AIRA_PKG_ROOT`, default `/`): the DB now records
+   *package-relative* paths while deployment uses the prefix, so verify/remove/
+   rollback work under a staging root (also what an installer needs).
+   `AIRA_PKG_DB` / `AIRA_PKG_TXLOG` make the whole thing testable off-target.
+
+**Tests:** `scripts/test-pkg.sh` 39/39 host (build→install→query→verify→
+remove, duplicate-member rejection, absolute/traversal/symlink/corrupt
+archives, bad PKGINFO, force-reinstall, rollback restoring an overwritten file,
+transaction-log records, usage errors).
+
+**Not proven:** remote repositories and signed metadata remain unimplemented
+(`airapkg sign` only writes a sha256 sidecar — documented as NOT verification);
+no signature enforcement path exists yet.
+
+## 20. C7 Record — 2026-10-04 (Diagnostics)
+
+`aira doctor` existed but probed a fixed set of services and reported
+`security(shadow): PASS` merely because the file existed. Replaced by a real
+tool.
+
+**`initramfs/usr/bin/aira-doctor`** — every check is `area|check|STATUS|detail`
+with `PASS|FAIL|WARN|UNSUPPORTED|UNKNOWN`; PASS requires a live probe. Areas:
+kernel, userspace, storage, ipc (bus + per-handler), services, network,
+security, packages, gui, logs. Modes: human, `--json` (valid JSON, buffered so
+there is no trailing comma), `--quiet`, `--areas`. Exit 1 on any FAIL.
+`aira doctor` now `exec`s it so the two cannot drift.
+
+**Bugs found by the guest test (all fixed):**
+- Handlers probed with methods they don't implement (`storage version`) made 6
+  healthy handlers report FAIL → probe list moved to
+  `/etc/aira/doctor-probes`.
+- `df` header rows were parsed as data ("Size used of Used") → mountpoint-aware
+  parsing.
+- The last probe line was skipped when the file lacked a trailing newline →
+  `read ... || [ -n "$s" ]`.
+- `security privsep` reported PASS whenever a non-root read failed, even if `su`
+  itself was broken → the probe now proves the unprivileged account works first.
+- `uptime 0.00` on an early boot was reported FAIL → now only unreadable is FAIL.
+
+**Tests:** `scripts/test-doctor.sh` 36/36 host — including the meta-test that
+the tool must NOT claim PASS for `ipc bus`, `services manager`, `packages
+manager` or `logs dir` on a non-Aira host. Guest `aira_doctor=1`:
+`===== DOCTEST PASS =====`, 18 OK / 0 FAIL — all 11 handlers probed, verdicts
+correlated against `aira-net` state, and **induced IPC outage detected and
+recovery detected** (log `c7-doctest7.log`).
+
+**Not proven:** no SMART/disk-health probe, no thermal trend, no power/battery
+depth; `gui` verdicts are presence-based (no frame-time measurement yet).

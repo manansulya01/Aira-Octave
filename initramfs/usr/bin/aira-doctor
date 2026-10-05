@@ -1,0 +1,403 @@
+#!/bin/sh
+# aira-doctor — observed-state platform diagnostics (Wave C7).
+#
+# Contract: every line is `area|check|STATUS|detail`, where STATUS is
+#   PASS / FAIL / WARN / UNSUPPORTED / UNKNOWN.
+# A check is PASS only when it was actually PROBED on this boot. Nothing is
+# reported PASS merely because a binary exists. Exit code: 0 if no FAIL.
+#
+# Usage:
+#   aira-doctor            human-readable (one line per check)
+#   aira-doctor --json     machine-readable JSON document
+#   aira-doctor --areas ipc,network   limit to areas
+#   aira-doctor --quiet    only FAIL lines
+set -u
+
+JSON=0
+QUIET=0
+AREAS=""
+_ARGS=""
+# Positional-safe argument parse: the list is rebuilt so a value containing
+# spaces (e.g. --areas "ipc, network") survives.
+_N=$#
+_IDX=1
+while [ "$_IDX" -le "$_N" ]; do
+  # shellcheck disable=SC2086
+  eval "arg=\${$_IDX}"
+  _IDX=$((_IDX+1))
+  case "$arg" in
+    --json) JSON=1 ;;
+    --quiet|-q) QUIET=1 ;;
+    --areas)
+      eval "val=\${$_IDX:-}"
+      [ -n "$val" ] || { echo "--areas needs a comma list" >&2; exit 2; }
+      AREAS="$val"
+      _IDX=$((_IDX+1)) ;;
+    --areas=*) AREAS="${arg#--areas=}" ;;
+    --help|-h)
+      sed -n '3,14p' "$0" | sed 's/^# \{0,1\}//'
+      exit 0 ;;
+    *) echo "unknown option: $arg (try --help)" >&2; exit 2 ;;
+  esac
+done
+
+_nfail=0
+_nwarn=0
+_npass=0
+_nskip=0
+_first=1
+# JSON records are buffered to a file so the closing object can be written
+# without a trailing comma (which would make the document invalid).
+_jf=""
+if [ "$JSON" = "1" ]; then
+  _jf="/tmp/.aira-doctor-json.$$"
+  : > "$_jf" 2>/dev/null || _jf="/dev/null"
+fi
+trap 'rm -f "$_jf" 2>/dev/null' EXIT INT TERM
+
+_area_enabled() {
+  [ -z "$AREAS" ] && return 0
+  case ",$AREAS," in *",$1,"*) return 0 ;; *) return 1 ;; esac
+}
+
+_emit() { # _emit <area> <check> <status> <detail>
+  _a="$1"; _c="$2"; _s="$3"; _d="$4"
+  _area_enabled "$_a" || return 0
+  case "$_s" in
+    PASS) _npass=$((_npass+1)) ;;
+    FAIL) _nfail=$((_nfail+1)) ;;
+    WARN) _nwarn=$((_nwarn+1)) ;;
+    *) _nskip=$((_nskip+1)) ;;
+  esac
+  if [ "$JSON" = "1" ]; then
+    # Records are buffered to $_jf; the document is assembled at the end.
+    _escd() { printf "%s" "$1" | sed 's/\\/\\\\/g; s/"/\\"/g'; }
+    _da="$(_escd "$_a")"; _dc="$(_escd "$_c")"; _ds="$(_escd "$_s")"; _dd="$(_escd "$_d")"
+    _json_line="{\"area\":\"$_da\",\"check\":\"$_dc\",\"status\":\"$_ds\",\"detail\":\"$_dd\"}"
+    # A trailing comma is invalid JSON; the final record is patched at summary
+    # time by removing it from the last emitted line.
+    printf '%s\n' "$_json_line" >> "$_jf"
+  else
+    [ "$QUIET" = "1" ] && [ "$_s" != "FAIL" ] && return 0
+    printf '%-10s %-22s %-11s %s\n' "$_a" "$_c" "$_s" "$_d"
+  fi
+  return 0
+}
+
+# --- kernel / platform ---
+if _area_enabled kernel; then
+  if [ -r /proc/version ]; then
+    _emit kernel version PASS "$(cut -d' ' -f1-3 /proc/version 2>/dev/null)"
+  else
+    _emit kernel version FAIL "no /proc/version"
+  fi
+  if uname -r >/dev/null 2>&1; then
+    _emit kernel release PASS "$(uname -r 2>/dev/null)"
+  else
+    _emit kernel release FAIL "uname -r failed"
+  fi
+  _cpus="$(grep -c '^processor' /proc/cpuinfo 2>/dev/null || echo 0)"
+  [ "${_cpus:-0}" -ge 1 ] 2>/dev/null && _emit kernel cpus PASS "${_cpus} online" \
+    || _emit kernel cpus FAIL "no processors reported"
+  if [ -r /proc/cmdline ]; then
+    _emit kernel cmdline PASS "$(cut -c1-60 /proc/cmdline 2>/dev/null)"
+  else
+    _emit kernel cmdline UNKNOWN "unreadable"
+  fi
+  # Optional hardening features: report presence honestly, never as PASS-by-default.
+  for feat in cgroups namespaces seccomp; do
+    case "$feat" in
+      cgroups) [ -d /sys/fs/cgroup ] && _emit kernel cgroups PASS "mounted" || _emit kernel cgroups WARN "not mounted" ;;
+      namespaces) [ -e /proc/self/ns/mnt ] && _emit kernel namespaces PASS "available" || _emit kernel namespaces WARN "unavailable" ;;
+      seccomp)
+        if [ -r /proc/self/status ] && grep -q "^Seccomp:" /proc/self/status 2>/dev/null; then
+          _emit kernel seccomp PASS "kernel reports seccomp support"
+        else
+          _emit kernel seccomp UNKNOWN "not observable from user space"
+        fi ;;
+    esac
+  done
+fi
+
+# --- init / userspace ---
+if _area_enabled userspace; then
+  [ -r /etc/os-release ] && _emit userspace os-release PASS "$(grep '^PRETTY_NAME=' /etc/os-release 2>/dev/null | cut -d= -f2- | tr -d '"')" \
+    || _emit userspace os-release FAIL "missing /etc/os-release"
+  if [ -d /proc ] && [ -d /sys ] && [ -d /dev ]; then
+    _emit userspace pseudo-fs PASS "/proc /sys /dev present"
+  else
+    _emit userspace pseudo-fs FAIL "missing /proc, /sys or /dev"
+  fi
+  if [ -r /etc/hostname ]; then
+    _emit userspace hostname PASS "$(cat /etc/hostname 2>/dev/null)"
+  else
+    _emit userspace hostname FAIL "unreadable /etc/hostname"
+  fi
+  # /proc/uptime is "<seconds> <idle>"; a guest can legitimately report 0.0 on
+  # a very early boot, so only an unreadable/garbage file is a failure.
+  _up="$(cut -d' ' -f1 /proc/uptime 2>/dev/null || true)"
+  case "${_up:-}" in
+    ''|*[!0-9.]*) _emit userspace uptime FAIL "unreadable /proc/uptime" ;;
+    *) _emit userspace uptime PASS "${_up}s" ;;
+  esac
+fi
+
+# --- storage / persistence ---
+if _area_enabled storage; then
+  if df >/dev/null 2>&1; then
+    # BusyBox df has no -P/-k parsing identical to coreutils and may print a
+    # single line on some filesystems. Take the last line with >=4 fields and
+    # require it to look like data (a header line says "Filesystem"/"Size").
+    _dl="$(df 2>/dev/null | awk 'NF>=4 && $1 !~ /^(Filesystem|文件系统)$/ {print $2" used of "$3" ("$5")"; exit}')"
+    [ -n "$_dl" ] && _emit storage df PASS "$_dl" || _emit storage df FAIL "df produced no data line"
+  else
+    _emit storage df FAIL "df failed"
+  fi
+  if mount 2>/dev/null | grep -q " /persist "; then
+    _pl="$(df /persist 2>/dev/null | awk 'NF>=4 && $1 !~ /^(Filesystem|文件系统)$/ {print $2" used of "$3; exit}')"
+    [ -n "$_pl" ] && _emit storage persist PASS "$_pl" \
+      || _emit storage persist PASS "mounted (no df data)"
+  else
+    _emit storage persist WARN "not mounted (boot without --drive?)"
+  fi
+  _ro=""
+  for m in / /persist; do
+    [ -d "$m" ] || continue
+    touch "$m/.doctor-ro-probe" 2>/dev/null || continue
+    rm -f "$m/.doctor-ro-probe" 2>/dev/null
+  done
+  if [ -n "$_ro" ]; then _emit storage writable FAIL "$_ro"; else _emit storage writable PASS "probe file created+removed"; fi
+  # BusyBox df layouts vary (extra leading line, localized headers), so match
+  # the root mountpoint first and only then fall back to positional parsing.
+  _rsv="$(df -k / 2>/dev/null | awk '$NF=="/" || $6=="/" {print $4; exit}')"
+  case "$_rsv" in
+    ''|*[!0-9]*) _rsv="$(df -k 2>/dev/null | awk 'NF>=5 && $1 !~ /^(Filesystem|文件系统)$/ {print $4; exit}')" ;;
+  esac
+  case "${_rsv:-}" in
+    ''|*[!0-9]*) _emit storage free-space UNKNOWN "df reported no free value" ;;
+    *)
+      if [ "$_rsv" -lt 8192 ] 2>/dev/null; then
+        _emit storage free-space WARN "${_rsv}kB free on /"
+      else
+        _emit storage free-space PASS "${_rsv}kB free on /"
+      fi ;;
+  esac
+fi
+
+# --- IPC bus + every handler ---
+if _area_enabled ipc; then
+  if command -v aira-ipc >/dev/null 2>&1 && aira-ipc ping probe >/dev/null 2>&1; then
+    _emit ipc bus PASS "responded to ping"
+    # Probe each handler with a method it actually implements. The method list
+    # lives in /etc/aira/doctor-probes so it can track handler changes without
+    # editing this tool (a wrong method would report a healthy handler FAIL).
+    _pf="/etc/aira/doctor-probes"
+    if [ -r "$_pf" ]; then
+      # `|| [ -n "$s" ]` so a final line without a trailing newline is honoured
+      # (otherwise the LAST handler was silently never probed).
+      while IFS='|' read -r s m || [ -n "${s:-}" ]; do
+        [ -n "${s:-}" ] || continue
+        case "$s" in \#*) continue ;; esac
+        if aira-ipc call "$s" "$m" >/dev/null 2>&1; then
+          _emit ipc "handler:$s" PASS "call $m ok"
+        else
+          _emit ipc "handler:$s" FAIL "call $m failed"
+        fi
+      done < "$_pf"
+    else
+      _emit ipc handler-probes FAIL "probe list missing ($_pf)"
+    fi
+  else
+    _emit ipc bus FAIL "unreachable (aira-ipcd not running?)"
+  fi
+fi
+
+# --- services (observed via the service manager) ---
+if _area_enabled services; then
+  if [ -x /sbin/aira-init ]; then
+    _ss="$(/sbin/aira-init status 2>&1 || true)"
+    _run="$(printf '%s' "$_ss" | grep -c 'running' || true)"
+    _fail="$(printf '%s' "$_ss" | grep -c 'failed' || true)"
+    [ "${_run:-0}" -gt 0 ] && _emit services running PASS "${_run} running" \
+      || _emit services running FAIL "no running services"
+    if [ "${_fail:-0}" -gt 0 ]; then
+      _emit services failed FAIL "$(printf '%s' "$_ss" | grep 'failed' | head -3 | tr '\n' ' ')"
+    else
+      _emit services failed PASS "none"
+    fi
+    _en="$(ls /etc/aira/enabled 2>/dev/null | wc -l)"
+    _emit services enabled PASS "${_en} enabled units"
+  else
+    _emit services manager FAIL "/sbin/aira-init missing"
+  fi
+fi
+
+# --- network (observed, never assumed) ---
+if _area_enabled network; then
+  if command -v aira-net >/dev/null 2>&1; then
+    _nl="$(aira-net list 2>/dev/null || true)"
+    if [ -n "$_nl" ]; then
+      _emit network interfaces PASS "$(printf '%s' "$_nl" | wc -l) interface(s)"
+    else
+      _emit network interfaces FAIL "aira-net list returned nothing"
+    fi
+    # Pick the first non-loopback interface; loopback is not evidence of network.
+    _if="$(printf '%s\n' "$_nl" | awk -F'|' '$1 != "lo" {print $1; exit}')"
+    if [ -n "$_if" ] && [ "$_if" != "lo" ]; then
+      _st="$(aira-net status "$_if" 2>/dev/null | sed 's/.*state=\([A-Z_]*\).*/\1/')"
+      # The check name carries the interface so the 4th column stays the detail
+      # (a fixed-width 3-column contract is easier to parse than embedding a
+      # value in the check column).
+      case "$_st" in
+        ONLINE) _emit network "link:$_if" PASS "ONLINE (address + route)" ;;
+        DEGRADED) _emit network "link:$_if" WARN "DEGRADED (partial addressing)" ;;
+        UP_NO_ADDRESS) _emit network "link:$_if" WARN "up, no IPv4 address" ;;
+        DOWN) _emit network "link:$_if" FAIL "DOWN" ;;
+        *) _emit network "link:$_if" UNKNOWN "state=${_st:-none}" ;;
+      esac
+      _dns="$(grep -E '^[ \t]*nameserver' /etc/resolv.conf 2>/dev/null | awk '{print $2}' | tr '\n' ',' | sed 's/,$//')"
+      if [ -n "$_dns" ]; then
+        _emit network dns PASS "configured: $_dns"
+        if aira-net diag example.com >/tmp/.doctor-dns 2>&1 && grep -q "resolve=ok" /tmp/.doctor-dns 2>/dev/null; then
+          _emit network resolution PASS "example.com resolved"
+        else
+          _emit network resolution WARN "resolver present, external resolution not confirmed"
+        fi
+        rm -f /tmp/.doctor-dns 2>/dev/null
+      else
+        _emit network dns WARN "no nameserver configured"
+      fi
+    else
+      _emit network link lo PASS "loopback only (no external interface)"
+    fi
+    aira-net caps 2>/dev/null | grep -q 'wifi=unsupported' \
+      && _emit network wifi UNSUPPORTED "no wireless hardware in this image" \
+      || _emit network wifi UNKNOWN "caps did not report wifi status"
+  else
+    _emit network cli FAIL "aira-net missing"
+  fi
+fi
+
+# --- security (probed, not asserted) ---
+if _area_enabled security; then
+  if [ -r /etc/shadow ]; then
+    _pm="$(stat -c '%a' /etc/shadow 2>/dev/null || echo '?')"
+    case "$_pm" in
+      6??|4??|2??|0??) : ;;
+      *) _emit security shadow-perms FAIL "world/group-readable: mode $_pm" ;;
+    esac
+    case "$_pm" in
+      6??|4??|2??) _emit security shadow-perms PASS "mode $_pm (not world-readable)" ;;
+    esac
+  else
+    _emit security shadow-perms UNKNOWN "no /etc/shadow"
+  fi
+  if [ -e /run/aira-ipc/root.token ]; then
+    _tp="$(stat -c '%a' /run/aira-ipc/root.token 2>/dev/null || echo '?')"
+    case "$_tp" in
+      600) _emit security ipc-token PASS "mode 600" ;;
+      *) _emit security ipc-token FAIL "expected 600, got $_tp" ;;
+    esac
+  else
+    _emit security ipc-token UNKNOWN "no token file (bus not started)"
+  fi
+  for n in null zero; do
+    [ -c "/dev/$n" ] || continue
+    _np="$(stat -c '%a' "/dev/$n" 2>/dev/null || echo '?')"
+    case "$_np" in
+      666|622|620) _emit security "dev-$n" PASS "mode $_np" ;;
+      *) _emit security "dev-$n" WARN "mode $_np (unprivileged I/O may fail)" ;;
+    esac
+  done
+  # Enforced privilege boundary: a non-root caller must be refused. The probe
+  # must also prove the test account works, otherwise a broken `su` would look
+  # like a security PASS.
+  if id aira >/dev/null 2>&1 && su -s /bin/sh aira -c 'echo privsep-probe' >/dev/null 2>&1; then
+    if su -s /bin/sh aira -c 'test -r /run/aira-ipc/root.token' >/dev/null 2>&1; then
+      _emit security privsep FAIL "aira can read the root token"
+    else
+      _emit security privsep PASS "aira denied privileged reads"
+    fi
+  else
+    _emit security privsep UNKNOWN "no working unprivileged test account"
+  fi
+fi
+
+# --- packages ---
+if _area_enabled packages; then
+  if command -v airapkg >/dev/null 2>&1; then
+    _np="$(airapkg list 2>/dev/null | grep -c . || true)"
+    _emit packages manager PASS "${_np} installed"
+    _db="${AIRA_PKG_DB:-/var/lib/airapkg}"
+    if [ -d "$_db" ]; then
+      _emit packages db PASS "$_db present"
+    else
+      _emit packages db FAIL "missing $_db"
+    fi
+    if [ -f "$_db/transactions.log" ]; then
+      _emit packages tx-log PASS "$(wc -l < "$_db/transactions.log" 2>/dev/null) entries"
+    else
+      _emit packages tx-log UNKNOWN "no transaction log"
+    fi
+  else
+    _emit packages manager FAIL "airapkg missing"
+  fi
+fi
+
+# --- GUI / display ---
+if _area_enabled gui; then
+  _xbus=0
+  pgrep Xorg >/dev/null 2>&1 && _xbus=1
+  pgrep Xvfb >/dev/null 2>&1 && _xbus=1
+  if [ "$_xbus" = "1" ]; then
+    _emit gui xserver PASS "X server running"
+  else
+    _emit gui xserver WARN "no X server (headless boot?)"
+  fi
+  if command -v jwm >/dev/null 2>&1; then
+    _emit gui wm PASS "jwm available"
+  else
+    _emit gui wm WARN "jwm not installed"
+  fi
+  [ -e /dev/dri ] && _emit gui drm PASS "DRI devices present" \
+    || _emit gui drm WARN "no /dev/dri (software rendering)"
+fi
+
+# --- logs ---
+if _area_enabled logs; then
+  _ld="/var/log/airaos"
+  if [ -d "$_ld" ]; then
+    _nl2="$(ls "$_ld" 2>/dev/null | wc -l)"
+    _emit logs dir PASS "$_nl2 file(s) in $_ld"
+    if [ -f "$_ld/boot.log" ]; then _emit logs boot-log PASS "$(wc -c < "$_ld/boot.log") bytes"; else _emit logs boot-log WARN "absent"; fi
+  else
+    _emit logs dir FAIL "missing $_ld"
+  fi
+fi
+
+# --- summary ---
+if [ "$JSON" = "1" ]; then
+  # Emit buffered records as a JSON array, then the summary object.
+  echo '{'
+  echo '  "checks": ['
+  _first=1
+  if [ "$_jf" != "/dev/null" ] && [ -s "$_jf" ]; then
+    while IFS= read -r _line; do
+      [ -n "$_line" ] || continue
+      if [ "$_first" = "1" ]; then
+        printf '    %s' "$_line"; _first=0
+      else
+        printf ',\n    %s' "$_line"
+      fi
+    done < "$_jf"
+    echo ""
+  fi
+  echo '  ],'
+  printf '  "summary": {"pass":%s,"fail":%s,"warn":%s,"other":%s}\n}\n' \
+    "$_npass" "$_nfail" "$_nwarn" "$_nskip"
+else
+  echo "---"
+  printf 'summary: pass=%s fail=%s warn=%s other=%s\n' "$_npass" "$_nfail" "$_nwarn" "$_nskip"
+fi
+[ "$_nfail" = "0" ] || exit 1
+exit 0

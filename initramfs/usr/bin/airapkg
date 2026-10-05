@@ -3,9 +3,21 @@
 # Format: .apkg = gzipped tar with PKGINFO at root + payload files (absolute or relative).
 # DB: /var/lib/airapkg/{installed/<name>/PKGINFO,files}
 set -u
-DB="/var/lib/airapkg"
-REPO="/var/lib/airapkg/repo"
+DB="${AIRA_PKG_DB:-/var/lib/airapkg}"
+# Payload root: packages install absolute paths ("/usr/share/..."). A prefix
+# lets the installer and host tests target a staging root instead of "/".
+ROOT="${AIRA_PKG_ROOT:-}"
+REPO="$DB/repo"
 mkdir -p "$DB/installed" "$REPO"
+# Transaction log: every mutating operation records intent+result so an
+# interrupted install is diagnosable after the fact (Wave C6).
+TXLOG="${AIRA_PKG_TXLOG:-$DB/transactions.log}"
+tx() { # tx <event> <name> <detail>
+  [ -n "${AIRA_PKG_NO_TXLOG:-}" ] && return 0
+  mkdir -p "$(dirname "$TXLOG")" 2>/dev/null
+  printf '%s tx=%s pkg=%s %s\n' "$(date +%s 2>/dev/null || echo 0)" "$1" "${2:--}" "${3:-}" \
+    >> "$TXLOG" 2>/dev/null || true
+}
 usage() {
   cat <<'EOF'
 airapkg — AiraOS package manager (local repository)
@@ -93,7 +105,7 @@ case "$cmd" in
     [ -f "$d/files" ] || { echo "not installed: $2" >&2; exit 1; }
     miss=0
     while IFS= read -r f; do
-      [ -e "$f" ] || { echo "MISSING $f"; miss=1; }
+      [ -e "$ROOT$f" ] || { echo "MISSING $f"; miss=1; }
     done < "$d/files"
     [ "$miss" = "0" ] && echo "$2: verify OK" || { echo "$2: verify FAIL"; exit 1; }
     ;;
@@ -106,6 +118,10 @@ case "$cmd" in
     tmp="$(mktemp -d)"
     # Pre-validate raw tar members for absolute/traversal before extraction
     if tar -tzf "$f" 2>/dev/null > "$tmp/members.txt"; then
+      # Duplicate members are ambiguous: extraction order decides which wins,
+      # so a malicious archive can smuggle a benign-looking file past a naive
+      # validator and then replace it. Reject duplicates outright.
+      : > "$tmp/seen.txt"
       while IFS= read -r m; do
         # strip leading ./ if present
         case "$m" in
@@ -113,6 +129,10 @@ case "$cmd" in
           . ) continue ;;
         esac
         [ -n "$m" ] || continue
+        if grep -Fxq "$m" "$tmp/seen.txt" 2>/dev/null; then
+          echo "airapkg: reject duplicate archive member '$m'" >&2; rm -rf "$tmp"; exit 1
+        fi
+        echo "$m" >> "$tmp/seen.txt"
         case "$m" in
           /*) echo "airapkg: reject absolute path '$m'" >&2; rm -rf "$tmp"; exit 1 ;;
           ../*|*/../*|*"/.."|..) echo "airapkg: reject traversal '$m'" >&2; rm -rf "$tmp"; exit 1 ;;
@@ -147,6 +167,7 @@ case "$cmd" in
     case "$NAME" in ""|*/*|*" "*|*'`'*|*'$'*|*';'*|*'"'*|*"$(printf '\n') "*) echo "invalid PKGINFO (bad NAME)" >&2; rm -rf "$tmp"; exit 1 ;; esac
     case "$VERSION" in ""|*/*|*" "*) echo "invalid PKGINFO (bad VERSION)" >&2; rm -rf "$tmp"; exit 1 ;; esac
     [ -n "${NAME:-}" ] && [ -n "${VERSION:-}" ] || { echo "invalid PKGINFO (need NAME+VERSION)" >&2; rm -rf "$tmp"; exit 1; }
+    tx install "$NAME" "begin version=$VERSION from=$(basename "$f")"
     if [ -d "$(pkgdir "$NAME")" ] && [ "$force" != "1" ]; then
       echo "$NAME already installed (use --force)" >&2; rm -rf "$tmp"; exit 1
     fi
@@ -173,7 +194,10 @@ case "$cmd" in
         members.txt|list.txt) continue ;;
       esac
       src="$tmp/$rel"
-      dest="/$rel"
+      # Record the DEPLOYED path (with prefix) but keep the package-relative
+      # path in the DB, so removing/verifying still works if the prefix changes.
+      dest="$ROOT/$rel"
+      rec="/$rel"
       if [ -d "$src" ] && [ ! -L "$src" ]; then
         mkdir -p "$dest" || { _install_failed=1; break; }
         # preserve directory mode when possible (busybox: no chmod --reference)
@@ -194,11 +218,12 @@ case "$cmd" in
         else
           if [ -x "$dest" ]; then chmod 644 "$dest" 2>/dev/null || true; fi
         fi
-        echo "$dest" >> "$staged/files"
+        echo "$rec" >> "$staged/files"
       fi
     done < "$tmp/list.txt"
-    if [ "$_install_failed" = "1" ]; then
+    if     [ "$_install_failed" = "1" ]; then
       echo "airapkg: install failed, rolling back partial" >&2
+      tx install "${NAME:-unknown}" "failed-rolling-back"
       # rollback partial copies using staged/files
       if [ -f "$staged/files" ]; then
         while IFS= read -r pf; do rm -f "$pf" 2>/dev/null || true; done < "$staged/files"
@@ -207,13 +232,17 @@ case "$cmd" in
       if [ -f "$staged/backup-files" ]; then
         while IFS= read -r pf; do
           rel="${pf#/}"
-          if [ -f "$staged/backup/$rel" ]; then cp -f "$staged/backup/$rel" "$pf" 2>/dev/null || true; fi
+          # pf is a package-relative path ("/usr/..."), not a deployed one
+          if [ -f "$staged/backup/${pf#/}" ]; then cp -f "$staged/backup/${pf#/}" "$pf" 2>/dev/null || true; fi
         done < "$staged/backup-files"
       fi
       rm -rf "$staged" "$tmp"
       exit 1
     fi
-    # commit staged DB atomically
+    # Commit the DB entry atomically. `rm -rf` followed by `mv` is NOT atomic:
+    # a crash in between leaves the package unrecorded while its payload files
+    # are already on disk. Instead, keep the old entry aside and rename the new
+    # one into place, restoring the old entry if the rename fails.
     mkdir -p "$(dirname "$(pkgdir "$NAME")")"
     # remember previous file list so upgrade can drop stale files
     _oldfiles=""
@@ -221,8 +250,20 @@ case "$cmd" in
       _oldfiles="$(mktemp)"
       cp -f "$(pkgdir "$NAME")/files" "$_oldfiles"
     fi
-    rm -rf "$(pkgdir "$NAME")"
-    mv "$staged" "$(pkgdir "$NAME")"
+    _prev=""
+    if [ -d "$(pkgdir "$NAME")" ]; then
+      _prev="$(pkgdir "$NAME").prev.$$"
+      mv "$(pkgdir "$NAME")" "$_prev" 2>/dev/null || { _prev=""; }
+    fi
+    if mv "$staged" "$(pkgdir "$NAME")" 2>/dev/null; then
+      [ -n "$_prev" ] && rm -rf "$_prev" 2>/dev/null
+    else
+      # commit failed: put the previous DB entry back, leave payload as-is
+      if [ -n "$_prev" ]; then mv "$_prev" "$(pkgdir "$NAME")" 2>/dev/null || true; fi
+      rm -rf "$staged" "$tmp" 2>/dev/null
+      echo "airapkg: DB commit failed; previous state restored" >&2
+      exit 1
+    fi
     # remove stale files present in old version but absent from new version
     if [ -n "$_oldfiles" ] && [ -f "$_oldfiles" ]; then
       while IFS= read -r _of; do
@@ -234,6 +275,7 @@ case "$cmd" in
       rm -f "$_oldfiles"
     fi
     rm -rf "$tmp"
+    tx commit "$NAME" "version=$VERSION"
     echo "$NAME $VERSION installed"
     ;;
   rollback)
@@ -241,26 +283,31 @@ case "$cmd" in
     d="$(pkgdir "$2")"
     [ -f "$d/PKGINFO" ] || { echo "not installed: $2" >&2; exit 1; }
     [ -f "$d/backup-files" ] || { echo "$2: nothing to roll back" >&2; exit 1; }
+    tx rollback "$2" "start"
     restored=0; dropped=0
     while IFS= read -r f; do
       [ -n "$f" ] || continue
       rel="${f#/}"
+      _dep="$ROOT$f"
       if [ -f "$d/backup/$rel" ]; then
-        cp -f "$d/backup/$rel" "$f" && restored=$((restored+1))
+        cp -f "$d/backup/$rel" "$_dep" && restored=$((restored+1))
       else
-        rm -f "$f" 2>/dev/null && dropped=$((dropped+1))
+        rm -f "$_dep" 2>/dev/null && dropped=$((dropped+1))
       fi
     done < "$d/files"
+    tx rollback "$2" "restored=$restored dropped=$dropped"
     echo "$2: rollback done (restored $restored, removed $dropped new)"
     ;;
   remove)
     need "airapkg remove <name>" "${2:-}"
     d="$(pkgdir "$2")"
     [ -f "$d/PKGINFO" ] || { echo "not installed: $2" >&2; exit 1; }
+    if [ -d "$d" ]; then tx remove "$2" "start"; fi
     if [ -f "$d/files" ]; then
-      while IFS= read -r f; do rm -f "$f" 2>/dev/null || true; done < "$d/files"
+      while IFS= read -r f; do rm -f "$ROOT$f" 2>/dev/null || true; done < "$d/files"
     fi
     rm -rf "$d"
+    tx remove "$2" "done"
     echo "$2 removed"
     ;;
   build)

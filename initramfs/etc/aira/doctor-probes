@@ -1,0 +1,15 @@
+# Per-handler probe methods for aira-doctor (Wave C7).
+# One "<service>|<method>" per line; each handler must be probed with a method
+# it actually implements (probing storage with `version` reported FAIL for a
+# healthy handler). Lines starting with # are comments.
+bus|ping
+system|version
+storage|usage
+network|list
+services|status
+device|list
+user|list
+files|caps
+settings|caps
+terms|caps
+sysstat|caps
