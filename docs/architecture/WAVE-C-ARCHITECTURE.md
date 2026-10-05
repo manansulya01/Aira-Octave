@@ -949,3 +949,17 @@ recovery detected** (log `c7-doctest7.log`).
 
 **Not proven:** no SMART/disk-health probe, no thermal trend, no power/battery
 depth; `gui` verdicts are presence-based (no frame-time measurement yet).
+
+### C7 follow-up (same session)
+
+- **Release area** added to `aira-doctor`: kernel identity, presence + exec
+  bits of every entry point, data-file presence, persistence state. The guest
+  test asserts no entry point is missing or non-executable, so an incomplete
+  image is detected by the diagnostics tool itself.
+- `scripts/release-manifest.sh` records artifact sizes, SHA-256, git commit,
+  git describe, and toolchain, and explicitly states it does **not** certify
+  verification. `scripts/test-manifest.sh` (32/32) re-generates it and fails if
+  any recorded hash is stale or any artifact is missing — this is the guard
+  against the stale-rootfs class of bug.
+- `guest-autotest.sh` updated for the new doctor output contract (column
+  padding) and now also asserts doctor JSON. Guest AUTOTEST: **135 OK / 0 FAIL**.

@@ -376,6 +376,32 @@ if _area_enabled logs; then
 fi
 
 # --- summary ---
+# --- release/artifacts (read-only inventory) ---
+if _area_enabled release; then
+  if [ -r /proc/cmdline ]; then
+    _k="${AIRA_KERNEL:-$(uname -r 2>/dev/null || echo unknown)}"
+    case "$_k" in 7.*) _emit release kernel PASS "Linux $_k" ;;
+      *) _emit release kernel UNKNOWN "running kernel $_k (not the Aira target?)" ;; esac
+  fi
+  for f in /init /usr/bin/aira-doctor /usr/bin/aira /etc/aira/doctor-probes \
+           /etc/aira/settings-schema /usr/bin/airapkg; do
+    if [ -f "$f" ]; then _emit release "present:$f" PASS "$(stat -c %s "$f" 2>/dev/null || echo '?') bytes"
+    else _emit release "present:$f" FAIL "missing"; fi
+  done
+  for f in /init /usr/bin/aira-doctor /usr/bin/aira /usr/bin/aira-net \
+           /usr/bin/aira-cfg /usr/bin/aira-files /usr/bin/aira-term \
+           /usr/bin/aira-sysstat /usr/bin/airapkg; do
+    [ -e "$f" ] || continue
+    if [ -x "$f" ]; then _emit release "exec:$f" PASS "executable"
+    else _emit release "exec:$f" FAIL "not executable (would fail to run)"; fi
+  done
+  if mount 2>/dev/null | grep -q " /persist "; then
+    _emit release persistence PASS "/persist mounted (state survives reboot)"
+  else
+    _emit release persistence WARN "/persist not mounted"
+  fi
+fi
+
 if [ "$JSON" = "1" ]; then
   # Emit buffered records as a JSON array, then the summary object.
   echo '{'

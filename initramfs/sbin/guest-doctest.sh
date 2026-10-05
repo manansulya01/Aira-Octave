@@ -15,7 +15,30 @@ echo "--- human output ---"
 aira-doctor > /tmp/doctor-human.out 2>&1
 D_RC=$?
 echo "DOCTEST INFO: doctor exit=$D_RC"
-sed 's/^/DOCTEST INFO:   /' /tmp/doctor-human.out 2>/dev/null | head -n 45
+sed 's/^/DOCTEST INFO:   /' /tmp/doctor-human.out 2>/dev/null
+# Release/artifact integrity (C7 release area): no entry point may be missing
+# or non-executable, otherwise the image is incomplete.
+_missing=""
+for f in /init /usr/bin/aira-doctor /usr/bin/aira /usr/bin/aira-net \
+         /usr/bin/aira-cfg /usr/bin/aira-files /usr/bin/aira-term \
+         /usr/bin/aira-sysstat /usr/bin/airapkg \
+         /etc/aira/doctor-probes /etc/aira/settings-schema; do
+  if [ ! -f "$f" ]; then _missing="$_missing $f"
+  elif [ ! -x "$f" ]; then
+    case "$f" in
+      /etc/aira/*) : ;;  # data files need not be executable
+      *) _missing="$_missing $f(non-exec)" ;;
+    esac
+  fi
+done
+if [ -z "$_missing" ]; then
+  echo "DOCTEST OK: all release entry points present+executable"
+else
+  echo "DOCTEST FAIL: release entry points missing:$_missing"; PASS=0
+fi
+awk '$1=="release" && $2=="persistence" && $3=="PASS"{f=1} END{exit !f}' /tmp/doctor-human.out 2>/dev/null \
+  && echo "DOCTEST OK: persistence area PASSes with /persist" \
+  || echo "DOCTEST FAIL: persistence area not PASS with /persist mounted"
 if grep -q "summary: pass=" /tmp/doctor-human.out 2>/dev/null; then
   echo "DOCTEST OK: summary present"
 else

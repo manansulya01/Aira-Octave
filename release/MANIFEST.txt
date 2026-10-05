@@ -1,0 +1,59 @@
+AiraOS-Octave release manifest
+generated: 2026-10-05T12:03:45Z
+git-commit: 1988094f562d8f51965a2f4f74d360c8510eb391
+git-describe: v1.5.0-17-g1988094f5
+kernel-version: 6.6.87.2-microsoft-standard-WSL2
+builder: Linux 6.6.87.2-microsoft-standard-WSL2 x86_64
+
+ARTIFACT                      BYTES  SHA256                                                            PATH
+kernel                     15053824  5b48abc35b34d313fdc3a3fb715f1c2fdcba37d3144260f36fd9bc210362aaea  linux-7.2.2/arch/x86/boot/bzImage
+kernel-config                146967  80a13a5f95bb050c70e7b44b34f60a37450e9139371828208051455e1e2e6fcd  configs/airaos-octave-x86_64.config
+initramfs                   2551808  6027ae4436efc3ba5e6af3890d0f58cf73b4f6d1c3dbb428df6311b6b31666d5  initramfs.cpio
+rootfs-image              536870912  7187912bc79998e3157f37e2c08fc67455a3b03af2274c41e48ddbf466523fbc  aira-rootfs.img
+source-init                   10324  997667f0a76acdc84db4aa1a41c2d32c6ee3305e4a2e1654160f3c610a5c2d6b  initramfs/init
+canonical-ipc-lib              6439  3604eb856a09c446887f24f1e421df946bba306e25b6d01f79b12b957fced666  usr/lib/aira-ipc.sh
+
+component: files handler
+files-handler                  9452  31a5d132659b37e487bcb6746446c2b6366b12f609470cb824350da155363d79  initramfs/etc/aira/ipc/handlers/files
+files-cli                      2717  39202d96b19b3faf63604a10f8a0cf016163ce07cb01d2fddb87836296ab2770  initramfs/usr/bin/aira-files
+
+component: settings
+settings-schema                1761  9b181d2028712b1b95bbe334785289bb5976f34dc62ddb5753d770d6fb5896ce  initramfs/etc/aira/settings-schema
+settings-handler              13430  002979df553638bc827c949d8a1af91ad983241aa81b2b3add67fb2deb238242  initramfs/etc/aira/ipc/handlers/settings
+settings-cli                   2358  d6478f790d98e8dc47e20541f2268ea4bd52b65d6de6d16ab1cc07d7943fbd0a  initramfs/usr/bin/aira-cfg
+
+component: terminal sessions
+terms-handler                  8202  4e610272d5ca9f2ac63c5a68232d659a37bd33f93405b6d508e3d9a162aa8fe6  initramfs/etc/aira/ipc/handlers/terms
+terms-cli                      1906  7be45f0bc99bff33aee0eb130007831ac2528f2cc9f0403088bb6e6931680e18  initramfs/usr/bin/aira-term
+
+component: monitoring
+sysstat-handler                6974  066ae5afeacbde4e7a87d410203d4261145979903373c27fac10cbadbb2823b0  initramfs/etc/aira/ipc/handlers/sysstat
+sysstat-cli                    1910  4e53cbde37ebc12ec6606d2c6ca27446f1059154317cfce3a5460c23db87fa72  initramfs/usr/bin/aira-sysstat
+
+component: network
+network-handler               26995  70d11605e77616f193b922e664465a360df6e3efe4f44fad077d7646fd3c5d32  initramfs/etc/aira/ipc/handlers/network
+network-cli                    4921  366145b803aab4af5f7871ab0a6d370bd3192fbf149d82407c96845d8a1711d6  initramfs/usr/bin/aira-net
+
+component: packages + diagnostics
+airapkg                       14961  b1c2abf1619afb927862cf36482065b7b654d742d7875766ded1f48744760c4a  initramfs/usr/bin/airapkg
+aira-doctor                   16534  a957f4726d00fdc2eb5ac075ba252e6a89bf3bd40ed9b4bf35a465d289707c87  initramfs/usr/bin/aira-doctor
+doctor-probes                   405  2579eedf701956b70325b10689375245d872f3a5d808a1defb7db112270a32de  initramfs/etc/aira/doctor-probes
+
+component: security data
+mdev-conf                      1271  292f5d8adeb2812d5ad447f5566703e6f6b14a54cc0dd88f0fec8a8853fc6c82  initramfs/etc/mdev.conf
+shadow                           79  42db13d5721a6e5ae0744651d5cb23c8bb2c490e42bafe0866ca845c1c081b55  initramfs/etc/shadow
+
+component: test suites
+test-shell                    12964  c15f335099bf9f8f81083a6f3adf9c8314ed4fea0972099003685fa994e32e8b  scripts/test-shell.sh
+test-features                  4431  4a805578fc1af24523d72a258e5658f59892ce42c3dd8e8050980be2f564cfd2  scripts/test-features.sh
+test-userspace                 1712  2a4b61655e0340a4c571da95bd04d7e6341fed9e9d65decf718db86c7c22e5b2  scripts/test-userspace.sh
+test-files                     6748  5410640a13aece9759e93cba529155a5c8808b6edf84574d6c38b449703170bf  scripts/test-files.sh
+test-settings                  7182  ba464a1c8941a6d05bc463dc106303b48f7edbccc6ca1960792236589f4f5e72  scripts/test-settings.sh
+test-terms                     4647  720a4bb5bd050dfb5640c2536e11656d3fef4b9323c3bde022a42b0448309e0c  scripts/test-terms.sh
+test-sysstat                   4149  8d74e5e1c09be3f3116c7ab9d873ac7609acc6d3e21d8aed481c4472e646263b  scripts/test-sysstat.sh
+test-net                      14566  c87774a396f9b20e80d2e3675243fe57fd265d7902a4168c8fa3450f3774e952  scripts/test-net.sh
+test-pkg                       7977  004db68655d42f3782938f928153c493878ffbe139b5ac5b455900c0365d143d  scripts/test-pkg.sh
+test-doctor                    4495  63237b9a5dd466889379ad8eb648826efa251901b16086f41d6ff1039f2ff061  scripts/test-doctor.sh
+
+NOTE: this manifest records what exists; it does not certify that
+      every component is verified. See docs/architecture/ for status.
