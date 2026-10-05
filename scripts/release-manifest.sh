@@ -22,7 +22,11 @@ emit() { # emit <label> <path>
 {
   echo "AiraOS-Octave release manifest"
   echo "generated: $(date -u '+%Y-%m-%dT%H:%M:%SZ' 2>/dev/null || echo unknown)"
-  echo "git-commit: $(git rev-parse HEAD 2>/dev/null || echo unknown)"
+  echo "git-commit: $(git rev-parse HEAD 2>/dev/null || echo unknown)
+  (note: initramfs.cpio/aira-rootfs.img hashes below are the LOCAL build
+   outputs. Any prebuilt release/*.iso or *.tar.gz is NOT regenerated here and
+   may predate this commit — rebuild with scripts/build-release.sh before
+   shipping.)"
   echo "git-describe: $(git describe --tags --always 2>/dev/null || echo unknown)"
   echo "kernel-version: $(uname -r 2>/dev/null || echo unknown)"
   echo "builder: $(uname -srm 2>/dev/null || echo unknown)"

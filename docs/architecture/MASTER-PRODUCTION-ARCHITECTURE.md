@@ -227,6 +227,8 @@ PARTIALLY or NOT YET VERIFIED — see rows above.
 ## 19. Execution order (binding)
 
 C0 (done+verified) → C1 (done+verified) → C2 (done+verified) → C3 (done+verified) → C4 (done+verified) → C5 (done+verified) → C6 (done) → C7 (done) → C8 → D → E → F → G →
+H → I → J → K → L → M → N → O → P → Q → R → S → T → U → V (manifest done;
+full release build + hardware matrix + demo still open)
 H → I → J → K → L → M (continuous) → N polish → §33/§35 deep audits →
 §36/§37 refactor+optimize → §38 campaign → §39 matrix → demo → artifacts →
 gate. Priority inside every step: correctness > security > reliability >

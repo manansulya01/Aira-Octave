@@ -1,7 +1,11 @@
 AiraOS-Octave release manifest
-generated: 2026-10-05T12:03:45Z
-git-commit: 1988094f562d8f51965a2f4f74d360c8510eb391
-git-describe: v1.5.0-17-g1988094f5
+generated: 2026-10-05T12:05:10Z
+git-commit: 192e6a2292c977edd40424afda40230cdf243ac1
+  (note: initramfs.cpio/aira-rootfs.img hashes below are the LOCAL build
+   outputs. Any prebuilt release/*.iso or *.tar.gz is NOT regenerated here and
+   may predate this commit — rebuild with scripts/build-release.sh before
+   shipping.)
+git-describe: v1.5.0-18-g192e6a229
 kernel-version: 6.6.87.2-microsoft-standard-WSL2
 builder: Linux 6.6.87.2-microsoft-standard-WSL2 x86_64
 
