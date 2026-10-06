@@ -93,6 +93,8 @@ t "klog single instance" sh -c 'test "$(pidof klogd 2>/dev/null | wc -w)" -eq 1'
 t "service restart net" /sbin/aira-init restart net
 /sbin/aira-init status net > /tmp/svc-net.out 2>&1
 t_contains "net oneshot done" /tmp/svc-net.out "done"
+echo "--- net oneshot log ---"
+cat /var/log/airaos/net.log 2>/dev/null
 echo "--- starter trace ---"
 cat /var/log/airaos/trace.log 2>/dev/null
 echo "--- boot services.log ---"

@@ -10,17 +10,25 @@ echo "[net] lo up"
 ip link set lo up 2>/dev/null
 ip addr add 127.0.0.1/8 dev lo 2>/dev/null
 
+# NICs bind asynchronously (driver probe, mdev naming): poll briefly so a
+# slow adapter still gets configured instead of exiting before it appears.
 IF=""
-for d in /sys/class/net/*; do
-  n=$(basename "$d" 2>/dev/null)
-  [ "$n" = "lo" ] && continue
-  case "$n" in *[!A-Za-z0-9_.:-]*) continue ;; esac
-  IF="$n"
-  break
+_i=0
+while [ "$_i" -lt 16 ]; do
+  for d in /sys/class/net/*; do
+    n=$(basename "$d" 2>/dev/null)
+    [ "$n" = "lo" ] && continue
+    case "$n" in *[!A-Za-z0-9_.:-]*) continue ;; esac
+    IF="$n"
+    break
+  done
+  [ -n "$IF" ] && break
+  sleep 0.5
+  _i=$((_i + 1))
 done
 
 if [ -z "$IF" ]; then
-  echo "[net] no non-loopback interface (boot with --net user to attach one)"
+  echo "[net] no non-loopback interface after 8s (boot with --net user to attach one)"
   echo "[net] done"
   exit 0
 fi
@@ -32,15 +40,23 @@ for c in /usr/bin/aira-net /persist/usr/bin/aira-net; do
 done
 
 if [ -n "$NET_CLI" ]; then
-  if "$NET_CLI" profile show 2>/dev/null | grep -q "^profile="; then
+  if "$NET_CLI" profile show 2>/dev/null | grep -q "^profile=/"; then
     echo "[net] persisted profile found — applying via control plane"
     if "$NET_CLI" profile apply 2>&1 | sed 's/^/[net] /'; then
       echo "[net] profile applied"
       "$NET_CLI" status "$IF" 2>/dev/null | sed 's/^/[net] /'
-      echo "[net] done"
-      exit 0
+      # A 'success' apply can still leave the link down (stale profile,
+      # device renamed, no carrier): fall through to DHCP rather than
+      # leaving the system unconfigured.
+      if "$NET_CLI" status "$IF" 2>/dev/null | grep -q "state=DOWN"; then
+        echo "[net] profile applied but link still DOWN — falling back to DHCP"
+      else
+        echo "[net] done"
+        exit 0
+      fi
+    else
+      echo "[net] profile apply FAILED — falling back to DHCP"
     fi
-    echo "[net] profile apply FAILED — falling back to DHCP"
   else
     echo "[net] no persisted profile (profile show: absent)"
   fi
