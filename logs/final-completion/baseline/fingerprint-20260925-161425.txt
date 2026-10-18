@@ -1,0 +1,68 @@
+TS=20260925-161425
+GIT_HEAD=64e43b8f24250c6cb538f4331ad0fbf86505d719
+GIT_STATUS:
+ M README.md
+ M docs/ARCHITECTURE.md
+ M gui/aira-about
+ M gui/aira-clock
+ M gui/aira-file-manager
+ M gui/aira-jwmrc
+ M gui/aira-net-indicator
+ M gui/aira-netman
+ M gui/aira-pkgcenter
+ M gui/aira-settings
+ M gui/aira-storage-indicator
+ M gui/aira-sysinfo
+ M gui/aira-sysmon
+ M gui/aira-terminal
+ M gui/aira-textedit
+ M initramfs.cpio
+ M initramfs/etc/aira/ipc/handlers/services
+ M initramfs/etc/aira/ipc/handlers/system
+ M initramfs/etc/aira/services/ipc.conf
+ M initramfs/etc/aira/services/klog.conf
+ M initramfs/etc/aira/services/net.conf
+ M initramfs/etc/aira/services/persist.conf
+ M initramfs/etc/aira/services/syslog.conf
+ M initramfs/sbin/aira-init
+ M initramfs/usr/bin/aira
+ M initramfs/usr/bin/airapkg
+ M scripts/build-release.sh
+?? FINAL_REPORT.md
+?? gui/aira-dm
+?? gui/aira-help
+?? gui/aira-notify
+?? gui/aira-notifyd
+?? gui/aira-session-mgr
+?? gui/aira-welcome
+?? initramfs/etc/aira/ipc/handlers/device
+?? initramfs/etc/aira/ipc/handlers/user
+?? initramfs/etc/aira/services/device.conf
+?? initramfs/etc/aira/services/hardening.conf
+?? initramfs/etc/aira/services/recovery.conf
+?? initramfs/etc/aira/services/user-session.conf
+?? initramfs/etc/shadow
+?? initramfs/sbin/aira-getty
+?? initramfs/sbin/aira-hardening
+?? initramfs/sbin/aira-install
+?? initramfs/sbin/aira-recovery
+?? initramfs/sbin/aira-update
+?? initramfs/usr/bin/aira-audio
+?? initramfs/usr/bin/aira-device-setup
+?? initramfs/usr/bin/aira-info
+?? initramfs/usr/bin/aira-log
+?? initramfs/usr/bin/aira-power
+?? initramfs/usr/bin/aira-sdk
+?? initramfs/usr/bin/aira-user
+?? logs/final-completion/
+?? scripts/test-features.sh
+?? scripts/test-full.sh
+---
+UNAME_M=x86_64
+gcc (Ubuntu 15.2.0-16ubuntu1) 15.2.0
+GNU ld (GNU Binutils for Ubuntu) 2.46
+QEMU emulator version 10.2.1 (Debian 1:10.2.1+ds-1ubuntu3.2)
+---
+-rw-r--r-- 1 manan manan 2.3M Sep 25 16:08 initramfs.cpio
+97d3e5ab33ab5b8ebb3f31c61e2f185c3369e1797b9a431324896ebdafe50e95  initramfs.cpio
+linux-7.2.2/arch/x86/boot/bzImage: cannot open `linux-7.2.2/arch/x86/boot/bzImage' (No such file or directory)

@@ -238,6 +238,17 @@ if grep -q "aira_doctor=1" /proc/cmdline 2>/dev/null; then
   fi
 fi
 
+# Identity/user-management verification (aira-user against the real /etc:
+# injection refusal, salted password hashing, lifecycle, group integrity).
+if grep -q "aira_usertest=1" /proc/cmdline 2>/dev/null; then
+  echo "[init] aira_usertest=1 detected, running identity verification"
+  if [ -x /sbin/guest-usertest.sh ]; then
+    exec /sbin/guest-usertest.sh
+  else
+    echo "[init] guest-usertest.sh missing"
+  fi
+fi
+
 # Device-permission verification (unprivileged /dev usability, DAC on priv nodes).
 if grep -q "aira_devperm=1" /proc/cmdline 2>/dev/null; then
   echo "[init] aira_devperm=1 detected, running device-permission verification"

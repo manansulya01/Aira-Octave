@@ -178,6 +178,37 @@ t_contains "platform interrupts" /tmp/aira-platform.out "CPU0"
 echo "--- platform listing (evidence) ---"
 head -n 30 /tmp/aira-platform.out
 
+echo "--- help/docs (C8) ---"
+t "docs dir present" test -d /usr/share/doc/aira-octave
+t "docs index listed" sh -c '/usr/bin/aira-help docs 2>&1 | grep -q ARCHITECTURE.md'
+t "docs content readable" sh -c '/usr/bin/aira-help docs ARCHITECTURE.md 2>&1 | head -1 | grep -qi aira'
+t "docs traversal rejected" sh -c '/usr/bin/aira-help docs ../../etc/passwd 2>&1 | grep -q "no such document"'
+t "docs missing doc rejected" sh -c '/usr/bin/aira-help docs nope.md 2>&1 | grep -q "no such document"'
+t "docs capability matrix" sh -c '/usr/bin/aira-help docs CAPABILITY-MATRIX.md 2>&1 | grep -qi "capability matrix"'
+t "help topic search" sh -c '/usr/bin/aira-help terminal 2>&1 | grep -q Terminal'
+t "help dash-topic no grep error" sh -c 'out=$(/usr/bin/aira-help --nosuchtopic 2>&1); case "$out" in *"invalid option"*) exit 1 ;; *) exit 0 ;; esac'
+echo "--- welcome/about (C8) ---"
+WHOME=/tmp/welcome-test
+WDIR=$WHOME/.config/aira
+WFLAG=$WDIR/welcome-done
+rm -rf $WHOME; mkdir -p $WHOME
+t "welcome first run" sh -c "AIRA_WELCOME_DIR=$WDIR HOME=$WHOME /usr/bin/aira-welcome </dev/null >/tmp/welcome1.out 2>&1"
+t_contains "welcome greeting shown" /tmp/welcome1.out "Welcome to AiraOS-Octave"
+t "welcome flag created after first run" test -f "$WFLAG"
+t "welcome second run silent" sh -c "out=\$(AIRA_WELCOME_DIR=$WDIR HOME=$WHOME /usr/bin/aira-welcome </dev/null 2>&1); [ -z \"\$out\" ]"
+t "welcome --force reshows" sh -c "AIRA_WELCOME_DIR=$WDIR HOME=$WHOME /usr/bin/aira-welcome --force </dev/null 2>&1 | grep -q 'Welcome to AiraOS-Octave'"
+t "welcome --tour prints tour" sh -c "AIRA_WELCOME_DIR=$WDIR HOME=$WHOME /usr/bin/aira-welcome --tour </dev/null 2>&1 | grep -q 'The AiraOS Desktop'"
+t "welcome --help usage" sh -c "/usr/bin/aira-welcome --help 2>&1 | grep -q 'Usage: aira-welcome'"
+rm -f "$WFLAG"
+t "welcome unknown arg ignored" sh -c "AIRA_WELCOME_DIR=$WDIR HOME=$WHOME /usr/bin/aira-welcome --nonsense </dev/null 2>&1 | grep -q 'Welcome to AiraOS-Octave'"
+t "about shows version" sh -c '/usr/bin/aira-about 2>&1 | grep -q AiraOS-Octave'
+t "about shows kernel" sh -c '/usr/bin/aira-about 2>&1 | grep -q "Kernel: Linux"'
+t "about honest persistence" sh -c '/usr/bin/aira-about 2>&1 | grep -qE "Storage: (RAM only|[0-9])"'
+t "help doctor launches doctor" sh -c '/usr/bin/aira-help doctor --areas ipc >/tmp/help-doctor.out 2>&1'
+t_contains "doctor output has ipc area" /tmp/help-doctor.out "ipc"
+echo "--- help doctor (evidence head) ---"
+head -n 8 /tmp/help-doctor.out 2>/dev/null
+
 echo "--- networking ---"
 ip link set lo up 2>/dev/null
 ip addr add 127.0.0.1/8 dev lo 2>/dev/null

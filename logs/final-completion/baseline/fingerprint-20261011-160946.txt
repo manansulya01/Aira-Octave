@@ -1,0 +1,240 @@
+TS=20261011-160946
+GIT_HEAD=84b0a05631c8d94eb4c06eccf8af0167ee8caa98
+GIT_STATUS:
+ M gui/aira-help
+ M gui/aira-welcome
+ M initramfs.cpio
+ M initramfs/bin/awk
+ M initramfs/bin/basename
+ M initramfs/bin/bc
+ M initramfs/bin/cat
+ M initramfs/bin/chmod
+ M initramfs/bin/chown
+ M initramfs/bin/clear
+ M initramfs/bin/cp
+ M initramfs/bin/cut
+ M initramfs/bin/date
+ M initramfs/bin/df
+ M initramfs/bin/dmesg
+ M initramfs/bin/du
+ M initramfs/bin/echo
+ M initramfs/bin/env
+ M initramfs/bin/expr
+ M initramfs/bin/fdisk
+ M initramfs/bin/find
+ M initramfs/bin/findfs
+ M initramfs/bin/free
+ M initramfs/bin/getty
+ M initramfs/bin/grep
+ M initramfs/bin/gunzip
+ M initramfs/bin/gzip
+ M initramfs/bin/head
+ M initramfs/bin/hostname
+ M initramfs/bin/hwclock
+ M initramfs/bin/id
+ M initramfs/bin/ifconfig
+ M initramfs/bin/ip
+ M initramfs/bin/kill
+ M initramfs/bin/killall
+ M initramfs/bin/klogd
+ M initramfs/bin/logger
+ M initramfs/bin/login
+ M initramfs/bin/logread
+ M initramfs/bin/losetup
+ M initramfs/bin/ls
+ M initramfs/bin/lsmod
+ M initramfs/bin/mdev
+ M initramfs/bin/mkdir
+ M initramfs/bin/mknod
+ M initramfs/bin/mktemp
+ M initramfs/bin/modinfo
+ M initramfs/bin/modprobe
+ M initramfs/bin/more
+ M initramfs/bin/mount
+ M initramfs/bin/mv
+ M initramfs/bin/nc
+ M initramfs/bin/netstat
+ M initramfs/bin/nslookup
+ M initramfs/bin/passwd
+ M initramfs/bin/pidof
+ M initramfs/bin/ping
+ M initramfs/bin/poweroff
+ M initramfs/bin/ps
+ M initramfs/bin/pwd
+ M initramfs/bin/reboot
+ M initramfs/bin/rm
+ M initramfs/bin/route
+ M initramfs/bin/run-parts
+ M initramfs/bin/sed
+ M initramfs/bin/seq
+ M initramfs/bin/setsid
+ M initramfs/bin/sh
+ M initramfs/bin/sha256sum
+ M initramfs/bin/sleep
+ M initramfs/bin/sort
+ M initramfs/bin/start-stop-daemon
+ M initramfs/bin/stat
+ M initramfs/bin/stty
+ M initramfs/bin/su
+ M initramfs/bin/sync
+ M initramfs/bin/syslogd
+ M initramfs/bin/tail
+ M initramfs/bin/tar
+ M initramfs/bin/timeout
+ M initramfs/bin/top
+ M initramfs/bin/touch
+ M initramfs/bin/tr
+ M initramfs/bin/traceroute
+ M initramfs/bin/true
+ M initramfs/bin/udhcpc
+ M initramfs/bin/umount
+ M initramfs/bin/uname
+ M initramfs/bin/uniq
+ M initramfs/bin/uptime
+ M initramfs/bin/vi
+ M initramfs/bin/w
+ M initramfs/bin/watch
+ M initramfs/bin/wc
+ M initramfs/bin/wget
+ M initramfs/bin/which
+ M initramfs/bin/who
+ M initramfs/bin/whoami
+ M initramfs/bin/xargs
+ M initramfs/bin/yes
+ M initramfs/bin/zcat
+ M initramfs/etc/aira/enabled/ipc
+ M initramfs/etc/aira/enabled/klog
+ M initramfs/etc/aira/enabled/net
+ M initramfs/etc/aira/enabled/persist
+ M initramfs/etc/aira/enabled/syslog
+ M initramfs/init
+ M initramfs/lib
+ M initramfs/lib64
+ M initramfs/sbin/aira-ipc-handle
+ M initramfs/sbin/guest-autotest.sh
+ M initramfs/usr/bin/aira-user
+ M linux-7.2.2/Documentation/Changes
+ M linux-7.2.2/arch/arm/boot/dts/allwinner/sun8i-a23-ippo-q8h-v1.2.dts
+ M linux-7.2.2/arch/arm/boot/dts/allwinner/sun8i-a23-ippo-q8h-v5.dts
+ M linux-7.2.2/arch/arm/boot/dts/allwinner/sun8i-a33-et-q8-v1.6.dts
+ M linux-7.2.2/arch/arm/boot/dts/allwinner/sun8i-a33-ippo-q8h-v1.2.dts
+ M linux-7.2.2/arch/arm64/boot/dts/renesas/r9a07g054l2-smarc-cru-csi-ov5645.dtso
+ M linux-7.2.2/arch/arm64/tools/syscall_64.tbl
+ M linux-7.2.2/arch/powerpc/configs/kvm_guest.config
+ M linux-7.2.2/include/dt-bindings/clock/qcom,dispcc-sm8150.h
+ M linux-7.2.2/include/dt-bindings/clock/qcom,dispcc-sm8350.h
+ M linux-7.2.2/include/dt-bindings/clock/qcom,sm8650-dispcc.h
+ M linux-7.2.2/include/dt-bindings/input/linux-event-codes.h
+ M linux-7.2.2/scripts/dtc/include-prefixes/arc
+ M linux-7.2.2/scripts/dtc/include-prefixes/arm
+ M linux-7.2.2/scripts/dtc/include-prefixes/arm64
+ M linux-7.2.2/scripts/dtc/include-prefixes/dt-bindings
+ M linux-7.2.2/scripts/dtc/include-prefixes/microblaze
+ M linux-7.2.2/scripts/dtc/include-prefixes/mips
+ M linux-7.2.2/scripts/dtc/include-prefixes/nios2
+ M linux-7.2.2/scripts/dtc/include-prefixes/openrisc
+ M linux-7.2.2/scripts/dtc/include-prefixes/powerpc
+ M linux-7.2.2/scripts/dtc/include-prefixes/riscv
+ M linux-7.2.2/scripts/dtc/include-prefixes/sh
+ M linux-7.2.2/scripts/dtc/include-prefixes/xtensa
+ M linux-7.2.2/scripts/dummy-tools/nm
+ M linux-7.2.2/scripts/dummy-tools/objcopy
+ M linux-7.2.2/scripts/kernel-doc
+ M linux-7.2.2/tools/include/linux/pci_ids.h
+ M linux-7.2.2/tools/perf/arch/arm64/entry/syscalls/syscall_64.tbl
+ M linux-7.2.2/tools/perf/pmu-events/arch/riscv/sifive/bullet-07/firmware.json
+ M linux-7.2.2/tools/perf/pmu-events/arch/riscv/sifive/bullet-07/instruction.json
+ M linux-7.2.2/tools/perf/pmu-events/arch/riscv/sifive/bullet-07/memory.json
+ M linux-7.2.2/tools/perf/pmu-events/arch/riscv/sifive/bullet-0d/cycle-and-instruction-count.json
+ M linux-7.2.2/tools/perf/pmu-events/arch/riscv/sifive/bullet-0d/firmware.json
+ M linux-7.2.2/tools/perf/pmu-events/arch/riscv/sifive/bullet-0d/instruction.json
+ M linux-7.2.2/tools/perf/pmu-events/arch/riscv/sifive/bullet-0d/memory.json
+ M linux-7.2.2/tools/perf/pmu-events/arch/riscv/sifive/bullet-0d/watchpoint.json
+ M linux-7.2.2/tools/perf/pmu-events/arch/riscv/sifive/p550/firmware.json
+ M linux-7.2.2/tools/perf/pmu-events/arch/riscv/sifive/p550/instruction.json
+ M linux-7.2.2/tools/perf/pmu-events/arch/riscv/sifive/p550/microarch.json
+ M linux-7.2.2/tools/perf/pmu-events/arch/riscv/sifive/p650/cycle-and-instruction-count.json
+ M linux-7.2.2/tools/perf/pmu-events/arch/riscv/sifive/p650/firmware.json
+ M linux-7.2.2/tools/perf/pmu-events/arch/riscv/sifive/p650/instruction.json
+ M linux-7.2.2/tools/perf/pmu-events/arch/riscv/sifive/p650/watchpoint.json
+ M linux-7.2.2/tools/testing/selftests/bpf/disasm.c
+ M linux-7.2.2/tools/testing/selftests/bpf/disasm.h
+ M linux-7.2.2/tools/testing/selftests/bpf/json_writer.c
+ M linux-7.2.2/tools/testing/selftests/bpf/json_writer.h
+ M linux-7.2.2/tools/testing/selftests/drivers/net/dsa/bridge_locked_port.sh
+ M linux-7.2.2/tools/testing/selftests/drivers/net/dsa/bridge_mdb.sh
+ M linux-7.2.2/tools/testing/selftests/drivers/net/dsa/bridge_mld.sh
+ M linux-7.2.2/tools/testing/selftests/drivers/net/dsa/bridge_vlan_aware.sh
+ M linux-7.2.2/tools/testing/selftests/drivers/net/dsa/bridge_vlan_mcast.sh
+ M linux-7.2.2/tools/testing/selftests/drivers/net/dsa/bridge_vlan_unaware.sh
+ M linux-7.2.2/tools/testing/selftests/drivers/net/dsa/local_termination.sh
+ M linux-7.2.2/tools/testing/selftests/drivers/net/dsa/no_forwarding.sh
+ M linux-7.2.2/tools/testing/selftests/drivers/net/dsa/tc_actions.sh
+ M linux-7.2.2/tools/testing/selftests/drivers/net/dsa/tc_taprio.sh
+ M linux-7.2.2/tools/testing/selftests/drivers/net/mlxsw/spectrum-2/port_range_scale.sh
+ M linux-7.2.2/tools/testing/selftests/drivers/net/mlxsw/spectrum-2/rif_counter_scale.sh
+ M linux-7.2.2/tools/testing/selftests/net/ovpn/json/peer0-symm-float.json
+ M linux-7.2.2/tools/testing/selftests/net/ovpn/json/peer0-symm.json
+ M linux-7.2.2/tools/testing/selftests/net/ovpn/json/peer1-float.json
+ M linux-7.2.2/tools/testing/selftests/net/ovpn/json/peer1-symm-float.json
+ M linux-7.2.2/tools/testing/selftests/net/ovpn/json/peer2-float.json
+ M linux-7.2.2/tools/testing/selftests/net/ovpn/json/peer2-symm-float.json
+ M linux-7.2.2/tools/testing/selftests/net/ovpn/json/peer3-float.json
+ M linux-7.2.2/tools/testing/selftests/net/ovpn/json/peer3-symm-float.json
+ M linux-7.2.2/tools/testing/selftests/net/ovpn/json/peer4-float.json
+ M linux-7.2.2/tools/testing/selftests/net/ovpn/json/peer4-symm-float.json
+ M linux-7.2.2/tools/testing/selftests/net/ovpn/json/peer5-float.json
+ M linux-7.2.2/tools/testing/selftests/net/ovpn/json/peer5-symm-float.json
+ M linux-7.2.2/tools/testing/selftests/net/ovpn/json/peer6-float.json
+ M linux-7.2.2/tools/testing/selftests/net/ovpn/json/peer6-symm-float.json
+ M linux-7.2.2/tools/testing/selftests/net/tcp_ao/icmps-accept.c
+ M linux-7.2.2/tools/testing/selftests/powerpc/copyloops/copy_mc_64.S
+ M linux-7.2.2/tools/testing/selftests/powerpc/copyloops/copyuser_64.S
+ M linux-7.2.2/tools/testing/selftests/powerpc/copyloops/copyuser_power7.S
+ M linux-7.2.2/tools/testing/selftests/powerpc/copyloops/mem_64.S
+ M linux-7.2.2/tools/testing/selftests/powerpc/copyloops/memcpy_64.S
+ M linux-7.2.2/tools/testing/selftests/powerpc/copyloops/memcpy_power7.S
+ M linux-7.2.2/tools/testing/selftests/powerpc/mce/vas-api.h
+ M linux-7.2.2/tools/testing/selftests/powerpc/nx-gzip/include/vas-api.h
+ M linux-7.2.2/tools/testing/selftests/powerpc/primitives/asm/asm-compat.h
+ M linux-7.2.2/tools/testing/selftests/powerpc/primitives/asm/asm-const.h
+ M linux-7.2.2/tools/testing/selftests/powerpc/primitives/asm/extable.h
+ M linux-7.2.2/tools/testing/selftests/powerpc/primitives/asm/feature-fixups.h
+ M linux-7.2.2/tools/testing/selftests/powerpc/primitives/asm/ppc_asm.h
+ M linux-7.2.2/tools/testing/selftests/powerpc/primitives/linux/wordpart.h
+ M linux-7.2.2/tools/testing/selftests/powerpc/primitives/word-at-a-time.h
+ M linux-7.2.2/tools/testing/selftests/powerpc/stringloops/memcmp_32.S
+ M linux-7.2.2/tools/testing/selftests/powerpc/stringloops/memcmp_64.S
+ M linux-7.2.2/tools/testing/selftests/powerpc/stringloops/strlen_32.S
+ M linux-7.2.2/tools/testing/selftests/powerpc/vphn/asm/vphn.h
+ M linux-7.2.2/tools/testing/selftests/powerpc/vphn/vphn.c
+ M linux-7.2.2/tools/testing/selftests/vDSO/vdso_standalone_test_x86.c
+ M linux-7.2.2/tools/testing/selftests/vfio/lib/drivers/dsa/registers.h
+ M linux-7.2.2/tools/testing/selftests/vfio/lib/drivers/ioat/hw.h
+ M linux-7.2.2/tools/testing/selftests/vfio/lib/drivers/ioat/registers.h
+ M release/MANIFEST.txt
+ M scripts/build-initramfs.sh
+ M scripts/test-all.sh
+?? initramfs/sbin/guest-usertest.sh
+?? logs/final-completion/
+?? release/aira-octave-1.5.0.sha256
+?? release/aira-octave-1.5.0/
+?? scripts/test-user.sh
+?? test-ipc-library.sh
+?? "\357\200\242$_gtmp\357\200\242\357\201\274"
+---
+UNAME_M=x86_64
+QEMU emulator version 11.1.0 (v11.1.0-12130-ge470268ff4)
+---
+-rw-r--r-- 1 manan 197609 2.5M Oct  6 17:38 initramfs.cpio
+-rw-r--r-- 1 manan 197609 144K Sep 25 21:49 linux-7.2.2/.config
+-rwxr-xr-x 1 manan 197609  15M Sep 25 21:54 linux-7.2.2/arch/x86/boot/bzImage
+-rw-r--r-- 1 manan 197609  52M Sep 25 21:54 linux-7.2.2/vmlinux
+5b48abc35b34d313fdc3a3fb715f1c2fdcba37d3144260f36fd9bc210362aaea *linux-7.2.2/arch/x86/boot/bzImage
+1ca1ce4d900ded19d39bc3c9fa39676bd1a2023f0cce75c802958185d5b15946 *linux-7.2.2/vmlinux
+5acdda507eb04bc9757f4e6c4fee974b20a4941b5a5779c45a9b8029b63a4aa5 *initramfs.cpio
+80a13a5f95bb050c70e7b44b34f60a37450e9139371828208051455e1e2e6fcd *linux-7.2.2/.config
+linux-7.2.2/arch/x86/boot/bzImage: Linux kernel x86 boot executable, bzImage, version 7.2.2 (manan@IPAD-SERVER) #1 SMP PREEMPT_DYNAMIC Fri Sep 25 16:23:55 UTC 2026, RO-rootFS, Normal VGA, setup size 512*39, syssize 0xe5640, jump 0x26c 0x8cd88ec0fc8cd239 instruction, protocol 2.15, from protected-mode code at offset 0x2c4 0xe4585d bytes gzip compressed, relocatable, handover offset 0xe53600, legacy 64-bit entry point, can be above 4G, 32-bit EFI handoff entry point, 64-bit EFI handoff entry point, EFI kexec boot support, xloadflags bit 5, max cmdline size 2047, init_size 0x2aec000
+CONFIG_KERNEL_GZIP=y
+# CONFIG_KERNEL_XZ is not set
+CONFIG_PREEMPT_DYNAMIC=y

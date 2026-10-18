@@ -1,0 +1,23 @@
+TS=20260928-100800
+GIT_HEAD=ec73ef1caad1562a64e355cc825ee41255e75739
+GIT_STATUS:
+?? logs/final-completion/
+?? release/
+---
+UNAME_M=x86_64
+gcc (Ubuntu 15.2.0-16ubuntu1) 15.2.0
+GNU ld (GNU Binutils for Ubuntu) 2.46
+QEMU emulator version 10.2.1 (Debian 1:10.2.1+ds-1ubuntu3.2)
+---
+-rw-r--r-- 1 manan manan 2.3M Sep 27 06:45 initramfs.cpio
+-rw-r--r-- 1 manan manan 144K Sep 25 16:19 linux-7.2.2/.config
+-rw-r--r-- 1 manan manan  15M Sep 25 16:24 linux-7.2.2/arch/x86/boot/bzImage
+-rwxr-xr-x 1 manan manan  52M Sep 25 16:24 linux-7.2.2/vmlinux
+5b48abc35b34d313fdc3a3fb715f1c2fdcba37d3144260f36fd9bc210362aaea  linux-7.2.2/arch/x86/boot/bzImage
+1ca1ce4d900ded19d39bc3c9fa39676bd1a2023f0cce75c802958185d5b15946  linux-7.2.2/vmlinux
+ccd02730fa679bc73c3bbafc6bd51ed0c84cfc14ad897d2ab64806154def5b90  initramfs.cpio
+80a13a5f95bb050c70e7b44b34f60a37450e9139371828208051455e1e2e6fcd  linux-7.2.2/.config
+linux-7.2.2/arch/x86/boot/bzImage: Linux kernel x86 boot executable, bzImage, version 7.2.2 (manan@IPAD-SERVER) #1 SMP PREEMPT_DYNAMIC Fri Sep 25 16:23:55 UTC 2026, RO-rootFS, Normal VGA, setup size 512*39, syssize 0xe5640, jump 0x26c 0x8cd88ec0fc8cd239 instruction, protocol 2.15, from protected-mode code at offset 0x2c4 0xe4585d bytes gzip compressed, relocatable, handover offset 0xe53600, legacy 64-bit entry point, can be above 4G, 32-bit EFI handoff entry point, 64-bit EFI handoff entry point, EFI kexec boot support, xloadflags bit 5, max cmdline size 2047, init_size 0x2aec000
+CONFIG_KERNEL_GZIP=y
+# CONFIG_KERNEL_XZ is not set
+CONFIG_PREEMPT_DYNAMIC=y

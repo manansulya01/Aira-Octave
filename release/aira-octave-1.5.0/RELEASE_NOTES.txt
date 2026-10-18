@@ -1,0 +1,9 @@
+AiraOS-Octave 1.5.0 (Linux 7.2.2, x86_64)
+Build: 20261015-115151 UTC
+Kernel: bzImage GZIP PREEMPT_DYNAMIC SMP (see kernel-config.txt)
+Userspace: BusyBox + aira + airapkg + services + X11/JWM desktop
+Boot (direct): qemu-system-x86_64 -kernel boot/bzImage -initrd boot/initramfs.cpio -append "console=ttyS0 rdinit=/init loglevel=7" -m 512M -nographic -no-reboot
+Boot (ISO): qemu-system-x86_64 -cdrom aira-octave-1.5.0.iso -m 512M -nographic -no-reboot
+GUI/persist: add -drive file=aira-rootfs.img,if=virtio,format=raw (desktop via aira-session)
+Tests: scripts/test-all.sh (kernel/userspace/services/storage/network/gui)
+Docs: docs/ (BUILD BOOT TESTING ARCHITECTURE USER_GUIDE ...)

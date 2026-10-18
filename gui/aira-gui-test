@@ -25,6 +25,11 @@ if [ -x /persist/usr/bin/aira-session ]; then SES=/persist/usr/bin/aira-session;
 sh "$SES" --headless --display :99 || { echo "GUI-TEST FAIL: session failed"; exit 1; }
 sleep 1
 xwininfo -root 2>/dev/null | head -n 10 || { echo "GUI-TEST FAIL: xwininfo root"; PASS=0; }
+# C8: headless sessions must not pop the first-run welcome dialog (window
+# determinism for automated runs); it appears only in real user sessions.
+if xwininfo -root -tree 2>/dev/null | grep -q "Welcome to AiraOS-Octave"; then
+  echo "GUI-TEST FAIL: welcome dialog shown in headless session"; PASS=0
+else echo "GUI-TEST OK: headless session skips first-run welcome"; fi
 echo "--- launching apps ---"
 xterm -T "AiraTest-Term" -e sh -c 'sleep 90' &
 TPID=$!
@@ -157,6 +162,21 @@ echo "b2-expect-forest $(date +%s 2>/dev/null || echo 0)" > /persist/var/lib/air
 sync 2>/dev/null || true
 xwd -root -out /tmp/aira-gui-shot.xwd 2>/dev/null && echo "GUI-TEST OK: screenshot $(wc -c < /tmp/aira-gui-shot.xwd) bytes" || echo "GUI-TEST INFO: xwd failed (non-fatal)"
 cp -f /tmp/aira-gui-shot.xwd /persist/screenshots/ 2>/dev/null || true
+# C8 first-boot welcome: with a real display the dialog must actually map
+# (headless session above skipped it; here it is launched explicitly).
+_WFLAG="${HOME:-/root}/.config/aira/welcome-done"
+if grep -q ' /persist ' /proc/mounts 2>/dev/null && [ -w /persist ]; then _WFLAG="/persist/.config/aira/welcome-done"; fi
+rm -f "$_WFLAG"
+(aira-welcome >/tmp/gui-welcome.log 2>&1 &)
+_WOK=0; i=0
+while [ "$i" -lt 8 ]; do
+  if xwininfo -root -tree 2>/dev/null | grep -q "Welcome to AiraOS-Octave"; then _WOK=1; break; fi
+  sleep 2; i=$((i+1))
+done
+if [ "$_WOK" = "1" ]; then echo "GUI-TEST OK: first-boot welcome dialog visible";
+else echo "GUI-TEST FAIL: welcome dialog not mapped"; PASS=0; fi
+pkill -f "Welcome to AiraOS-Octave" 2>/dev/null
+sleep 1
 kill $TPID $APID $TEPID $PCPID $NMPID ${SYSMSG_PID:-} 2>/dev/null
 # desktop must survive app exit
 sleep 1

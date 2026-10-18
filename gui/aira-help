@@ -2,8 +2,21 @@
 # AiraOS Help Viewer - built-in help system for users.
 # Shows documentation for system commands and applications.
 
-HELP_DIR="/usr/share/aira/help"
-mkdir -p "$HELP_DIR" 2>/dev/null
+HELP_DIR="${AIRA_HELP_DIR:-/usr/share/aira/help}"
+_HELP_TMP=0
+if ! mkdir -p "$HELP_DIR" 2>/dev/null || ! touch "$HELP_DIR/.w" 2>/dev/null; then
+    # Host/non-root fallback (also keeps guest tmpfs writes off the index
+    # when /usr is read-only): per-process cache under TMPDIR.
+    HELP_DIR="${TMPDIR:-/tmp}/aira-help-$$"
+    mkdir -p "$HELP_DIR" 2>/dev/null
+    _HELP_TMP=1
+fi
+rm -f "$HELP_DIR/.w" 2>/dev/null
+if [ "$_HELP_TMP" = "1" ]; then
+    # Clean only the fallback dir we just created (never the system path):
+    # it holds nothing but our generated index.
+    trap 'rm -rf "$HELP_DIR" 2>/dev/null' EXIT HUP INT TERM
+fi
 
 # Generate help content if not exists
 if [ ! -f "$HELP_DIR/index.txt" ]; then
@@ -36,7 +49,7 @@ BUILT-IN APPLICATIONS
 ---------------------
 Terminal (Alt+F2)     - Command-line shell with copy/paste
 Files (Alt+F3)        - Graphical file manager (Midnight Commander)
-Editor (Alt+F4)       - Text editor (vi with Aira config)
+Editor (menu/Alt+F11) - Text editor (vi with Aira config)
 Settings (Alt+F5)     - System configuration (system/display/network/storage/users/security/apps/about)
 Monitor (Alt+F6)      - Real-time CPU/memory/process/storage/network
 Network (Alt+F7)      - Network interfaces, DHCP, routes, DNS
@@ -48,12 +61,14 @@ KEYBOARD SHORTCUTS
 Alt+F1                - Main menu (or Ctrl+Esc)
 Alt+F2                - Terminal
 Alt+F3                - File Manager
-Alt+F4                - Text Editor / Close window
+Alt+F4                - Close active window
 Alt+F5                - Settings
 Alt+F6                - System Monitor
 Alt+F7                - Network Manager
 Alt+F8                - Package Center
 Alt+F9                - About
+Alt+F10               - Quick Settings
+Alt+F11               - Application Launcher
 Alt+Tab               - Switch between windows
 Right-click desktop   - Application menu
 
@@ -80,7 +95,8 @@ Services: Managed by aira-init (boot/shutdown/start/stop/restart/status/enable/d
           Core services: syslog, klog, net, persist, ipc.
 
 IPC Bus: Local service bus (AIRA1 protocol) on 127.0.0.1:41234.
-         Services: system, storage, network, services, bus.
+         Services: bus, device, files, network, services, settings,
+                   storage, sysstat, system, terms, user.
          Use: aira ipc call <service> <method> [args]
 
 Packages: Local .apkg format (gzipped tar with PKGINFO).
@@ -105,6 +121,16 @@ aira diagnose      - Full system state dump
 aira doctor        - Quick health check
 /var/log/airaos/   - All system logs
 aira demo          - Interactive system tour
+
+DOCUMENTATION (shipped in /usr/share/doc/aira-octave)
+-----------------------------------------------------
+aira-help docs            - List shipped documents
+aira-help docs <name.md>  - Print a document
+aira-help doctor          - Run the system health check now (aira-doctor)
+aira-help diagnose        - Run the full diagnostic dump now
+Highlights: ARCHITECTURE.md, USER_GUIDE.md, TESTING.md,
+            SECURITY.md, TROUBLESHOOTING.md, PACKAGE_MANAGEMENT.md,
+            CAPABILITY-MATRIX.md
 HELPEOF
 fi
 
@@ -112,8 +138,44 @@ fi
 if [ $# -eq 0 ]; then
     # Show index
     cat "$HELP_DIR/index.txt" | less -R 2>/dev/null || cat "$HELP_DIR/index.txt"
+elif [ "${1:-}" = "-h" ] || [ "${1:-}" = "--help" ] || [ "${1:-}" = "help" ]; then
+    cat "$HELP_DIR/index.txt" | less -R 2>/dev/null || cat "$HELP_DIR/index.txt"
+elif [ "${1:-}" = "docs" ]; then
+    DOC_DIR="${AIRA_DOC_DIR:-/usr/share/doc/aira-octave}"
+    if [ -n "${2:-}" ]; then
+        # cat a specific shipped document (name only, no path traversal)
+        _doc="${2##*/}"
+        if [ -f "$DOC_DIR/$_doc" ]; then
+            cat "$DOC_DIR/$_doc"
+        else
+            echo "no such document: $_doc (try: aira-help docs)" >&2
+            exit 1
+        fi
+    else
+        ls "$DOC_DIR" 2>/dev/null || echo "(docs not installed)"
+    fi
+elif [ "${1:-}" = "doctor" ] || [ "${1:-}" = "diagnose" ]; then
+    # C8: launch the real diagnostics application instead of only describing
+    # it. `doctor` = health check (aira-doctor), `diagnose` = full dump
+    # (aira frontend). Child process, not exec: keeps the fallback-cache
+    # cleanup trap working. Honest failure when the tools are absent.
+    _sub="$1"
+    shift || true
+    if [ "$_sub" = "doctor" ]; then
+        if command -v aira-doctor >/dev/null 2>&1; then
+            aira-doctor "$@"; exit $?
+        elif command -v aira >/dev/null 2>&1; then
+            aira doctor "$@"; exit $?
+        fi
+    else
+        if command -v aira >/dev/null 2>&1; then
+            aira diagnose "$@"; exit $?
+        fi
+    fi
+    echo "aira-help: diagnostics not installed (try: aira $_sub)" >&2
+    exit 1
 else
-    # Search for topic
+    # Search for topic (leading dashes must not become grep options)
     TOPIC="$1"
-    grep -i -A 5 -B 2 "$TOPIC" "$HELP_DIR/index.txt" | head -n 30
+    grep -i -A 5 -B 2 -- "$TOPIC" "$HELP_DIR/index.txt" | head -n 30
 fi

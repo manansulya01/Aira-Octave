@@ -326,6 +326,18 @@ if ! kill -0 "$JWM_PID" 2>/dev/null; then
   fi
 fi
 echo "[aira-session] desktop ready on $DISPLAY (X pid $XPID, jwm $JWM_PID)"
+# First-run welcome (C8): shown once per system, gated by the flag aira-welcome
+# writes itself. Interactive user sessions only — headless sessions and
+# cmdline-driven test-harness boots (autotest/guitest/guivisible/inputtest/
+# guidemo/fileops/demo) stay window-deterministic. Missing tool = skip.
+_SKIP_WELCOME=0
+if grep -qE "aira_(autotest|guitest|guivisible|inputtest|guidemo|fileops|demo)=1" /proc/cmdline 2>/dev/null; then
+  _SKIP_WELCOME=1
+fi
+if [ "$HEADLESS" = "no" ] && [ "$_SKIP_WELCOME" = "0" ] && command -v aira-welcome >/dev/null 2>&1; then
+  aira-welcome </dev/null >/var/log/airaos/welcome.log 2>&1 &
+  echo "[aira-session] first-run welcome check started (pid $!)"
+fi
 # If interactive (not headless test), wait; else return (test harness manages lifetime)
 if [ "$HEADLESS" = "no" ]; then
   wait $JWM_PID 2>/dev/null

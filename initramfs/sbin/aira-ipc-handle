@@ -23,6 +23,12 @@ respond() { # $1=id $2=OK|ERR $3=text
   _p="$(printf "%s" "$3" | flat)"
   printf "AIRA1|%s|%s|%s\n" "$1" "$2" "$_p"
 }
+
+audit_log() {
+    # $1 = sender, $2 = method, $3 = authz (granted/denied), $4 = outcome, $5 = optional msg
+    # ${5:-} is required: callers may pass 4 args and `set -u` would abort on $5.
+    printf "[%s] IPC audit: sender=%s method=%s authz=%s outcome=%s %s\n" "$(date +"%Y-%m-%d %H:%M:%S")" "$1" "$2" "$3" "$4" "${5:-}" >> /var/log/airaos/ipc-audit.log 2>/dev/null || true
+}
 # Read exactly one request line (with timeout so stale half-open conns can't pile up).
 REQ=""
 if command -v timeout >/dev/null 2>&1; then
@@ -43,7 +49,13 @@ SVC="$(printf "%s" "$REQ" | cut -d'|' -f4)"
 METHOD="$(printf "%s" "$REQ" | cut -d'|' -f5)"
 AUTH="$(printf "%s" "$REQ" | cut -d'|' -f6)"
 ARGS="$(printf "%s" "$REQ" | cut -d'|' -f7-)"
-fail() { respond "${ID:-?}" "ERR" "$1"; echo "[ipcd] REJECT $1 :: $(printf "%s" "$REQ" | cut -c1-120)" >>"$LOG" 2>/dev/null; exit 0; }
+fail() {
+  local _reason="$1"
+  audit_log "$SENDER" "$METHOD" "denied" "$_reason" "early reject"
+  respond "${ID:-?}" "ERR" "$_reason"
+  echo "[ipcd] REJECT $_reason :: $(printf "%s" "$REQ" | cut -c1-120)" >>"$LOG" 2>/dev/null
+  exit 0
+}
 [ "$VER" = "AIRA1" ] || fail "bad-version: want AIRA1"
 case "$ID" in ""|*[!A-Za-z0-9_-]*) fail "bad-request: id must match [A-Za-z0-9_-]{1,32}" ;; esac
 [ "${#ID}" -le 32 ] || fail "bad-request: id too long"
@@ -60,6 +72,7 @@ case "$METHOD" in *[!a-z0-9_-]*) fail "bad-request: bad method" ;; esac
 AUTHZ="denied"
 if valid_token "$AUTH"; then AUTHZ="granted"; fi
 export AIRA_IPC_SENDER="$SENDER" AIRA_IPC_AUTH="$AUTHZ" AIRA_IPC_ID="$ID"
+audit_log "$SENDER" "$METHOD" "$AUTHZ" "auth_checked"
 if grep -q "^PRIV_METHODS=" "$HDIR/$SVC" 2>/dev/null; then
   _priv="$(sed -n 's/^PRIV_METHODS="\(.*\)"/\1/p' "$HDIR/$SVC" | head -n 1)"
   for _m in $_priv; do
@@ -83,19 +96,23 @@ rm -f "$TMP"
 # 137 (SIGKILL). Treat all three as handler timeout so the bus reports
 # "timeout:" regardless of which timeout implementation is on PATH.
 if [ "$RC" = "124" ] || [ "$RC" = "143" ] || [ "$RC" = "137" ]; then
+  audit_log "$SENDER" "$METHOD" "$AUTHZ" "timeout" "handler timeout"
   respond "$ID" "ERR" "timeout: handler $SVC exceeded ${HANDLER_TIMEOUT}s"
   echo "[ipcd] TIMEOUT $SVC.$METHOD id=$ID" >>"$LOG" 2>/dev/null
   exit 0
 fi
 if [ "$RC" = "3" ]; then
+  audit_log "$SENDER" "$METHOD" "$AUTHZ" "rc_3" "handler exit code 3"
   respond "$ID" "ERR" "$(printf "%s" "$OUT" | head -n 3)"
   exit 0
 fi
 if [ "$RC" != "0" ]; then
+  audit_log "$SENDER" "$METHOD" "$AUTHZ" "handler_failed" "handler exit code $RC"
   respond "$ID" "ERR" "handler-failed: $SVC exited $RC"
   echo "[ipcd] FAIL $SVC.$METHOD rc=$RC id=$ID" >>"$LOG" 2>/dev/null
   exit 0
 fi
+audit_log "$SENDER" "$METHOD" "$AUTHZ" "ok" "handler success"
 respond "$ID" "OK" "$OUT"
 echo "[ipcd] $SVC.$METHOD id=$ID sender=$SENDER auth=$AUTHZ" >>"$LOG" 2>/dev/null
 exit 0

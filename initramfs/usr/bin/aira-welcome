@@ -1,0 +1,178 @@
+#!/bin/sh
+# AiraOS Welcome / First Run Wizard - helps new users understand the system.
+# Runs on first boot or when explicitly invoked.
+# Text-first design: renders cleanly on serial console, xterm, and xmessage.
+# No emoji: console and minimal X fonts lack coverage, so use ASCII markers.
+
+# Prefer the persistent disk for the once-ever flag; fall back to HOME.
+if grep -q ' /persist ' /proc/mounts 2>/dev/null && [ -w /persist ]; then
+  WELCOME_DIR="/persist/.config/aira"
+else
+  WELCOME_DIR="$HOME/.config/aira"
+fi
+WELCOME_FLAG="$WELCOME_DIR/welcome-done"
+mkdir -p "$WELCOME_DIR"
+
+# Argument handling: --force re-shows the welcome screen, --tour replays the
+# desktop tour (text always, dialog when a display is present),
+# -h/--help prints usage. Unknown args are ignored for compatibility.
+TOUR_ONLY=0
+FORCE=0
+for _a in "$@"; do
+    case "$_a" in
+        --force) FORCE=1 ;;
+        --tour) TOUR_ONLY=1; FORCE=1 ;;
+        -h|--help|help)
+            echo "Usage: aira-welcome [--force] [--tour]"
+            echo "  (no args): show once, then exit silently once the done-flag exists"
+            echo "  --force:   re-show the welcome screen"
+            echo "  --tour:    re-show welcome plus the desktop tour"
+            exit 0 ;;
+    esac
+done
+
+# Skip if already shown (unless --force/--tour)
+if [ -f "$WELCOME_FLAG" ] && [ "$FORCE" != "1" ]; then
+    exit 0
+fi
+
+# Only use graphical dialogs when a display is already present AND xmessage
+# exists. Never force DISPLAY: headless/serial boots must stay in text mode.
+
+show_welcome() {
+    cat <<'WELCOME_EOF'
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                                                                              ║
+║    █████╗ ██████╗  █████╗ ███████╗██╗   ██╗                                 ║
+║   ██╔══██╗██╔══██╗██╔══██╗██╔════╝╚██╗ ██╔╝                                 ║
+║   ███████║██████╔╝███████║█████╗   ╚████╔╝                                  ║
+║   ██╔══██║██╔══██╗██╔══██║██╔══╝    ╚██╔╝                                   ║
+║   ██║  ██║██║  ██║██║  ██║███████╗   ██║                                    ║
+║   ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝   ╚═╝                                    ║
+║                                                                              ║
+║                        Welcome to AiraOS-Octave!                            ║
+║                                                                              ║
+╚═════════════════════════════════════════════════════════════════════════════╝
+
+AiraOS is a complete, bootable operating system designed to be
+simple, transparent, and hackable.
+
+┌─ QUICK START ─────────────────────────────────────────────────────────────┐
+│                                                                             │
+│  [T] TERMINAL     Press Alt+F2 or click "Terminal" in the taskbar          │
+│  [F] FILES        Press Alt+F3 or click "Files" to browse your system       │
+│  [E] EDITOR       Right-click desktop or press Alt+F11, pick Editor         │
+│  [S] SETTINGS     Press Alt+F5 or click "Settings" to configure system     │
+│  [M] MONITOR      Press Alt+F6 to see CPU, memory, and processes            │
+│  [N] NETWORK      Press Alt+F7 to manage network connections                │
+│  [P] PACKAGES     Press Alt+F8 to install/remove software                   │
+│  [A] ABOUT        Press Alt+F9 for system information                       │
+│                                                                             │
+│  Right-click on desktop for application menu                                │
+│  Alt+Tab to switch between windows                                          │
+│  Alt+F1 opens the main menu                                                 │
+│  Alt+F4 closes the active window                                            │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─ KEY CONCEPTS ────────────────────────────────────────────────────────────┐
+│                                                                             │
+│  • Everything runs in a graphical desktop (JWM window manager)             │
+│  • Applications are real programs, not simulations                         │
+│  • Your files persist if you boot with a virtual disk (-drive)             │
+│  • System settings are changed through the Settings app                    │
+│  • Software is managed via Package Center (airapkg)                        │
+│  • The system uses a local IPC bus for service communication               │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─ USEFUL COMMANDS (in Terminal) ───────────────────────────────────────────┐
+│                                                                             │
+│  aira help           Show all system commands                              │
+│  aira system         Show kernel, CPU, memory, disk info                   │
+│  aira status         Show running services and mounts                      │
+│  aira doctor         Run system health check                               │
+│  aira diagnose       Full diagnostic dump                                  │
+│  aira demo           Guided tour of the system                             │
+│  airapkg list        List installed packages                               │
+│  airapkg search <term> Search for packages                                 │
+│  airapkg install <file.apkg> Install a package                             │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+Press Enter to continue, or 'q' to skip this welcome screen.
+WELCOME_EOF
+}
+
+if [ -n "${DISPLAY:-}" ] && command -v xmessage >/dev/null 2>&1; then
+    # Graphical welcome (only when a real display is already present)
+    show_welcome | xmessage -file - -buttons "Get Started:0,Skip:1" -title "Welcome to AiraOS-Octave" -center -default "Get Started" 2>/dev/null
+    RESULT=$?
+else
+    # Text welcome (serial console, xterm, headless). Never block forever:
+    # a closed stdin (</dev/null) skips immediately instead of hanging.
+    show_welcome
+    if [ -t 0 ]; then
+        read -r input || input=""
+    else
+        input=""
+    fi
+    case "$input" in
+        q|Q) RESULT=1 ;;
+        *) RESULT=0 ;;
+    esac
+fi
+
+# Desktop tour text. Status values are live where cheap to read, otherwise
+# described generically — never invented. Missing tools fall back safely.
+show_tour_text() {
+    _NET="$(ip -o -4 addr show 2>/dev/null | awk '$2!="lo"{print $4; exit}')"
+    [ -n "$_NET" ] || _NET="see taskbar"
+    if grep -q ' /persist ' /proc/mounts 2>/dev/null; then
+        _DSK="$(df -h /persist 2>/dev/null | awk 'NR==2{print $4" free ("$5" used)"}')"
+        [ -n "$_DSK" ] || _DSK="see taskbar"
+    else
+        _DSK="RAM only (boot with -drive for persistence)"
+    fi
+    cat <<EOF
+The AiraOS Desktop:
+
+  Aira [Terminal] [Files] [Editor] [Settings]  [Task List]  [1][2][3][4]
+
+  Right-click anywhere on the desktop background for the menu!
+
+  NET: $_NET    DSK: $_DSK
+
+Top Bar (left to right):
+- Aira button / Alt+F1: main application menu
+- Quick launch: Terminal, Files, Editor, Settings
+- Running applications (task list)
+- Workspace switcher (1,2,3,4)
+- Network status, Disk status, CPU load, Clock
+
+Keyboard Shortcuts:
+- Alt+F1  Main menu        Alt+F2  Terminal
+- Alt+F3  File Manager     Alt+F5  Settings
+- Alt+F6  System Monitor   Alt+F7  Network Manager
+- Alt+F8  Package Center   Alt+F9  About
+- Alt+F10 Quick Settings   Alt+F11 Launcher
+- Alt+F4  Close window     Alt+Tab Switch windows
+- Ctrl+Esc Main menu
+
+Try it now! Right-click on the desktop, then Terminal.
+EOF
+}
+
+if [ "$RESULT" = "0" ] || [ "$TOUR_ONLY" = "1" ]; then
+    # Show the desktop tour: dialog when a display is present, text otherwise
+    # (so --tour works headlessly and text-mode users see it too).
+    if [ -n "${DISPLAY:-}" ] && command -v xmessage >/dev/null 2>&1; then
+        show_tour_text | xmessage -file - -buttons OK:0 -title "AiraOS Desktop Tour" -center 2>/dev/null
+    elif [ "$TOUR_ONLY" = "1" ]; then
+        show_tour_text
+    fi
+fi
+
+# Mark welcome as done
+touch "$WELCOME_FLAG"
+echo "Welcome screen completed."

@@ -1,36 +1,90 @@
 #!/usr/bin/env bash
-# Run full feasible automated suite. Continues on failure, reports summary.
+# AiraOS-Octave test runner. Preserve individual failures and report all results.
 set -u
-ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+
+ROOT="$(cd "$(dirname "$0")/.." && pwd)" || exit 1
 cd "$ROOT" || exit 1
+
 OUTDIR="$ROOT/logs/final-completion/summary"
-mkdir -p "$OUTDIR"
+mkdir -p "$OUTDIR" || exit 1
 TS="$(date -u +%Y%m%d-%H%M%S)"
 LOG="$OUTDIR/test-all-$TS.log"
 OVERALL=0
+
 run() {
-  local name="$1"; shift
-  echo "===== $name: $* =====" | tee -a "$LOG"
-  set +e
-  "$@" 2>&1 | tee -a "$LOG"
-  local rc=${PIPESTATUS[0]}
-  set -u
-  if [ $rc -eq 0 ]; then echo "RESULT $name PASS" | tee -a "$LOG";
-  else echo "RESULT $name FAIL rc=$rc" | tee -a "$LOG"; OVERALL=1; fi
+    local name="$1"
+    shift
+
+    echo "===== $name: $* =====" | tee -a "$LOG"
+    "$@" 2>&1 | tee -a "$LOG"
+    local rc=${PIPESTATUS[0]}
+
+    if [ "$rc" -eq 0 ]; then
+        echo "RESULT $name PASS" | tee -a "$LOG"
+    else
+        echo "RESULT $name FAIL rc=$rc" | tee -a "$LOG"
+        OVERALL=1
+    fi
 }
-run kernel bash scripts/test-kernel.sh
-run userspace-static bash scripts/test-userspace.sh
-[ -x scripts/test-services.sh ] && run services bash scripts/test-services.sh || echo "SKIP services (no script yet)" | tee -a "$LOG"
-[ -x scripts/test-storage.sh ] && run storage bash scripts/test-storage.sh || echo "SKIP storage (no script yet)" | tee -a "$LOG"
-[ -x scripts/test-network.sh ] && run network bash scripts/test-network.sh || echo "SKIP network (no script yet)" | tee -a "$LOG"
-[ -x scripts/test-gui.sh ] && run gui bash scripts/test-gui.sh || echo "SKIP gui (no script yet)" | tee -a "$LOG"
-[ -x scripts/test-demo.sh ] && run demo bash scripts/test-demo.sh || echo "SKIP demo (no script yet)" | tee -a "$LOG"
-  if [ -x scripts/test-iso.sh ]; then
-    _iso="$(ls -t release/*.iso 2>/dev/null | head -n 1 | sed 's/.*aira-octave-//' | sed 's/\.iso//')"
-    [ -n "$_iso" ] || _iso="1.5.0"
-    run iso bash scripts/test-iso.sh "$_iso"
-  else
-    echo "SKIP iso (no script yet)" | tee -a "$LOG"
-  fi
-if [ "$OVERALL" = "0" ]; then echo "TEST-ALL PASS" | tee -a "$LOG"; else echo "TEST-ALL FAIL (see $LOG)" | tee -a "$LOG"; fi
-exit $OVERALL
+
+# Core tests are mandatory.
+for spec in \
+    "kernel:scripts/test-kernel.sh" \
+    "userspace-static:scripts/test-userspace.sh"
+do
+    name="${spec%%:*}"
+    path="${spec#*:}"
+    if [ -f "$path" ]; then
+        run "$name" bash "$path"
+    else
+        echo "RESULT $name FAIL: missing $path" | tee -a "$LOG"
+        OVERALL=1
+    fi
+done
+
+# Run optional test scripts only when they exist.
+for spec in \
+    "shell:scripts/test-shell.sh" \
+    "features:scripts/test-features.sh" \
+    "files:scripts/test-files.sh" \
+    "settings:scripts/test-settings.sh" \
+    "terms:scripts/test-terms.sh" \
+    "sysstat:scripts/test-sysstat.sh" \
+    "network:scripts/test-net.sh" \
+    "user:scripts/test-user.sh" \
+    "packages:scripts/test-pkg.sh" \
+    "doctor:scripts/test-doctor.sh" \
+    "manifest:scripts/test-manifest.sh" \
+    "services:scripts/test-services.sh" \
+    "storage:scripts/test-storage.sh" \
+    "legacy-network:scripts/test-network.sh" \
+    "gui:scripts/test-gui.sh" \
+    "demo:scripts/test-demo.sh"
+do
+    name="${spec%%:*}"
+    path="${spec#*:}"
+    if [ -f "$path" ]; then
+        run "$name" bash "$path"
+    else
+        echo "SKIP $name (no $path)" | tee -a "$LOG"
+    fi
+done
+
+if [ -f scripts/test-iso.sh ]; then
+    iso="$(find release -maxdepth 1 -type f -name '*.iso' -printf '%T@ %p\n' 2>/dev/null |
+        sort -nr | head -n 1 | cut -d' ' -f2-)"
+    if [ -n "$iso" ]; then
+        run iso bash scripts/test-iso.sh "$iso"
+    else
+        echo "SKIP iso (no release ISO found)" | tee -a "$LOG"
+    fi
+fi
+
+if [ "$OVERALL" -eq 0 ]; then
+    echo "TEST-ALL PASS" | tee -a "$LOG"
+else
+    echo "TEST-ALL FAIL" | tee -a "$LOG"
+fi
+
+echo "LOG=$LOG"
+exit "$OVERALL"

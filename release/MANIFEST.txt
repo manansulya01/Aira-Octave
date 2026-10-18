@@ -1,20 +1,20 @@
 AiraOS-Octave release manifest
-generated: 2026-10-05T12:05:10Z
-git-commit: 192e6a2292c977edd40424afda40230cdf243ac1
+generated: 2026-10-15T11:53:47Z
+git-commit: 84b0a05631c8d94eb4c06eccf8af0167ee8caa98
   (note: initramfs.cpio/aira-rootfs.img hashes below are the LOCAL build
    outputs. Any prebuilt release/*.iso or *.tar.gz is NOT regenerated here and
    may predate this commit — rebuild with scripts/build-release.sh before
    shipping.)
-git-describe: v1.5.0-18-g192e6a229
+git-describe: v1.5.0-21-g84b0a0563
 kernel-version: 6.6.87.2-microsoft-standard-WSL2
 builder: Linux 6.6.87.2-microsoft-standard-WSL2 x86_64
 
 ARTIFACT                      BYTES  SHA256                                                            PATH
 kernel                     15053824  5b48abc35b34d313fdc3a3fb715f1c2fdcba37d3144260f36fd9bc210362aaea  linux-7.2.2/arch/x86/boot/bzImage
 kernel-config                146967  80a13a5f95bb050c70e7b44b34f60a37450e9139371828208051455e1e2e6fcd  configs/airaos-octave-x86_64.config
-initramfs                   2551808  6027ae4436efc3ba5e6af3890d0f58cf73b4f6d1c3dbb428df6311b6b31666d5  initramfs.cpio
-rootfs-image              536870912  7187912bc79998e3157f37e2c08fc67455a3b03af2274c41e48ddbf466523fbc  aira-rootfs.img
-source-init                   10324  997667f0a76acdc84db4aa1a41c2d32c6ee3305e4a2e1654160f3c610a5c2d6b  initramfs/init
+initramfs                   2631680  c30e45fb701ed6ff53661729e59f1a080f5fdc9ccb529684ebad5a53cbcd824e  initramfs.cpio
+rootfs-image              536870912  36798884b1ef504911e96791a72af98a7e79e7077bb85fde38d346eac4158b25  aira-rootfs.img
+source-init                   10741  84a4419fe16551e11c8f97078b49fb7458d7695e250494b152452e12f3ca01ee  initramfs/init
 canonical-ipc-lib              6439  3604eb856a09c446887f24f1e421df946bba306e25b6d01f79b12b957fced666  usr/lib/aira-ipc.sh
 
 component: files handler

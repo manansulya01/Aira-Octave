@@ -3,7 +3,7 @@
 set -u
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT" || exit 1
-OUTDIR="$ROOT/logs/final-completion/build"
+OUTDIR="/tmp/aira-initramfs-build"
 mkdir -p "$OUTDIR"
 TS="$(date -u +%Y%m%d-%H%M%S)"
 LOG="$OUTDIR/initramfs-build-$TS.log"
@@ -20,6 +20,14 @@ echo "LOG=$LOG"
 if [ ! -x "$SRC/init" ]; then echo "ERROR: $SRC/init missing/executable" | tee -a "$LOG"; exit 1; fi
 if [ ! -f "$SRC/bin/busybox" ]; then echo "ERROR: $SRC/bin/busybox missing" | tee -a "$LOG"; exit 1; fi
 
+# C8: help/about/welcome live canonically in gui/ (used by the desktop);
+# sync into initramfs so `aira help` works in the base non-GUI boot too.
+for g in aira-help aira-about aira-welcome; do
+  [ -f "$ROOT/gui/$g" ] || { echo "ERROR: gui/$g missing" | tee -a "$LOG"; exit 1; }
+  cp -f "$ROOT/gui/$g" "$SRC/usr/bin/$g"
+  chmod 755 "$SRC/usr/bin/$g"
+done
+
 # C0: canonical IPC client lib lives at usr/lib/aira-ipc.sh; sync into
 # initramfs source so /usr/lib/aira-ipc.sh exists in-guest (gui apps source it).
 if [ -f "$ROOT/usr/lib/aira-ipc.sh" ]; then
@@ -30,6 +38,16 @@ else
   echo "ERROR: $ROOT/usr/lib/aira-ipc.sh missing (C0 shared API)" | tee -a "$LOG"; exit 1
 fi
 if [ ! -f "$SRC/usr/lib/aira-ipc.sh" ]; then echo "ERROR: usr/lib/aira-ipc.sh missing in initramfs source" | tee -a "$LOG"; exit 1; fi
+
+# C8: ship user-facing docs in-guest at /usr/share/doc/aira-octave (single
+# source: repo docs/). Keeps aira-help -> real docs, no duplicated copies.
+mkdir -p "$SRC/usr/share/doc/aira-octave"
+for d in ARCHITECTURE.md SECURITY.md TESTING.md TROUBLESHOOTING.md USER_GUIDE.md DEVELOPER_GUIDE.md BUILD.md RELEASE.md PACKAGE_MANAGEMENT.md HARDWARE_SUPPORT.md; do
+  [ -f "$ROOT/docs/$d" ] || { echo "ERROR: docs/$d missing" | tee -a "$LOG"; exit 1; }
+  cp -f "$ROOT/docs/$d" "$SRC/usr/share/doc/aira-octave/$d"
+done
+[ -f "$ROOT/docs/architecture/AIRAOS-COMPLETE-CAPABILITY-MATRIX.md" ] && cp -f "$ROOT/docs/architecture/AIRAOS-COMPLETE-CAPABILITY-MATRIX.md" "$SRC/usr/share/doc/aira-octave/CAPABILITY-MATRIX.md"
+echo "SYNC docs -> initramfs/usr/share/doc/aira-octave" | tee -a "$LOG"
 
 # Executable bits matter inside the image: /init dispatches guest scripts and
 # the IPC dispatcher execs handlers, so a 0644 file is silently unusable.
@@ -44,7 +62,7 @@ for x in \
   "$SRC/sbin/guest-monitest.sh" "$SRC/sbin/guest-settingstest.sh" \
   "$SRC/sbin/guest-termtest.sh" "$SRC/sbin/guest-nettest.sh" \
   "$SRC/sbin/guest-netpersist.sh" "$SRC/sbin/guest-devperm.sh" \
-  "$SRC/sbin/guest-doctest.sh" \
+  "$SRC/sbin/guest-doctest.sh" "$SRC/sbin/guest-usertest.sh" \
   "$SRC/etc/aira/doctor-probes" \
   "$SRC/etc/aira/settings-schema" \
   "$SRC/usr/bin/aira" "$SRC/usr/bin/aira-ipc" "$SRC/usr/bin/aira-files" \
@@ -67,7 +85,8 @@ done
 # Verify the critical dispatch targets really are executable in the SOURCE tree.
 for need in init sbin/aira-ipc-handle sbin/guest-nettest.sh \
             sbin/guest-netpersist.sh sbin/guest-devperm.sh \
-            usr/bin/aira-net usr/bin/aira-doctor \
+            sbin/guest-usertest.sh \
+            usr/bin/aira-net usr/bin/aira-doctor usr/bin/aira-user \
             etc/aira/doctor-probes etc/aira/settings-schema \
             etc/aira/ipc/handlers/network; do
   if [ ! -x "$SRC/$need" ]; then
