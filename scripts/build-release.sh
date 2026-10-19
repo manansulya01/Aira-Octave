@@ -114,12 +114,17 @@ if [ ! -s "$TAR_TMP" ]; then
 fi
 
 # Generate checksums for exactly the artifacts that will be published.
+write_checksum() {
+  local path="$1" name="$2" result
+  result="$(sha256sum "$path")" || return 1
+  printf '%s  %s\\n' "${result%% *}" "$name"
+}
 if ! {
-  sha256sum "$TAR_TMP" | awk -v name="aira-octave-$VER.tar.gz" '{print $1 "  " name}'
-  sha256sum "$ISO_TMP" | awk -v name="aira-octave-$VER.iso" '{print $1 "  " name}'
-  sha256sum "$REL/boot/bzImage" | awk -v name="aira-octave-$VER/boot/bzImage" '{print $1 "  " name}'
-  sha256sum "$REL/boot/initramfs.cpio" | awk -v name="aira-octave-$VER/boot/initramfs.cpio" '{print $1 "  " name}'
-  sha256sum "$REL/aira-rootfs.img" | awk -v name="aira-octave-$VER/aira-rootfs.img" '{print $1 "  " name}'
+  write_checksum "$TAR_TMP" "aira-octave-$VER.tar.gz" &&
+  write_checksum "$ISO_TMP" "aira-octave-$VER.iso" &&
+  write_checksum "$REL/boot/bzImage" "aira-octave-$VER/boot/bzImage" &&
+  write_checksum "$REL/boot/initramfs.cpio" "aira-octave-$VER/boot/initramfs.cpio" &&
+  write_checksum "$REL/aira-rootfs.img" "aira-octave-$VER/aira-rootfs.img"
 } > "$SUM_TMP"; then
   echo "ERROR: checksum generation failed; existing published release artifacts were not replaced." | tee -a "$LOG"
   exit 1
