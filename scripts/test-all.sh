@@ -45,7 +45,7 @@ done
 # Run optional test scripts only when they exist.
 for spec in \
     "shell:scripts/test-shell.sh" \
-    "support-bundle:scripts/test-support-bundle.sh" \
+    "rootfs-atomic:scripts/test-build-rootfs-atomic.sh" \
     "features:scripts/test-features.sh" \
     "files:scripts/test-files.sh" \
     "settings:scripts/test-settings.sh" \
@@ -54,6 +54,7 @@ for spec in \
     "network:scripts/test-net.sh" \
     "user:scripts/test-user.sh" \
     "packages:scripts/test-pkg.sh" \
+    "support-bundle:scripts/test-support-bundle.sh" \
     "doctor:scripts/test-doctor.sh" \
     "manifest:scripts/test-manifest.sh" \
     "services:scripts/test-services.sh" \
