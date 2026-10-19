@@ -17,7 +17,7 @@ output_json() {
         cat <<EOF
 {
   "os": "$(cat /etc/os-release 2>/dev/null | grep PRETTY_NAME | cut -d= -f2 | tr -d '\"')",
-  "version": "$(grep VERSION /etc/os-release | cut -d= -f2 | tr -d '\"')",
+  "version": "$(grep '^VERSION=' /etc/os-release | cut -d= -f2 | tr -d '\"')",
   "kernel": "$(uname -r)",
   "arch": "$(uname -m)",
   "hostname": "$(hostname)",
@@ -39,7 +39,7 @@ show_all() {
     echo "=== AiraOS System Information ==="
     echo
     echo "OS: $(cat /etc/os-release 2>/dev/null | grep PRETTY_NAME | cut -d= -f2 | tr -d '\"')"
-    echo "Version: $(grep VERSION /etc/os-release | cut -d= -f2 | tr -d '\"')"
+    echo "Version: $(grep '^VERSION=' /etc/os-release | cut -d= -f2 | tr -d '\"')"
     echo "Kernel: $(uname -a)"
     echo "Architecture: $(uname -m)"
     echo "Hostname: $(hostname)"
