@@ -87,7 +87,7 @@ done
 for need in init sbin/aira-ipc-handle sbin/guest-nettest.sh \
             sbin/guest-netpersist.sh sbin/guest-devperm.sh \
             sbin/guest-usertest.sh sbin/guest-supporttest.sh \
-            usr/bin/aira-net usr/bin/aira-doctor usr/bin/aira-user \
+            usr/bin/aira-net usr/bin/aira-doctor usr/bin/aira-user usr/bin/aira-support-bundle \
             etc/aira/doctor-probes etc/aira/settings-schema \
             etc/aira/ipc/handlers/network; do
   if [ ! -x "$SRC/$need" ]; then
