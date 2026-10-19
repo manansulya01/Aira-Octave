@@ -191,8 +191,8 @@ scripts/build-release.sh 1.5.0
 - [Architecture](docs/ARCHITECTURE.md) - System design and internals
 - [Security](docs/SECURITY.md) - Security model and hardening
 - [Testing](docs/TESTING.md) - Test procedures
-- [Building](docs/BUILDING.md) - Build instructions
-- [Release Notes](RELEASE_NOTES.md) - Version history
+- [Building](docs/BUILD.md) - Build instructions
+- [Release Notes](docs/RELEASE.md) - Version history
 
 ## License
 
