@@ -4,6 +4,7 @@
 ```bash
 bash scripts/test-kernel.sh      # boot to userspace (markers, no panic)
 bash scripts/test-userspace.sh   # /init layout, busybox applets, aira CLI, services, users
+bash scripts/test-support-bundle.sh # guest integration/privacy checks (requires QEMU)
 bash scripts/test-build-rootfs-atomic.sh # mocked failure/success image-publication checks
 bash scripts/test-storage.sh     # ext4 persist: create file, reboot, verify
 bash scripts/test-build-release-guards.sh # mocked release failure/checksum checks
