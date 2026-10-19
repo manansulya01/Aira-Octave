@@ -66,3 +66,10 @@ jobs:
             esac
             echo "PASS: $script syntax"
           done
+
+      - name: Run mocked build safety regressions
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash scripts/test-build-rootfs-atomic.sh
+          bash scripts/test-build-release-guards.sh
