@@ -7,7 +7,7 @@ set -u
 JSON=0
 CATEGORY="${1:-all}"
 
-case "$1" in
+case "${1:-}" in
     --json) JSON=1; CATEGORY="${2:-all}" ;;
 esac
 
@@ -117,12 +117,18 @@ show_network() {
     cat /etc/resolv.conf | sed 's/^/  /'
 }
 
+# JSON mode is a complete output mode, regardless of whether CATEGORY defaults
+# to "all" or an explicit category follows --json.
+if [ "$JSON" = "1" ]; then
+    output_json
+fi
+
 case "$CATEGORY" in
     all) show_all ;;
     kernel) show_kernel ;;
     hardware) show_hardware ;;
     network) show_network ;;
-    json) output_json ;;
+    json) JSON=1; output_json ;;
     help|--help|-h)
         echo "Usage: aira-info [--json] [all|kernel|hardware|network]"
         ;;
