@@ -45,6 +45,7 @@ done
 # Run optional test scripts only when they exist.
 for spec in \
     "shell:scripts/test-shell.sh" \
+    "support-bundle:scripts/test-support-bundle.sh" \
     "features:scripts/test-features.sh" \
     "files:scripts/test-files.sh" \
     "settings:scripts/test-settings.sh" \
