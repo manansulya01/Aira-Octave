@@ -39,7 +39,7 @@ t "support bundle archive readable" tar -tzf "$SUPPORT_BUNDLE"
 tar -tzf "$SUPPORT_BUNDLE" > "$SUPPORT_LIST" 2>/dev/null
 t_contains "support bundle includes system report" "$SUPPORT_LIST" "system.txt"
 t_contains "support bundle includes doctor report" "$SUPPORT_LIST" "doctor.txt"
-if grep -Eq '(^|/)(shadow|gshadow|passwd|root\\.token)$' "$SUPPORT_LIST"; then
+if grep -Eq '(^|/)(shadow|gshadow|passwd|root[.]token)$' "$SUPPORT_LIST"; then
   echo "GUEST-TEST FAIL: support bundle includes a credential file"; PASS=0
 else
   echo "GUEST-TEST OK: support bundle excludes credential files"
