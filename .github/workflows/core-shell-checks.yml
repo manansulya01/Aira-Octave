@@ -1,0 +1,56 @@
+name: Core shell syntax
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "scripts/**"
+      - "initramfs/init"
+      - ".github/workflows/core-shell-checks.yml"
+  pull_request:
+    paths:
+      - "scripts/**"
+      - "initramfs/init"
+      - ".github/workflows/core-shell-checks.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  shell-syntax:
+    name: Validate build and test script syntax
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Validate all top-level scripts
+        shell: bash
+        run: |
+          set -euo pipefail
+          count=0
+          while IFS= read -r -d '' script; do
+            echo "bash -n $script"
+            bash -n "$script"
+            count=$((count + 1))
+          done < <(find scripts -maxdepth 1 -type f -name '*.sh' -print0 | sort -z)
+          if [[ "$count" -eq 0 ]]; then
+            echo "ERROR: no scripts/*.sh files found"
+            exit 1
+          fi
+          echo "PASS: parsed $count shell scripts"
+
+      - name: Validate init entrypoint syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ ! -f initramfs/init ]]; then
+            echo "ERROR: initramfs/init is missing"
+            exit 1
+          fi
+          case "$(head -n 1 initramfs/init)" in
+            *bash*) bash -n initramfs/init ;;
+            *) sh -n initramfs/init ;;
+          esac
+          echo "PASS: initramfs/init syntax"
