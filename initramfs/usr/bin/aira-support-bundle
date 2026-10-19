@@ -48,7 +48,11 @@ command -v sha256sum >/dev/null 2>&1 || { echo "ERROR: sha256sum is unavailable"
 
 WORK="$(mktemp -d "/tmp/aira-support-bundle.XXXXXX")" || { echo "ERROR: cannot create temporary workspace" >&2; exit 1; }
 TMP_ARCHIVE="$(mktemp "$OUTDIR/.aira-support-bundle.XXXXXX")" || { echo "ERROR: cannot create temporary archive in $OUTDIR" >&2; exit 1; }
-trap ' [ -n "$WORK" ] && rm -rf "$WORK"; [ -n "$TMP_ARCHIVE" ] && rm -f "$TMP_ARCHIVE" ' EXIT
+cleanup() {
+  if [ -n "$WORK" ] && [ -d "$WORK" ]; then rm -rf "$WORK"; fi
+  if [ -n "$TMP_ARCHIVE" ] && [ -f "$TMP_ARCHIVE" ]; then rm -f "$TMP_ARCHIVE"; fi
+}
+trap cleanup EXIT
 trap 'exit 129' HUP
 trap 'exit 130' INT
 trap 'exit 143' TERM
@@ -109,7 +113,7 @@ mkdir -p "$BUNDLE/logs" || exit 1
 {
   echo "=== Doctor report ==="
   if [ -x /usr/bin/aira-doctor ]; then
-    /usr/bin/aira-doctor 2>&1 || true
+    /usr/bin/aira-doctor 2>&1 | sed '/^[[:space:]]*kernel[[:space:]]*cmdline/d' || true
   else
     echo "aira-doctor unavailable"
   fi
