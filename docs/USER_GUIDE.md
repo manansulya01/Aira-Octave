@@ -27,3 +27,14 @@ bash scripts/boot-qemu.sh --append "aira_safe=1"
 ```
 
 Safe mode keeps the initramfs root and essential `/dev`, `/proc`, and `/sys` setup, skips mounting the persistent `/dev/vda` disk, skips service startup, and bypasses automatic desktop/demo/test paths. It then opens the serial recovery shell. This is a minimal troubleshooting path, not a read-only guarantee for every initramfs file.
+
+
+## Diagnostic support bundle
+
+Run `aira support-bundle` to create a compressed diagnostic archive. By default it writes to `/persist` when mounted, otherwise to `/tmp`. You can provide an explicit output path:
+
+```sh
+aira support-bundle /persist/aira-support-bundle.tar.gz
+```
+
+The archive contains system, resource, storage, network, doctor, and selected log details. It excludes account databases, IPC runtime tokens, package databases, network profiles, home directories, and the raw kernel command line. It still contains local IP/routes/DNS and selected system logs; inspect it before sharing. Nothing is uploaded automatically.
