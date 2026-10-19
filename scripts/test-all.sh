@@ -49,6 +49,7 @@ for spec in \
     "features:scripts/test-features.sh" \
     "release-guards:scripts/test-build-release-guards.sh" \
     "files:scripts/test-files.sh" \
+    "safe-mode:scripts/test-safe-mode.sh" \
     "settings:scripts/test-settings.sh" \
     "terms:scripts/test-terms.sh" \
     "sysstat:scripts/test-sysstat.sh" \

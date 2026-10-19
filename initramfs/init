@@ -76,8 +76,20 @@ echo "Memory:"
 grep MemTotal /proc/meminfo 2>/dev/null
 echo
 
-# Persistent disk (best effort; missing disk is NOT fatal)
-if [ -b /dev/vda ]; then
+# Safe mode is a deliberate minimal boot path for recovery when normal startup
+# is broken. It does not mount persistent storage or run optional boot paths.
+SAFE_MODE=0
+if grep -Eq '(^|[[:space:]])aira_safe=1([[:space:]]|$)' /proc/cmdline 2>/dev/null; then
+  SAFE_MODE=1
+  echo "AIRA SAFE MODE ACTIVE"
+  echo "[init] safe mode: persistence, services, GUI and demo/test hooks disabled"
+fi
+
+# Persistent disk (best effort; missing disk is NOT fatal). Do not mount it in
+# safe mode so diagnostics can run without touching the persistent filesystem.
+if [ "$SAFE_MODE" -eq 1 ]; then
+  echo "[init] safe mode: skipping persistent disk mount"
+elif [ -b /dev/vda ]; then
   echo "[init] found /dev/vda, mounting /persist"
   mount -t ext4 /dev/vda /persist 2>/dev/null && echo "[init] /persist mounted" || echo "[init] /persist mount failed (unformatted?)"
 else
@@ -99,12 +111,24 @@ echo "Available commands:"
 echo "  aira  airapkg  ls  cat  ps  free  mount  dmesg  uname  ip  ping"
 echo
 
-# Start core services (best effort; failure must not block shell)
-if [ -x /sbin/aira-init ]; then
+# Start core services in normal mode only. Safe mode must remain usable even
+# when the service manager or persistent desktop environment is damaged.
+if [ "$SAFE_MODE" -eq 1 ]; then
+  echo "[init] safe mode: skipping service startup"
+elif [ -x /sbin/aira-init ]; then
   echo "[init] starting AiraOS services..."
   /sbin/aira-init boot >> /var/log/airaos/services.log 2>&1 || echo "[init] service boot reported errors (see /var/log/airaos/services.log)"
 else
   echo "[init] /sbin/aira-init not found, skipping services"
+fi
+
+# Safe mode intentionally exits the normal boot path here. The root initramfs
+# and essential kernel pseudo-filesystems remain available for diagnosis.
+if [ "$SAFE_MODE" -eq 1 ]; then
+  echo "[init] safe mode recovery shell ready"
+  echo "[init] launching shell (safe recovery shell)"
+  echo
+  exec /bin/sh
 fi
 
 # Optional showcase auto-GUI: AFTER /persist mount + services so the
