@@ -17,3 +17,13 @@ Boot reaches `~ #` (root). Try: `aira info`, `aira system`, `aira diagnose`, `ai
 2. Run `/persist/usr/bin/aira-session --headless` (or `aira-session` with display).
 3. Menu (right-click / Aira button): Terminal (xterm shell), File Manager (mc), Settings (hostname/net), System Information, About.
 4. Recovery: serial shell always available; `pkill Xvfb; pkill jwm` returns to text.
+
+## Diagnostic support bundle
+
+Run `aira-support-bundle` to create a compressed diagnostic archive. By default it writes to `/persist` when that filesystem is mounted, otherwise to `/tmp`. You can supply an explicit output path ending in `.tar.gz`:
+
+```sh
+aira-support-bundle /persist/aira-support-bundle.tar.gz
+```
+
+The archive includes OS/kernel, resource, storage, network, doctor, and selected boot/service-log information. It intentionally excludes account databases, IPC tokens, package credentials, network profiles, and the raw kernel command line. It still contains local IP/routes/DNS details and system logs: inspect it before sharing, and do not upload it automatically.
