@@ -283,6 +283,16 @@ if grep -q "aira_devperm=1" /proc/cmdline 2>/dev/null; then
   fi
 fi
 
+# Dedicated support-bundle test mode.
+if grep -q "aira_supporttest=1" /proc/cmdline 2>/dev/null; then
+  echo "[init] aira_supporttest=1 detected, running support-bundle verification"
+  if [ -x /sbin/guest-supporttest.sh ]; then
+    exec /sbin/guest-supporttest.sh
+  else
+    echo "[init] guest-supporttest.sh missing"
+  fi
+fi
+
 # Automated in-guest test mode (for scripts/test-*.sh): cmdline contains aira_autotest=1
 if grep -q "aira_autotest=1" /proc/cmdline 2>/dev/null; then
   echo "[init] aira_autotest=1 detected, running guest autotest"

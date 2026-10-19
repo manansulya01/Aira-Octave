@@ -1,0 +1,150 @@
+#!/bin/sh
+# Create a reviewable support archive without copying credentials or tokens.
+set -u
+umask 077
+
+TS="$(date -u +%Y%m%d-%H%M%S)"
+NAME="aira-support-bundle-$TS"
+OUT="${1:-}"
+WORK=""
+TMP_ARCHIVE=""
+
+usage() {
+  echo "Usage: aira-support-bundle [output.tar.gz]"
+  echo "Creates a diagnostic archive. Review it before sharing; it includes local network details and system logs."
+}
+
+if [ "${1:-}" = "--help" ] || [ "${1:-}" = "-h" ]; then
+  usage
+  exit 0
+fi
+if [ "$#" -gt 1 ]; then
+  usage >&2
+  exit 2
+fi
+
+if [ -z "$OUT" ]; then
+  if mount 2>/dev/null | grep -q " /persist "; then
+    OUT="/persist/$NAME.tar.gz"
+  else
+    OUT="/tmp/$NAME.tar.gz"
+  fi
+fi
+case "$OUT" in
+  *.tar.gz) ;;
+  *) echo "ERROR: output filename must end in .tar.gz" >&2; exit 2 ;;
+esac
+
+OUTDIR="${OUT%/*}"
+[ "$OUTDIR" = "$OUT" ] && OUTDIR="."
+mkdir -p "$OUTDIR" || { echo "ERROR: cannot create output directory: $OUTDIR" >&2; exit 1; }
+if [ -e "$OUT" ]; then
+  echo "ERROR: refusing to overwrite existing file: $OUT" >&2
+  exit 1
+fi
+command -v tar >/dev/null 2>&1 || { echo "ERROR: tar is unavailable" >&2; exit 1; }
+command -v gzip >/dev/null 2>&1 || { echo "ERROR: gzip is unavailable" >&2; exit 1; }
+command -v sha256sum >/dev/null 2>&1 || { echo "ERROR: sha256sum is unavailable" >&2; exit 1; }
+
+WORK="$(mktemp -d "/tmp/aira-support-bundle.XXXXXX")" || { echo "ERROR: cannot create temporary workspace" >&2; exit 1; }
+TMP_ARCHIVE="$(mktemp "$OUTDIR/.aira-support-bundle.XXXXXX")" || { echo "ERROR: cannot create temporary archive in $OUTDIR" >&2; exit 1; }
+cleanup() {
+  if [ -n "$WORK" ] && [ -d "$WORK" ]; then rm -rf "$WORK"; fi
+  if [ -n "$TMP_ARCHIVE" ] && [ -f "$TMP_ARCHIVE" ]; then rm -f "$TMP_ARCHIVE"; fi
+}
+trap cleanup EXIT
+trap 'exit 129' HUP
+trap 'exit 130' INT
+trap 'exit 143' TERM
+
+BUNDLE="$WORK/$NAME"
+mkdir -p "$BUNDLE/logs" || exit 1
+
+{
+  echo "AiraOS-Octave support bundle"
+  echo "Created UTC: $TS"
+  echo "Bundle format: 1"
+  echo "Privacy: local network details and selected system logs are included."
+  echo "Excluded: passwd/shadow files, IPC tokens, package credentials, network profiles, and raw kernel command line."
+} > "$BUNDLE/README.txt"
+
+{
+  echo "=== OS ==="
+  cat /etc/os-release 2>/dev/null || echo "unavailable"
+  echo
+  echo "=== Host ==="
+  hostname 2>/dev/null || echo "unavailable"
+  echo
+  echo "=== Kernel ==="
+  uname -a 2>&1
+  cat /proc/version 2>/dev/null
+  echo
+  echo "=== Uptime ==="
+  uptime 2>&1 || cat /proc/uptime 2>/dev/null
+} > "$BUNDLE/system.txt"
+
+{
+  echo "=== CPU summary ==="
+  grep -E "^(model name|vendor_id|cpu cores|processor)[[:space:]]*:" /proc/cpuinfo 2>/dev/null | head -n 24
+  echo
+  echo "=== Memory ==="
+  cat /proc/meminfo 2>/dev/null | grep -E "^(MemTotal|MemFree|MemAvailable|Buffers|Cached|SwapTotal|SwapFree):"
+} > "$BUNDLE/resources.txt"
+
+{
+  echo "=== Disk usage ==="
+  df -h 2>&1
+  echo
+  echo "=== Mounts ==="
+  mount 2>&1
+} > "$BUNDLE/storage.txt"
+
+{
+  echo "=== Addresses ==="
+  ip addr 2>&1 || ifconfig 2>&1 || echo "network tools unavailable"
+  echo
+  echo "=== Routes ==="
+  ip route 2>&1 || route -n 2>&1 || echo "route tools unavailable"
+  echo
+  echo "=== Resolver ==="
+  cat /etc/resolv.conf 2>/dev/null || echo "no resolver file"
+} > "$BUNDLE/network.txt"
+
+{
+  echo "=== Doctor report ==="
+  if [ -x /usr/bin/aira-doctor ]; then
+    /usr/bin/aira-doctor 2>&1 | sed '/^[[:space:]]*kernel[[:space:]]*cmdline/d' || true
+  else
+    echo "aira-doctor unavailable"
+  fi
+} > "$BUNDLE/doctor.txt"
+
+{
+  echo "=== Selected kernel messages ==="
+  dmesg 2>&1 | tail -n 300
+} > "$BUNDLE/kernel-log.txt"
+
+for log in boot.log services.log dmesg-boot.log trace.log; do
+  if [ -f "/var/log/airaos/$log" ]; then
+    cp "/var/log/airaos/$log" "$BUNDLE/logs/$log" || echo "WARN: could not copy $log" >> "$BUNDLE/README.txt"
+  fi
+done
+
+# Never archive /etc, home directories, IPC runtime state, package DB, or the
+# whole /var/log tree. Those locations may contain credentials or user data.
+if ! tar -czf "$TMP_ARCHIVE" -C "$WORK" "$NAME" 2>/dev/null; then
+  echo "ERROR: failed to create compressed archive" >&2
+  exit 1
+fi
+if [ ! -s "$TMP_ARCHIVE" ]; then
+  echo "ERROR: generated archive is empty" >&2
+  exit 1
+fi
+if ! mv -f "$TMP_ARCHIVE" "$OUT"; then
+  echo "ERROR: could not publish support archive to $OUT" >&2
+  exit 1
+fi
+TMP_ARCHIVE=""
+echo "SUPPORT BUNDLE CREATED: $OUT"
+sha256sum "$OUT" || exit 1
+echo "Review the archive before sharing it; it contains system logs and local network details."
