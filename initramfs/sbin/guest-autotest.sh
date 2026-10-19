@@ -33,7 +33,7 @@ echo "--- support bundle ---"
 SUPPORT_BUNDLE="/tmp/aira-support-autotest.tar.gz"
 SUPPORT_LIST="/tmp/aira-support-autotest.list"
 rm -f "$SUPPORT_BUNDLE" "$SUPPORT_LIST"
-t "support bundle create" sh -c '/usr/bin/aira-support-bundle /tmp/aira-support-autotest.tar.gz >/tmp/aira-support-create.out 2>&1'
+t "support bundle create" sh -c '/usr/bin/aira support-bundle /tmp/aira-support-autotest.tar.gz >/tmp/aira-support-create.out 2>&1'
 t_contains "support bundle success marker" /tmp/aira-support-create.out "SUPPORT BUNDLE CREATED"
 t "support bundle archive readable" tar -tzf "$SUPPORT_BUNDLE"
 tar -tzf "$SUPPORT_BUNDLE" > "$SUPPORT_LIST" 2>/dev/null
