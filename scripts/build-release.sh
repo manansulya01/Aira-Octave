@@ -1,9 +1,13 @@
 #!/usr/bin/env bash
 # Build AiraOS-Octave release: versioned dir + tarball + bootable ISO + SHA256 + notes.
-set -u
+set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT" || exit 1
 VER="${1:-1.5.0}"
+if [[ ! "$VER" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]]; then
+  echo "ERROR: version must contain only letters, numbers, dots, underscores, and hyphens."
+  exit 2
+fi
 REL="$ROOT/release/aira-octave-$VER"
 RELEASE_DIR="$ROOT/release"
 OUTDIR="$ROOT/logs/final-completion/release"
