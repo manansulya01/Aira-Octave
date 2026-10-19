@@ -117,7 +117,7 @@ fi
 write_checksum() {
   local path="$1" name="$2" result
   result="$(sha256sum "$path")" || return 1
-  printf '%s  %s\\n' "${result%% *}" "$name"
+  printf '%s  %s\n' "${result%% *}" "$name"
 }
 if ! {
   write_checksum "$TAR_TMP" "aira-octave-$VER.tar.gz" &&
