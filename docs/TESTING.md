@@ -4,6 +4,7 @@
 ```bash
 bash scripts/test-kernel.sh      # boot to userspace (markers, no panic)
 bash scripts/test-userspace.sh   # /init layout, busybox applets, aira CLI, services, users
+bash scripts/test-safe-mode.sh  # aira_safe=1 skips persistence/services and reaches shell
 bash scripts/test-storage.sh     # ext4 persist: create file, reboot, verify
 bash scripts/test-network.sh     # lo + eth0 + dhcp/ping where permitted
 bash scripts/test-services.sh    # start/stop/restart/status/deps
