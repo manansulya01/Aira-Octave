@@ -5,12 +5,12 @@ on:
     branches: [main]
     paths:
       - "scripts/**"
-      - "initramfs/init"
+      - "initramfs/**"
       - ".github/workflows/core-shell-checks.yml"
   pull_request:
     paths:
       - "scripts/**"
-      - "initramfs/init"
+      - "initramfs/**"
       - ".github/workflows/core-shell-checks.yml"
   workflow_dispatch:
 
@@ -41,16 +41,28 @@ jobs:
           fi
           echo "PASS: parsed $count shell scripts"
 
-      - name: Validate init entrypoint syntax
+      - name: Validate core initramfs shell entrypoints
         shell: bash
         run: |
           set -euo pipefail
-          if [[ ! -f initramfs/init ]]; then
-            echo "ERROR: initramfs/init is missing"
-            exit 1
-          fi
-          case "$(head -n 1 initramfs/init)" in
-            *bash*) bash -n initramfs/init ;;
-            *) sh -n initramfs/init ;;
-          esac
-          echo "PASS: initramfs/init syntax"
+          for script in \
+            initramfs/init \
+            initramfs/usr/bin/aira \
+            initramfs/usr/bin/aira-info \
+            initramfs/usr/bin/aira-support-bundle \
+            initramfs/sbin/guest-autotest.sh \
+            initramfs/sbin/guest-supporttest.sh; do
+            if [[ ! -f "$script" ]]; then
+              # Support-bundle entrypoints arrive in the feature PR that adds them.
+              case "$script" in
+                initramfs/usr/bin/aira-support-bundle|initramfs/sbin/guest-supporttest.sh) continue ;;
+                *) echo "ERROR: required shell entrypoint missing: $script"; exit 1 ;;
+              esac
+            fi
+            first_line="$(head -n 1 "$script")"
+            case "$first_line" in
+              *bash*) bash -n "$script" ;;
+              *) sh -n "$script" ;;
+            esac
+            echo "PASS: $script syntax"
+          done
