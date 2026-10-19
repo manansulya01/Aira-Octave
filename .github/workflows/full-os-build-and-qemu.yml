@@ -1,0 +1,99 @@
+name: Full OS build and QEMU verification
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/full-os-build-and-qemu.yml"
+      - "linux-7.2.2/**"
+      - "configs/**"
+      - "initramfs/**"
+      - "gui/**"
+      - "usr/**"
+      - "scripts/build-*.sh"
+      - "scripts/boot-qemu.sh"
+      - "scripts/test-kernel.sh"
+      - "scripts/test-userspace.sh"
+      - "scripts/test-safe-mode.sh"
+      - "scripts/test-storage.sh"
+      - "scripts/test-support-bundle.sh"
+      - "scripts/test-iso.sh"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: full-os-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-boot:
+    name: Build kernel, image, release, and boot in QEMU
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Install build and virtualization dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential bc bison flex libssl-dev libelf-dev libncurses-dev \
+            cpio gzip xz-utils file e2fsprogs qemu-system-x86 \
+            grub-common grub-pc-bin xorriso
+
+      - name: Build Linux 7.2.2 kernel
+        run: bash scripts/build-kernel.sh
+
+      - name: Build and validate initramfs
+        run: bash scripts/build-initramfs.sh
+
+      - name: Build persistent root filesystem image
+        run: bash scripts/build-rootfs.sh 256
+
+      - name: Run static userspace checks
+        run: bash scripts/test-userspace.sh
+
+      - name: Boot kernel and verify userspace
+        run: bash scripts/test-kernel.sh
+
+      - name: Verify safe recovery boot
+        run: bash scripts/test-safe-mode.sh
+
+      - name: Verify persistence across reboots
+        run: bash scripts/test-storage.sh
+
+      - name: Verify support-bundle integration
+        run: bash scripts/test-support-bundle.sh
+
+      - name: Run mocked build-safety regressions
+        run: |
+          bash scripts/test-build-rootfs-atomic.sh
+          bash scripts/test-build-release-guards.sh
+
+      - name: Build versioned release artifacts
+        run: bash scripts/build-release.sh 1.5.0
+
+      - name: Boot the generated release ISO
+        run: bash scripts/test-iso.sh 1.5.0
+
+      - name: Upload build artifacts and logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aira-octave-build-${{ github.run_number }}
+          if-no-files-found: warn
+          retention-days: 14
+          path: |
+            linux-7.2.2/arch/x86/boot/bzImage
+            linux-7.2.2/.config
+            linux-7.2.2/vmlinux
+            initramfs.cpio
+            aira-rootfs.img
+            release/aira-octave-1.5.0.iso
+            release/aira-octave-1.5.0.tar.gz
+            release/aira-octave-1.5.0.sha256
+            logs/final-completion/**/*.log
+            /tmp/aira-initramfs-build/*.log
