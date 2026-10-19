@@ -34,11 +34,11 @@ reject() {
 }
 
 check "safe mode marker" "AIRA SAFE MODE ACTIVE"
-check "persistence skipped" "\\[init\\] safe mode: skipping persistent disk mount"
-check "services skipped" "\\[init\\] safe mode: skipping service startup"
-check "recovery shell ready" "\\[init\\] safe mode recovery shell ready"
-check "shell launched" "\\[init\\] launching shell \\(safe recovery shell\\)"
-reject "service manager not started" "\\[init\\] starting AiraOS services"
+check "persistence skipped" "\[init\] safe mode: skipping persistent disk mount"
+check "services skipped" "\[init\] safe mode: skipping service startup"
+check "recovery shell ready" "\[init\] safe mode recovery shell ready"
+check "shell launched" "\[init\] launching shell \(safe recovery shell\)"
+reject "service manager not started" "\[init\] starting AiraOS services"
 reject "desktop not auto-started" "auto-starting AiraOS desktop"
 reject "guest autotest hook not run" "detected, running guest autotest"
 
