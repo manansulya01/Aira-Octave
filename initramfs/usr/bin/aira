@@ -21,6 +21,7 @@ aira — AiraOS-Octave system command
   aira package <args>        alias for packages
   aira device <cmd> [args]   device management (list/pci/usb/input/virtio/block/net)
   aira diagnose              full diagnostic dump
+  aira support-bundle [output.tar.gz] create a privacy-conscious diagnostic archive
   aira doctor                health check via IPC bus + direct probes
   aira recovery [check|fix] [component]  system recovery
   aira hardening             apply security hardening
@@ -125,6 +126,9 @@ case "$cmd" in
     echo "--- boot ---"; tail -n 30 /var/log/airaos/boot.log 2>/dev/null || echo "(no boot.log)"
     echo "===== END DIAGNOSE ====="
     ;;
+  support-bundle)
+    shift || true
+    exec /usr/bin/aira-support-bundle "$@" ;;
   doctor)
     # C7: delegate to aira-doctor (observed-state, machine-readable). Kept as a
     # single implementation so `aira doctor` and `aira-doctor` can never drift.
