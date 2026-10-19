@@ -7,11 +7,13 @@ on:
       - "scripts/**"
       - "initramfs/**"
       - ".github/workflows/core-shell-checks.yml"
+      - ".github/workflows/**"
   pull_request:
     paths:
       - "scripts/**"
       - "initramfs/**"
       - ".github/workflows/core-shell-checks.yml"
+      - ".github/workflows/**"
   workflow_dispatch:
 
 permissions:
