@@ -56,7 +56,7 @@ echo "SYNC docs -> initramfs/usr/share/doc/aira-octave" | tee -a "$LOG"
 for x in \
   "$SRC/init" \
   "$SRC/sbin/aira-ipc-handle" "$SRC/sbin/aira-ipcd" "$SRC/sbin/aira-init" \
-  "$SRC/sbin/guest-autotest.sh" "$SRC/sbin/guest-demo.sh" \
+  "$SRC/sbin/guest-autotest.sh" "$SRC/sbin/guest-demo.sh" "$SRC/sbin/guest-supporttest.sh" \
   "$SRC/sbin/guest-fileops.sh" "$SRC/sbin/guest-guidemo.sh" \
   "$SRC/sbin/guest-guivisible.sh" "$SRC/sbin/guest-inputtest.sh" \
   "$SRC/sbin/guest-monitest.sh" "$SRC/sbin/guest-settingstest.sh" \
@@ -70,6 +70,7 @@ for x in \
       "$SRC/usr/bin/aira-net" "$SRC/usr/bin/aira-net-setup" \
   "$SRC/usr/bin/aira-doctor" \
   "$SRC/usr/bin/aira-info" "$SRC/usr/bin/aira-log" "$SRC/usr/bin/aira-user" \
+  "$SRC/usr/bin/aira-support-bundle" \
   "$SRC/usr/bin/aira-power" "$SRC/usr/bin/aira-audio" "$SRC/usr/bin/aird-info" \
   "$SRC/usr/bin/aira-sdk" "$SRC/usr/bin/aira-demo" \
   "$SRC/usr/bin/aira-device-setup" "$SRC/usr/bin/airapkg" \
@@ -85,7 +86,7 @@ done
 # Verify the critical dispatch targets really are executable in the SOURCE tree.
 for need in init sbin/aira-ipc-handle sbin/guest-nettest.sh \
             sbin/guest-netpersist.sh sbin/guest-devperm.sh \
-            sbin/guest-usertest.sh \
+            sbin/guest-usertest.sh sbin/guest-supporttest.sh \
             usr/bin/aira-net usr/bin/aira-doctor usr/bin/aira-user \
             etc/aira/doctor-probes etc/aira/settings-schema \
             etc/aira/ipc/handlers/network; do
