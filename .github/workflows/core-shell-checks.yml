@@ -1,0 +1,68 @@
+name: Core shell syntax
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "scripts/**"
+      - "initramfs/**"
+      - ".github/workflows/core-shell-checks.yml"
+  pull_request:
+    paths:
+      - "scripts/**"
+      - "initramfs/**"
+      - ".github/workflows/core-shell-checks.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  shell-syntax:
+    name: Validate build and test script syntax
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Validate all top-level scripts
+        shell: bash
+        run: |
+          set -euo pipefail
+          count=0
+          while IFS= read -r -d '' script; do
+            echo "bash -n $script"
+            bash -n "$script"
+            count=$((count + 1))
+          done < <(find scripts -maxdepth 1 -type f -name '*.sh' -print0 | sort -z)
+          if [[ "$count" -eq 0 ]]; then
+            echo "ERROR: no scripts/*.sh files found"
+            exit 1
+          fi
+          echo "PASS: parsed $count shell scripts"
+
+      - name: Validate core initramfs shell entrypoints
+        shell: bash
+        run: |
+          set -euo pipefail
+          for script in \
+            initramfs/init \
+            initramfs/usr/bin/aira \
+            initramfs/usr/bin/aira-info \
+            initramfs/usr/bin/aira-support-bundle \
+            initramfs/sbin/guest-autotest.sh \
+            initramfs/sbin/guest-supporttest.sh; do
+            if [[ ! -f "$script" ]]; then
+              # Support-bundle entrypoints arrive in the feature PR that adds them.
+              case "$script" in
+                initramfs/usr/bin/aira-support-bundle|initramfs/sbin/guest-supporttest.sh) continue ;;
+                *) echo "ERROR: required shell entrypoint missing: $script"; exit 1 ;;
+              esac
+            fi
+            first_line="$(head -n 1 "$script")"
+            case "$first_line" in
+              *bash*) bash -n "$script" ;;
+              *) sh -n "$script" ;;
+            esac
+            echo "PASS: $script syntax"
+          done
