@@ -46,6 +46,7 @@ done
 for spec in \
     "shell:scripts/test-shell.sh" \
     "release-guards:scripts/test-build-release-guards.sh" \
+    "rootfs-atomic:scripts/test-build-rootfs-atomic.sh" \
     "features:scripts/test-features.sh" \
     "files:scripts/test-files.sh" \
     "settings:scripts/test-settings.sh" \
