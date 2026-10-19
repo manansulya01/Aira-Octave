@@ -70,6 +70,7 @@ for x in \
       "$SRC/usr/bin/aira-net" "$SRC/usr/bin/aira-net-setup" \
   "$SRC/usr/bin/aira-doctor" \
   "$SRC/usr/bin/aira-info" "$SRC/usr/bin/aira-log" "$SRC/usr/bin/aira-user" \
+  "$SRC/usr/bin/aira-support-bundle" \
   "$SRC/usr/bin/aira-power" "$SRC/usr/bin/aira-audio" "$SRC/usr/bin/aird-info" \
   "$SRC/usr/bin/aira-sdk" "$SRC/usr/bin/aira-demo" \
   "$SRC/usr/bin/aira-device-setup" "$SRC/usr/bin/airapkg" \
@@ -87,6 +88,7 @@ for need in init sbin/aira-ipc-handle sbin/guest-nettest.sh \
             sbin/guest-netpersist.sh sbin/guest-devperm.sh \
             sbin/guest-usertest.sh \
             usr/bin/aira-net usr/bin/aira-doctor usr/bin/aira-user \
+            usr/bin/aira-support-bundle \
             etc/aira/doctor-probes etc/aira/settings-schema \
             etc/aira/ipc/handlers/network; do
   if [ ! -x "$SRC/$need" ]; then
