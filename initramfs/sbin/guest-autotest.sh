@@ -28,6 +28,13 @@ echo "--- aira CLI ---"
 t "aira info" /usr/bin/aira info
 /usr/bin/aira info > /tmp/aira-info.out 2>&1
 t_contains "aira info shows Octave" /tmp/aira-info.out "AiraOS-Octave"
+# aira-info is a separate detailed helper used by desktop integrations.
+t "aira-info default invocation" sh -c '/usr/bin/aira-info > /tmp/aira-info-default.out 2>&1'
+t_contains "aira-info default heading" /tmp/aira-info-default.out "=== AiraOS System Information ==="
+t "aira-info JSON invocation" sh -c '/usr/bin/aira-info --json > /tmp/aira-info-json.out 2>&1'
+t_contains "aira-info JSON starts object" /tmp/aira-info-json.out "^{"
+t_contains "aira-info JSON kernel field" /tmp/aira-info-json.out '"kernel":'
+t_contains "aira-info JSON closes object" /tmp/aira-info-json.out '^}'
 t "aira system" /usr/bin/aira system
 t "aira diagnose" /usr/bin/aira diagnose
 t "aira version" /usr/bin/aira version
