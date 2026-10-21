@@ -48,7 +48,13 @@ if [ -e "${MOCK_ROLLBACK_MARKER:-/nonexistent}" ]; then
 fi
 exec /bin/cp "$@"
 MOCK_CP
-chmod +x "$MOCKBIN/grub-mkrescue" "$MOCKBIN/tar" "$MOCKBIN/mv" "$MOCKBIN/cp"
+for tool in mformat xorriso; do
+  cat > "$MOCKBIN/$tool" <<'MOCK_TOOL'
+#!/bin/sh
+exit 0
+MOCK_TOOL
+done
+chmod +x "$MOCKBIN/grub-mkrescue" "$MOCKBIN/tar" "$MOCKBIN/mv" "$MOCKBIN/cp" "$MOCKBIN/mformat" "$MOCKBIN/xorriso"
 
 REL="$SANDBOX/release/aira-octave-1.5.0"
 ISO="$SANDBOX/release/aira-octave-1.5.0.iso"
@@ -94,9 +100,8 @@ fi
 [ "$(cat "$REL/KEEP-ME")" = "previous release directory" ] || { echo "FAIL: versioned release directory changed after tarball failure"; exit 1; }
 echo "PASS: failed tarball build preserves previous published artifacts"
 
-# Fail the tarball publication after the new directory and ISO were moved, then
-# force restoration of the previous directory to fail. The workspace must remain
-# available for manual recovery while top-level artifacts are restored.
+# Fail tarball publication after the directory and ISO have been published, then
+# force the old release-directory restoration to fail. Recovery data must survive.
 ROLLBACK_MARKER="$TMP/rollback-started"
 if MOCK_MV_FAIL_PUBLISH=1 MOCK_FAIL_DEST="$TAR" MOCK_ROLLBACK_MARKER="$ROLLBACK_MARKER" \
    PATH="$MOCKBIN:$PATH" bash "$SANDBOX/scripts/build-release.sh" 1.5.0 > "$TMP/rollback-fail.log" 2>&1; then
