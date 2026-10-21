@@ -38,6 +38,20 @@ EOF
 }
 pkgdir() { echo "$DB/installed/$1"; }
 need() { [ -n "${2:-}" ] || { echo "usage error: $1" >&2; usage >&2; exit 2; }; }
+# Package names are path components in the installed database. Require a
+# conservative token so values like ".." or "../../.." can never escape it.
+valid_pkg_name() {
+  case "${1:-}" in
+    ""|*[!A-Za-z0-9._+-]*|[!A-Za-z0-9]*) return 1 ;;
+  esac
+  return 0
+}
+need_pkg_name() {
+  valid_pkg_name "${1:-}" || {
+    echo "airapkg: invalid package name; expected an alphanumeric first character and only letters, digits, '.', '_', '+', or '-'" >&2
+    exit 2
+  }
+}
 
 cmd="${1:-list}"
 case "$cmd" in
@@ -47,6 +61,7 @@ case "$cmd" in
     ;;
   query|info)
     need "airapkg query <name>" "${2:-}"
+    need_pkg_name "$2"
     d="$(pkgdir "$2")"
     if [ -f "$d/PKGINFO" ]; then
       cat "$d/PKGINFO"
@@ -101,6 +116,7 @@ case "$cmd" in
     ;;
   verify)
     need "airapkg verify <name>" "${2:-}"
+    need_pkg_name "$2"
     d="$(pkgdir "$2")"
     [ -f "$d/files" ] || { echo "not installed: $2" >&2; exit 1; }
     miss=0
@@ -163,10 +179,14 @@ case "$cmd" in
     # sourcing would execute embedded shell code)
     NAME="$(sed -n 's/^NAME="\(.*\)"/\1/p' "$tmp/PKGINFO" 2>/dev/null | head -n 1)"
     VERSION="$(sed -n 's/^VERSION="\(.*\)"/\1/p' "$tmp/PKGINFO" 2>/dev/null | head -n 1)"
-    # NAME/VERSION must be safe tokens (no paths, no shell metachars)
-    case "$NAME" in ""|*/*|*" "*|*'`'*|*'$'*|*';'*|*'"'*|*"$(printf '\n') "*) echo "invalid PKGINFO (bad NAME)" >&2; rm -rf "$tmp"; exit 1 ;; esac
-    case "$VERSION" in ""|*/*|*" "*) echo "invalid PKGINFO (bad VERSION)" >&2; rm -rf "$tmp"; exit 1 ;; esac
-    [ -n "${NAME:-}" ] && [ -n "${VERSION:-}" ] || { echo "invalid PKGINFO (need NAME+VERSION)" >&2; rm -rf "$tmp"; exit 1; }
+    # Validate the metadata token before it can become a database path.
+    if ! valid_pkg_name "$NAME"; then
+      echo "invalid PKGINFO (bad NAME)" >&2
+      rm -rf "$tmp"
+      exit 1
+    fi
+    case "$VERSION" in ""|*/*|*" "*|*[!A-Za-z0-9._+-]*) echo "invalid PKGINFO (bad VERSION)" >&2; rm -rf "$tmp"; exit 1 ;; esac
+    [ -n "${VERSION:-}" ] || { echo "invalid PKGINFO (need NAME+VERSION)" >&2; rm -rf "$tmp"; exit 1; }
     tx install "$NAME" "begin version=$VERSION from=$(basename "$f")"
     if [ -d "$(pkgdir "$NAME")" ] && [ "$force" != "1" ]; then
       echo "$NAME already installed (use --force)" >&2; rm -rf "$tmp"; exit 1
@@ -310,33 +330,69 @@ case "$cmd" in
     ;;
   rollback)
     need "airapkg rollback <name>" "${2:-}"
+    need_pkg_name "$2"
     d="$(pkgdir "$2")"
     [ -f "$d/PKGINFO" ] || { echo "not installed: $2" >&2; exit 1; }
     [ -f "$d/backup-files" ] || { echo "$2: nothing to roll back" >&2; exit 1; }
     tx rollback "$2" "start"
-    restored=0; dropped=0
+    restored=0; dropped=0; rollback_failed=0
     while IFS= read -r f; do
       [ -n "$f" ] || continue
+      case "$f" in
+        /*) ;;
+        *) echo "airapkg: invalid recorded path in package database" >&2; rollback_failed=1; continue ;;
+      esac
+      case "$f" in
+        *"/../"*|*/..|*"/./"*) echo "airapkg: unsafe recorded path in package database" >&2; rollback_failed=1; continue ;;
+      esac
       rel="${f#/}"
       _dep="$ROOT$f"
       if [ -f "$d/backup/$rel" ]; then
-        cp -f "$d/backup/$rel" "$_dep" && restored=$((restored+1))
+        if mkdir -p "$(dirname "$_dep")" && cp -p "$d/backup/$rel" "$_dep"; then
+          restored=$((restored+1))
+        else
+          echo "airapkg: failed to restore $_dep" >&2; rollback_failed=1
+        fi
       else
-        rm -f "$_dep" 2>/dev/null && dropped=$((dropped+1))
+        if rm -f "$_dep"; then dropped=$((dropped+1)); else
+          echo "airapkg: failed to remove newly installed $_dep" >&2; rollback_failed=1
+        fi
       fi
     done < "$d/files"
+    if [ "$rollback_failed" -ne 0 ]; then
+      tx rollback "$2" "failed restored=$restored dropped=$dropped"
+      echo "$2: rollback incomplete; package database retained for recovery" >&2
+      exit 1
+    fi
     tx rollback "$2" "restored=$restored dropped=$dropped"
     echo "$2: rollback done (restored $restored, removed $dropped new)"
     ;;
   remove)
     need "airapkg remove <name>" "${2:-}"
+    need_pkg_name "$2"
     d="$(pkgdir "$2")"
     [ -f "$d/PKGINFO" ] || { echo "not installed: $2" >&2; exit 1; }
-    if [ -d "$d" ]; then tx remove "$2" "start"; fi
+    tx remove "$2" "start"
+    remove_failed=0
     if [ -f "$d/files" ]; then
-      while IFS= read -r f; do rm -f "$ROOT$f" 2>/dev/null || true; done < "$d/files"
+      while IFS= read -r f; do
+        [ -n "$f" ] || continue
+        case "$f" in
+          /*) ;;
+          *) echo "airapkg: invalid recorded path in package database" >&2; remove_failed=1; continue ;;
+        esac
+        case "$f" in
+          *"/../"*|*/..|*"/./"*) echo "airapkg: unsafe recorded path in package database" >&2; remove_failed=1; continue ;;
+        esac
+        rm -f "$ROOT$f" 2>/dev/null || { echo "airapkg: failed to remove $f" >&2; remove_failed=1; }
+      done < "$d/files"
     fi
-    rm -rf "$d"
+    if [ "$remove_failed" -ne 0 ]; then
+      tx remove "$2" "incomplete"
+      echo "airapkg: remove incomplete; package database retained for recovery" >&2
+      exit 1
+    fi
+    rm -rf "$d" || { tx remove "$2" "database-remove-failed"; echo "airapkg: could not remove package database entry" >&2; exit 1; }
     tx remove "$2" "done"
     echo "$2 removed"
     ;;
@@ -346,34 +402,27 @@ case "$cmd" in
     SIGN_KEY=""
     while [ $# -gt 0 ]; do
         case "$1" in
-            --sign) SIGN_KEY="$2"; shift 2 ;;
-            *) shift ;;
+            --sign)
+                [ $# -ge 2 ] || { echo "airapkg: --sign requires a key path" >&2; exit 2; }
+                SIGN_KEY="$2"; shift 2 ;;
+            *) echo "airapkg: unknown build option '$1'" >&2; exit 2 ;;
         esac
     done
+    if [ -n "$SIGN_KEY" ]; then
+        echo "airapkg: cryptographic package signing is not implemented; no package was written" >&2
+        exit 2
+    fi
     [ -f "$src/PKGINFO" ] || { echo "need $src/PKGINFO" >&2; exit 1; }
     tar -czf "$out" -C "$src" . || exit 1
-    if [ -n "$SIGN_KEY" ] && [ -f "$SIGN_KEY" ]; then
-        sha256sum "$out" | awk '{print $1}' > "$out.sha256"
-        # In a real system, would sign with gpg or similar
-        echo "Package signed (sha256 saved to $out.sha256)"
-    fi
-    echo "built $out"
+    echo "built unsigned package $out"
     ;;
   sign)
-    need "airapkg sign <file.apkg> <key>" "${3:-}"
-    f="$2"; key="$3"
-    [ -f "$f" ] || { echo "file not found: $f" >&2; exit 1; }
-    [ -f "$key" ] || { echo "key not found: $key" >&2; exit 1; }
-    sha256sum "$f" | awk '{print $1}' > "$f.sha256"
-    echo "Signed $f (sha256: $(cat $f.sha256))"
+    echo "airapkg: signing is unavailable; no signature was created and no file was changed" >&2
+    exit 2
     ;;
   verify-sig)
-    need "airapkg verify-sig <file.apkg> <key.pub>" "${3:-}"
-    f="$2"; key="$3"
-    [ -f "$f" ] || { echo "file not found: $f" >&2; exit 1; }
-    [ -f "$f.sha256" ] || { echo "no signature file" >&2; exit 1; }
-    # In real system would verify gpg signature
-    echo "Signature verification not fully implemented (sha256: $(cat $f.sha256))"
+    echo "airapkg: cryptographic signature verification is unavailable; package authenticity was not verified" >&2
+    exit 2
     ;;
   *) echo "unknown: $cmd" >&2; usage >&2; exit 2 ;;
 esac
