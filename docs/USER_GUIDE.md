@@ -38,3 +38,19 @@ aira support-bundle /persist/aira-support-bundle.tar.gz
 ```
 
 The archive contains system, resource, storage, network, doctor, and selected log details. It excludes account databases, IPC runtime tokens, package databases, network profiles, home directories, and the raw kernel command line. It still contains local IP/routes/DNS and selected system logs; inspect it before sharing. Nothing is uploaded automatically.
+
+## Audio
+
+The ALSA tools are provided by the persistent desktop image. Attach the built
+`aira-rootfs.img` and use:
+
+- `aira-audio status` — inspect detected playback/capture devices and mixer controls.
+- `aira-audio start` — initialize a supported mixer control and set a moderate default level.
+- `aira-audio volume` or `aira-audio volume 50` — read or set the selected mixer volume.
+- `aira-audio mute` / `aira-audio unmute` — change the selected mixer state.
+- `aira-audio list` — list ALSA playback/capture devices.
+- `aira-audio test` — play a short test tone.
+
+These commands report failure when required tools, controls, or playback are
+unavailable; a command returning success is not a substitute for checking that
+the target machine's hardware and driver are supported.

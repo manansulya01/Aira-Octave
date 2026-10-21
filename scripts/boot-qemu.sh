@@ -14,6 +14,7 @@ APPEND_EXTRA=""
 DRIVE=""
 GPU="std"
 NET="none"
+AUDIO="no"
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -24,8 +25,9 @@ while [ $# -gt 0 ]; do
     --drive) DRIVE="$2"; shift 2;;
     --gpu) GPU="$2"; shift 2;;
     --net) NET="$2"; shift 2;;
+    --audio) AUDIO="yes"; shift;;
     -h|--help)
-      echo "Usage: boot-qemu.sh [--mem 512M] [--timeout 30] [--log PATH] [--append EXTRA] [--drive FILE] [--gpu std|virtio] [--net none|user]"
+      echo "Usage: boot-qemu.sh [--mem 512M] [--timeout 30] [--log PATH] [--append EXTRA] [--drive FILE] [--gpu std|virtio] [--net none|user] [--audio]"
       exit 0;;
     *) echo "ERROR: unknown arg $1" >&2; exit 2;;
   esac
@@ -50,8 +52,13 @@ fi
 if [ "$NET" = "user" ]; then
   QEMU_ARGS+=(-device virtio-net-pci,netdev=n0 -netdev "user,id=n0")
 fi
+if [ "$AUDIO" = "yes" ]; then
+  # Use QEMU's discard backend: the guest gets a real HDA device without
+  # requiring host speakers or an audio server in CI.
+  QEMU_ARGS+=(-audiodev none,id=audio0 -device intel-hda -device hda-output,audiodev=audio0)
+fi
 
-echo "AIRA-QEMU kernel=$KERNEL initramfs=$INITRAMFS mem=$MEM timeout=${TIMEOUT}s gpu=$GPU net=$NET"
+echo "AIRA-QEMU kernel=$KERNEL initramfs=$INITRAMFS mem=$MEM timeout=${TIMEOUT}s gpu=$GPU net=$NET audio=$AUDIO"
 echo "QEMU: qemu-system-x86_64 ${QEMU_ARGS[*]}"
 
 if [ -z "$LOG" ]; then

@@ -452,3 +452,20 @@
 - `scripts/test-user.sh` injects a failure on the second credential-file
   replacement and checks the original passwd, shadow, and group bytes are
   restored with no partial account rows. This branch must pass CI before merge.
+
+## 2026-10-21 — ALSA audio implementation (review branch)
+- Audit found the advertised `aira-audio` controls were not backed by staged
+  ALSA userspace tools, and start/volume/mute/test commands could print success
+  after the underlying mixer or playback command failed.
+- Branch `feat/alsa-audio-runtime` stages `alsa-utils`, ALSA topology/UC
+  profiles, and the direct runtime libraries; the GUI stage now fails if the
+  required ALSA commands are absent. `aira-audio` exposes the persistent
+  tool/library paths, detects common mixer controls, and returns failure rather
+  than claiming that failed mixer or test-tone operations succeeded.
+- Kernel configuration enables common Intel HDA/Realtek/HDMI, AC97, USB audio,
+  and virtio sound drivers. QEMU boot gained an optional discard-backend HDA
+  device; the GUI test now requests that device and checks an in-guest audio
+  smoke-test marker. Mocked tests cover success, failure, invalid volume, and
+  missing-tool behavior.
+- The feature is not yet merged. Core CI and the full clean-runner build/QEMU
+  audio smoke test must pass before claiming hardware/guest audio verified.
