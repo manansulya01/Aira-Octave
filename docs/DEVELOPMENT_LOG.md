@@ -314,3 +314,16 @@
   file. It has not yet been validated by a successful Ubuntu runner or by
   building and booting the resulting desktop; the full CI run remains the
   required acceptance gate.
+
+- GitHub Actions run `39591931672` (commit `63b34a268e8eb5fc57d0234a04fffcb75e46d858`)
+  completed successfully for shell syntax checks and mocked build-safety
+  regressions, including core initramfs entrypoints. This is verified CI
+  evidence; it does not replace QEMU boot testing.
+- Full build/QEMU run `39591931946` for the same source was observed progressing
+  through dependency installation and into the Linux 7.2.2 kernel build. Its
+  final result has not yet been confirmed.
+- Architecture documentation was corrected in commit
+  `a3d7130c6256d5f7af411558df514869414facb0` to distinguish the implemented
+  host-side BIOS/MBR installer from the deliberately disabled in-guest
+  installer and remote OS updater. This prevents documentation from claiming
+  end-to-end update/install features that are not yet implemented.
