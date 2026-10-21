@@ -151,6 +151,10 @@ printf 'keep-existing-home\n' > "$HOME_ROOT/existing/marker"
 P adduser existinghome --home "$HOME_ROOT/existing" >/dev/null 2>&1 && bad "existing home path refused" || ok "existing home path refused"
 [ "$(cat "$HOME_ROOT/existing/marker")" = "keep-existing-home" ] && ok "existing home content preserved" || bad "existing home content preserved"
 if grep -q '^existinghome:' "$AIRA_USER_ETC/passwd"; then bad "existing-home account not partially created"; else ok "existing-home account not partially created"; fi
+ln -s "$AIRA_USER_ETC" "$HOME_ROOT/linked-etc"
+P adduser symlinkhome --home "$HOME_ROOT/linked-etc/symlinkhome" >/dev/null 2>&1 && bad "symlinked home parent rejected" || ok "symlinked home parent rejected"
+[ ! -e "$AIRA_USER_ETC/symlinkhome" ] && ok "symlinked home target not created" || bad "symlinked home target not created"
+if grep -q '^symlinkhome:' "$AIRA_USER_ETC/passwd"; then bad "symlinked-home account not partially created"; else ok "symlinked-home account not partially created"; fi
 P usermod newuser --home "/" >/dev/null 2>&1 && bad "unsafe usermod home rejected" || ok "unsafe usermod home rejected"
 grep -q '^newuser:x:1501:.*:/home/newuser:/bin/sh$' "$AIRA_USER_ETC/passwd" && ok "rejected usermod leaves home unchanged" || bad "rejected usermod leaves home unchanged"
 P adduser badpath --uid "abc" >/dev/null 2>&1 && bad "non-numeric uid rejected" || ok "non-numeric uid rejected"
