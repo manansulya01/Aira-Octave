@@ -173,6 +173,8 @@ printf 'keep outside package root\n' > "$OUTSIDE"
 mkdir -p "$AIRA_PKG_DB/installed/badrecord"
 printf 'NAME="badrecord"\nVERSION="1.0"\n' > "$AIRA_PKG_DB/installed/badrecord/PKGINFO"
 printf '/../../outside-must-survive.txt\n' > "$AIRA_PKG_DB/installed/badrecord/files"
+printf '/../../outside-must-survive.txt\n' > "$AIRA_PKG_DB/installed/badrecord/backup-files"
+mkdir -p "$AIRA_PKG_DB/installed/badrecord/backup"
 if P remove badrecord >"$T/remove-badrecord.log" 2>&1; then
   bad "unsafe recorded remove path rejected"
 else
