@@ -24,11 +24,18 @@
 #   AFTER=...          services that should start before this one (alias for DEPS)
 set -u
 ROOT_FS="/"
-SVC_DIR="/etc/aira/services"
-EN_DIR="/etc/aira/enabled"
-RUN_DIR="/run/aira-services"
-LOG_DIR="/var/log/airaos"
+SVC_DIR="${AIRA_SVC_DIR:-/etc/aira/services}"
+EN_DIR="${AIRA_EN_DIR:-/etc/aira/enabled}"
+RUN_DIR="${AIRA_RUN_DIR:-/run/aira-services}"
+LOG_DIR="${AIRA_LOG_DIR:-/var/log/airaos}"
 mkdir -p "$RUN_DIR" "$LOG_DIR" "$EN_DIR"
+
+valid_service_name() {
+  case "${1:-}" in
+    ""|*[!a-z0-9_-]*) return 1 ;;
+    *) return 0 ;;
+  esac
+}
 
 svc_file() { echo "$SVC_DIR/$1.conf"; }
 pid_file() { echo "$RUN_DIR/$1.pid"; }
@@ -38,6 +45,7 @@ respawn_file() { echo "$RUN_DIR/$1.respawn"; }
 
 load_svc() {
   local name="$1" f
+  valid_service_name "$name" || { echo "bad service name: $name" >&2; return 2; }
   f="$(svc_file "$name")"
   [ -f "$f" ] || { echo "unknown service: $name" >&2; return 1; }
   CMD=""; DEPS=""; DESC=""; RESPAWN="yes"; USER="root"; TYPE="daemon"
@@ -312,12 +320,14 @@ case "$cmd" in
     ;;
   enable)
     shift; [ $# -ge 1 ] || { echo "usage: aira-init enable <svc>" >&2; exit 2; }
+    valid_service_name "$1" || { echo "bad service name: $1" >&2; exit 2; }
     [ -f "$(svc_file "$1")" ] || { echo "unknown service: $1" >&2; exit 1; }
     ln -sf "../services/$1.conf" "$EN_DIR/$1" 2>/dev/null || cp -f "$(svc_file "$1")" "$EN_DIR/$1"
     echo "$1: enabled"
     ;;
   disable)
     shift; [ $# -ge 1 ] || { echo "usage: aira-init disable <svc>" >&2; exit 2; }
+    valid_service_name "$1" || { echo "bad service name: $1" >&2; exit 2; }
     rm -f "$EN_DIR/$1" "$EN_DIR/$1.conf"
     echo "$1: disabled"
     ;;
