@@ -25,6 +25,35 @@ grep -q 'reject duplicate archive member' "$PKG" && ok "duplicate-member guard p
 grep -q 'DB commit failed' "$PKG" && ok "atomic DB commit present" || bad "atomic DB commit present"
 grep -q 'tx commit' "$PKG" && ok "transaction log present" || bad "transaction log present"
 
+echo "--- package-name path traversal rejected ---"
+for badname in .. ../escape ../../escape name/escape '-leading'; do
+  if P query "$badname" >/dev/null 2>&1; then
+    bad "unsafe package name rejected: $badname"
+  else
+    ok "unsafe package name rejected: $badname"
+  fi
+done
+
+echo "--- signing claims fail closed ---"
+if P build "$ROOT/initramfs" "$T/should-not-exist.apkg" --sign "$T/fake-key" >"$T/sign-build.log" 2>&1; then
+  bad "unimplemented signing refused"
+else
+  grep -q 'cryptographic package signing is not implemented' "$T/sign-build.log" && ok "unimplemented signing refused" || bad "unimplemented signing diagnostic"
+fi
+[ ! -e "$T/should-not-exist.apkg" ] && ok "failed signing writes no package" || bad "failed signing writes no package"
+printf 'package\n' > "$T/unsigned.apkg"
+printf 'key\n' > "$T/fake-key"
+if P sign "$T/unsigned.apkg" "$T/fake-key" >"$T/sign.log" 2>&1; then
+  bad "fake signature refused"
+else
+  grep -q 'no signature was created' "$T/sign.log" && ok "fake signature refused" || bad "fake signature diagnostic"
+fi
+if P verify-sig "$T/unsigned.apkg" "$T/fake-key" >"$T/verify-sig.log" 2>&1; then
+  bad "unimplemented signature verification refused"
+else
+  grep -q 'authenticity was not verified' "$T/verify-sig.log" && ok "unimplemented signature verification refused" || bad "signature verification diagnostic"
+fi
+
 echo "--- build helper ---"
 mkpkg() { # mkpkg <name> <version> <payload-path> <out.apkg>
     local d="$T/build-$1"
@@ -137,6 +166,27 @@ fi
 [ "$(cat "$AIRA_PKG_ROOT/usr/share/aira/aaa-good.txt" 2>/dev/null)" = "original value" ] && ok "overwritten file restored in package root" || bad "overwritten file restored in package root"
 [ ! -e "$AIRA_PKG_ROOT/usr/share/aira/zzz-fail.txt" ] && ok "failed destination absent" || bad "failed destination absent"
 [ ! -d "$AIRA_PKG_DB/installed/failtxn" ] && ok "failed package DB entry absent" || bad "failed package DB entry absent"
+
+echo "--- unsafe package database paths fail closed ---"
+OUTSIDE="$T/outside-must-survive.txt"
+printf 'keep outside package root\n' > "$OUTSIDE"
+mkdir -p "$AIRA_PKG_DB/installed/badrecord"
+printf 'NAME="badrecord"\nVERSION="1.0"\n' > "$AIRA_PKG_DB/installed/badrecord/PKGINFO"
+printf '/../../outside-must-survive.txt\n' > "$AIRA_PKG_DB/installed/badrecord/files"
+printf '/../../outside-must-survive.txt\n' > "$AIRA_PKG_DB/installed/badrecord/backup-files"
+mkdir -p "$AIRA_PKG_DB/installed/badrecord/backup"
+if P remove badrecord >"$T/remove-badrecord.log" 2>&1; then
+  bad "unsafe recorded remove path rejected"
+else
+  grep -q 'unsafe recorded path' "$T/remove-badrecord.log" && ok "unsafe recorded remove path rejected" || bad "unsafe recorded remove diagnostic"
+fi
+[ -f "$OUTSIDE" ] && [ "$(cat "$OUTSIDE")" = "keep outside package root" ] && ok "unsafe remove leaves outside file untouched" || bad "unsafe remove leaves outside file untouched"
+if P rollback badrecord >"$T/rollback-badrecord.log" 2>&1; then
+  bad "unsafe recorded rollback path rejected"
+else
+  grep -q 'unsafe recorded path' "$T/rollback-badrecord.log" && ok "unsafe recorded rollback path rejected" || bad "unsafe recorded rollback diagnostic"
+fi
+[ -f "$OUTSIDE" ] && [ "$(cat "$OUTSIDE")" = "keep outside package root" ] && ok "unsafe rollback leaves outside file untouched" || bad "unsafe rollback leaves outside file untouched"
 
 echo "--- remove cleans payload ---"
 P remove hello-aira | grep -q "removed" && ok "remove" || bad "remove"
