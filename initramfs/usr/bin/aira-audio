@@ -11,7 +11,19 @@ MIXER_CONTROL="${AIRA_AUDIO_CONTROL:-}"
 # ALSA tools and shared libraries are staged on the persistent rootfs.
 case ":$PATH:" in
     *:/persist/usr/bin:*) ;;
-    *) PATH="/persist/usr/bin:/persist/usr/sbin:/persist/bin:/persist/sbin:$PATH" ;;
+    *) PATH="/persist/usr/bin:$PATH" ;;
+esac
+case ":$PATH:" in
+    *:/persist/usr/sbin:*) ;;
+    *) PATH="/persist/usr/sbin:$PATH" ;;
+esac
+case ":$PATH:" in
+    *:/persist/bin:*) ;;
+    *) PATH="/persist/bin:$PATH" ;;
+esac
+case ":$PATH:" in
+    *:/persist/sbin:*) ;;
+    *) PATH="/persist/sbin:$PATH" ;;
 esac
 export PATH
 LD_LIBRARY_PATH="/persist/usr/lib/x86_64-linux-gnu:/persist/lib/x86_64-linux-gnu:/persist/usr/lib:/persist/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
