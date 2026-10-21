@@ -362,3 +362,16 @@
   so networking, persistence, recovery, release creation, and ISO boot were
   correctly skipped. The next full workflow run must prove these fixes before
   any release claim is made.
+
+## 2026-10-21 — Release recovery workspace preservation
+- Audit found a failure-path mismatch in `scripts/build-release.sh`: when
+  publication rollback itself failed, the diagnostic told the operator to
+  inspect the temporary workspace, but the EXIT trap deleted that workspace.
+- Branch `fix/release-preserve-rollback-workspace` makes cleanup preserve the
+  workspace only when rollback is incomplete; normal success and recoverable
+  failures still clean temporary artifacts.
+- Extended `scripts/test-build-release-guards.sh` to inject a publication
+  failure after directory/ISO publication, force restoration of the old release
+  directory to fail, and assert that top-level artifacts are restored while
+  the recovery backup remains available.
+- Awaiting CI; this branch does not touch `main` or the running full OS build.
