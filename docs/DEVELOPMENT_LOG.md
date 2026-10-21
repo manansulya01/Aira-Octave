@@ -136,3 +136,11 @@
   has yet been confirmed. The next gate is inspecting the triggered run and
   correcting any actual failing step; do not mark the release verified yet.
 
+- Additional portability fix committed as
+  `fcd36956eba1530ca280fd69afe8b56b106449f5`: the GUI package resolver now
+  tries known Ubuntu package-name transitions for GLib, ext2fs, nettle, PNG,
+  OpenSSL, libxml2, and LLVM before declaring a package unavailable. Selected
+  fallback names are logged explicitly.
+- This is still awaiting the triggered clean-runner build. Package availability
+  checks are not a substitute for actually booting and testing the resulting
+  desktop in QEMU.
