@@ -362,3 +362,28 @@
   so networking, persistence, recovery, release creation, and ISO boot were
   correctly skipped. The next full workflow run must prove these fixes before
   any release claim is made.
+
+## 2026-10-21 — Service manager path and resource-limit hardening
+- Validates service names before constructing service/config, enable/disable,
+  status, diagnostic, PID, and log paths; the logs command rejects traversal.
+- Validates numeric resource limits, NICE, and UMASK before running commands.
+  The prior implementation changed limits only in a command-substitution
+  subshell, so the service process did not inherit them. The revised helper
+  emits validated commands for the child shell and applies them to oneshot and
+  daemon service execution.
+- Added `scripts/test-services-guards.sh`: sandboxed traversal checks, valid
+  service lifecycle, CPU/file/umask/nice enforcement, and fail-closed handling
+  for malformed limits. No host service state or block devices are touched.
+- This branch is based on the current main tip to avoid conflicts with recent
+  GUI and development-log changes. The regression suite must pass before merge.
+
+- Verification update: GitHub Actions Core shell syntax run `39594799324`
+  passed on commit `df0335eb731b5357aa4c816acb288bf265c0b6b5`. It parsed the
+  script set and passed the mocked regression step, including the sandbox
+  service-name traversal and resource-limit/nice enforcement tests. The full OS
+  QEMU run is separate and still pending; this PR has not been merged.
+
+- Latest regression confirmation: Core shell CI run `39595465268` passed on
+  the revision that wired the sandbox service guard test into
+  `scripts/test-all.sh`. The service manager PR is ready for merge once the
+  current full OS verification run completes.
