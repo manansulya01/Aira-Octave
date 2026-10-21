@@ -190,6 +190,7 @@ check_respawn() {
 
 do_stop_one() {
   local name="$1" pid
+  valid_service_name "$name" || { echo "bad service name: $name" >&2; return 2; }
   load_svc "$name" >/dev/null 2>&1 || { echo "unknown service: $name" >&2; return 1; }
   if [ "$TYPE" = "oneshot" ]; then
     if [ -f "$(done_file "$name")" ]; then echo "$name: nothing to stop (oneshot done)"; return 0; fi
@@ -208,6 +209,7 @@ do_stop_one() {
 
 do_status_one() {
   local name="$1"
+  valid_service_name "$name" || { echo "bad service name: $name" >&2; return 2; }
   load_svc "$name" >/dev/null 2>&1 || { echo "$name: unknown"; return 1; }
   if [ "$TYPE" = "oneshot" ]; then
     if [ -f "$(done_file "$name")" ]; then echo "$name: done (oneshot)";
@@ -232,6 +234,7 @@ do_status_one() {
 
 do_logs_one() {
   local name="$1" lines="${2:-50}"
+  valid_service_name "$name" || { echo "bad service name: $name" >&2; return 2; }
   LOG_FILE="$LOG_DIR/$name.log"
   [ -f "$LOG_FILE" ] || { echo "No log file for $name"; return 1; }
   tail -n "$lines" "$LOG_FILE"
@@ -239,6 +242,7 @@ do_logs_one() {
 
 do_diag_one() {
   local name="$1"
+  valid_service_name "$name" || { echo "bad service name: $name" >&2; return 2; }
   load_svc "$name" >/dev/null 2>&1 || { echo "$name: unknown"; return 1; }
   echo "=== Service Diagnostics: $name ==="
   echo "Type: $TYPE"
