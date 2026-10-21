@@ -469,3 +469,17 @@
   missing-tool behavior.
 - The feature is not yet merged. Core CI and the full clean-runner build/QEMU
   audio smoke test must pass before claiming hardware/guest audio verified.
+
+## 2026-10-21 — Installer rootfs preflight (review branch)
+- Audit found that the installer checked the rootfs image's file signature and
+  checksum, but only attempted to mount it after repartitioning and formatting
+  the target disk. A damaged or structurally incomplete image could therefore
+  be discovered too late.
+- Branch `fix/installer-rootfs-preflight` mounts the image read-only with
+  journal replay disabled before confirmation, checks for the required Aira
+  desktop payload, and aborts with the target untouched if mounting or payload
+  validation fails. Cleanup removes the preflight mount on success and failure.
+- `scripts/test-install-guard.sh` checks that the preflight is ordered before
+  the erase confirmation, partition-table write, and filesystem format. The
+  branch still requires CI; the guard is static and does not replace a real
+  disposable-disk installer/boot test.
