@@ -27,6 +27,8 @@ PKGS="$PKGS libc6 libx11-6 libxcb1 libbsd0 libmd0 libpcre2-8-0 liblzma5 zlib1g l
 PKGS="$PKGS libpixman-1-0 libxfont2 libgl1 libxaw7 libxmu6 libxpm4 libxft2 libxinerama1 libxrender1 libxext6 libxt6t64 libice6 libsm6 libfontconfig1 libfreetype6 libglib2.0-0t64 libslang2 libgpm2 libssh2-1t64 libext2fs2t64 libcairo2 libpango-1.0-0 libpangoft2-1.0-0 libpangoxft-1.0-0 libjpeg8 libpng16-16t64 librsvg2-2 libxcomposite1 libxrandr2 libxkbfile1 libxmuu1 libxtst6 libxv1 libxxf86dga1 libxxf86vm1 libxcb-shape0 libx11-xcb1 libutempter0 libtinfo6 libaudit1 libselinux1 libsystemd0 libunwind8 libnettle8t64 libxdmcp6 libxau6 libxcursor1 libxi6 libxcb-damage0 libxcb-present0 libxcb-xfixes0"
 PKGS="$PKGS libglvnd0 libglx-mesa0 libglapi-mesa libegl-mesa0 libgbm1 libwayland-client0 libglx0 libopengl0 libegl1 libbz2-1.0 liblz4-1 libcap2 libgcrypt20 libgpg-error0 libxfixes3 libatomic1 libbrotli1 libcairo-gobject2 libcap-ng0 libcom-err2 libssl3t64 libepoxy0 libfribidi0 libgcc-s1 libgdk-pixbuf-2.0-0 libharfbuzz0b libjpeg-turbo8 libpangocairo-1.0-0 libpciaccess0 libthai0 libudev1 libxcb-dri3-0 libxcb-glx0 libxcb-randr0 libxcb-render0 libxcb-shm0 libxml2-16 libxxhash0 libdatrie1 libgl1-mesa-dri libglycin-2-0 libgraphite2-3 mesa-libgallium liblcms2-2 libseccomp2 libllvm21 libdrm-amdgpu1 libdrm-intel1 libelf1t64 libsensors5 libstdc++6 libxcb-sync1 libedit2 fontconfig fontconfig-config fonts-dejavu-core"
 PKGS="$PKGS libinput10 libevdev2 libmtdev1t64 libwacom9 libdbus-1-3 libxcvt0 libgudev-1.0-0 libicu74"
+# Real ALSA userspace tools and profile/config data for aira-audio.
+PKGS="$PKGS alsa-utils alsa-topology-conf alsa-ucm-conf libasound2t64 libatopology2t64 libfftw3-single3 libsamplerate0 libncursesw6"
 
 # Resolve package names against the actual runner repositories. The manifest
 # spans Ubuntu releases, where several runtime library package names changed.
@@ -47,6 +49,8 @@ for pkg in $PKGS; do
     libmtdev1t64) alternatives="libmtdev1" ;;
     libwacom9) alternatives="libwacom8 libwacom7" ;;
     libicu74) alternatives="libicu76 libicu78 libicu72 libicu70" ;;
+    libasound2t64) alternatives="libasound2" ;;
+    libatopology2t64) alternatives="libatopology2" ;;
     *) alternatives="" ;;
   esac
   selected=""
@@ -103,6 +107,18 @@ if [ -z "$ICU_RUNTIME" ]; then
   exit 1
 fi
 echo "GUI_RUNTIME_CHECK PASS: xkbcomp=$STAGE/usr/bin/xkbcomp ICU=$ICU_RUNTIME" | tee -a "$LOG"
+# Do not advertise ALSA controls unless the actual user-space commands were staged.
+for audio_tool in amixer aplay arecord speaker-test; do
+  if [ ! -x "$STAGE/usr/bin/$audio_tool" ]; then
+    echo "ERROR: ALSA tool usr/bin/$audio_tool missing from GUI staging" | tee -a "$LOG"
+    exit 1
+  fi
+done
+if [ ! -x "$STAGE/usr/sbin/alsactl" ]; then
+  echo "ERROR: ALSA tool usr/sbin/alsactl missing from GUI staging" | tee -a "$LOG"
+  exit 1
+fi
+echo "ALSA_RUNTIME_CHECK PASS: amixer aplay arecord speaker-test alsactl" | tee -a "$LOG"
 
 # Aira GUI files
 mkdir -p "$STAGE/etc/jwm" "$STAGE/usr/bin" "$STAGE/etc/aira" "$STAGE/usr/lib"
