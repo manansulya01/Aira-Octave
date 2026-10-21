@@ -161,3 +161,16 @@
   mocked build publishes the new directory content.
 - Regression test execution and clean-runner QEMU verification remain pending;
   this entry records code changes, not a passing test result.
+
+- Follow-up transaction audit found that rollback itself must not delete an
+  original artifact if making its backup fails. Commit
+  `231980fce028346cf84340aa8b4f9a4771de9da3` now copies backups without moving
+  the originals, and only enters publication after all backup copies succeed.
+  If any publish rename fails, it attempts to restore the old directory and
+  top-level artifacts.
+- Commit `d6c3c12d17e38c782447692b672ade1b7ce87dbd` adds a simulated tarball
+  failure case and asserts that the previous release directory, ISO, tarball,
+  and checksum manifest remain unchanged.
+- These edits trigger the full workflow through the configured build/test path
+  filters. The mocked test and full QEMU suite still need an observed run result;
+  source inspection alone is not a test pass.
