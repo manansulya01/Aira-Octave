@@ -12,4 +12,5 @@
 - Services as root; GUI (Xvfb/JWM) as root; no user-session separation in v1.
 - No firewall rules shipped; no secure-boot signing; no disk encryption.
 - Passwords: locked/disabled (no login testing); serial console gives root shell (physical/QEMU access = root, by design for v1 recovery).
-- Future: drop privileges for syslog/net/gui, add login, nftables baseline, signed updates.
+- Remaining work: drop privileges for syslog/net/gui, add login, nftables baseline, Secure Boot, and a trusted signed-update design.
+- Package signing is not implemented. The former `airapkg sign` / `verify-sig` commands only used SHA-256 checksums, which do not authenticate a publisher; they now fail closed. Treat the local package repository as trusted input.
