@@ -42,7 +42,7 @@ jobs:
           sudo apt-get install -y --no-install-recommends \
             build-essential bc bison flex libssl-dev libelf-dev libncurses-dev \
             cpio gzip xz-utils file e2fsprogs qemu-system-x86 \
-            grub-common grub-pc-bin xorriso
+            grub-common grub-pc-bin xorriso curl
 
       - name: Build Linux 7.2.2 kernel
         run: bash scripts/build-kernel.sh
@@ -50,8 +50,11 @@ jobs:
       - name: Build and validate initramfs
         run: bash scripts/build-initramfs.sh
 
+      - name: Stage the real desktop and GUI applications
+        run: bash scripts/build-gui.sh
+
       - name: Build persistent root filesystem image
-        run: bash scripts/build-rootfs.sh 256
+        run: bash scripts/build-rootfs.sh 512
 
       - name: Run static userspace checks
         run: bash scripts/test-userspace.sh
