@@ -35,8 +35,28 @@ cd "$DLDIR" || exit 1
 VALID_PKGS=""
 MISSING_PKGS=""
 for pkg in $PKGS; do
-  if apt-cache show "$pkg" >/dev/null 2>&1; then
-    VALID_PKGS="$VALID_PKGS $pkg"
+  # Prefer the requested ABI package; fall back to known Ubuntu package-name
+  # transitions when this manifest was authored against a newer release.
+  case "$pkg" in
+    libglib2.0-0t64) alternatives="libglib2.0-0" ;;
+    libext2fs2t64) alternatives="libext2fs2" ;;
+    libnettle8t64) alternatives="libnettle8" ;;
+    libpng16-16t64) alternatives="libpng16-16" ;;
+    libssl3t64) alternatives="libssl3" ;;
+    libxml2-16) alternatives="libxml2" ;;
+    libllvm21) alternatives="libllvm20 libllvm19 libllvm18 libllvm17" ;;
+    *) alternatives="" ;;
+  esac
+  selected=""
+  for candidate in "$pkg" $alternatives; do
+    if apt-cache show "$candidate" >/dev/null 2>&1; then
+      selected="$candidate"
+      break
+    fi
+  done
+  if [ -n "$selected" ]; then
+    VALID_PKGS="$VALID_PKGS $selected"
+    [ "$selected" = "$pkg" ] || echo "PACKAGE_NAME_FALLBACK:$pkg=>$selected" | tee -a "$LOG"
   else
     MISSING_PKGS="$MISSING_PKGS $pkg"
   fi
