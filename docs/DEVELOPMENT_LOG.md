@@ -244,3 +244,10 @@
 - These installation changes are source changes only. The full build/QEMU and
   safety tests must pass before the installer is considered verified; no
   physical disk was formatted by this work.
+
+- README audit found the quick-start instructions pointed QEMU at a nonexistent
+  root-level `bzImage` and suggested creating a blank disk image that could not
+  mount as the persistent ext4 filesystem. Commit
+  `c01460389f09c29f1d020922a927707521d49f43` now uses release artifact paths,
+  builds the real persistent image before boot, and corrects installer/updater
+  status claims. This documentation correction does not itself verify a boot.
