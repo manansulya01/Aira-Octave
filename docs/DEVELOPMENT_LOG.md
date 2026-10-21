@@ -327,3 +327,10 @@
   host-side BIOS/MBR installer from the deliberately disabled in-guest
   installer and remote OS updater. This prevents documentation from claiming
   end-to-end update/install features that are not yet implemented.
+
+- Updated `docs/architecture/AIRAOS-COMPLETE-CAPABILITY-MATRIX.md` in commit
+  `5a7c9c4af715898534e7a2ec79d04cea03b94880` to mark the GRUB/ISO path and
+  safe-mode tests as present, and to distinguish the host-side BIOS installer
+  from the blocked in-guest installer and the unimplemented signed OS updater.
+  The matrix explicitly warns that historical evidence is not a fresh run of
+  the current full-build workflow.
