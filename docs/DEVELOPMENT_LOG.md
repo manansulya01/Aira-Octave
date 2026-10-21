@@ -410,3 +410,10 @@
   pre-existing home content, and rejected usermod home changes. CI must pass
   before this fix is merged. The tests use sandbox credential files and do not
   intentionally alter host system directories.
+
+- CI coverage was also corrected in commits
+  `3130f55facd046a222b981a1d9a93a72d18dada5` and
+  `dd0a8eaa08c0857f2f8a39135736456870cdbd4c`: the core shell workflow and
+  full-build release gate now execute `scripts/test-user.sh`, and the full
+  workflow path filter includes that test. Previously, the full release gate
+  did not run the account-management regression suite.
