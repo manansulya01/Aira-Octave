@@ -166,7 +166,11 @@ rollback_publish() {
   [ "$HAD_SUM" -eq 0 ] || cp -a -- "$SUM_BACKUP" "$SUM" || failed=1
   return "$failed"
 }
-if ! mv -- "$STAGE_REL" "$REL" ||
+# Remove the old directory only after a verified backup exists. POSIX mv
+# nests a source directory inside an existing non-empty destination directory;
+# it does not replace that directory, so explicitly remove the target here.
+if ! rm -rf -- "$REL" ||
+   ! mv -- "$STAGE_REL" "$REL" ||
    ! mv -- "$ISO_TMP" "$ISO" ||
    ! mv -- "$TAR_TMP" "$TAR" ||
    ! mv -- "$SUM_TMP" "$SUM"; then
