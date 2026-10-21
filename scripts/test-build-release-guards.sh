@@ -64,6 +64,16 @@ grep -q 'existing published release artifacts were not replaced' "$TMP/fail.log"
 }
 echo "PASS: failed ISO build preserves previous published artifacts"
 
+if MOCK_TAR_FAIL=1 PATH="$MOCKBIN:$PATH" bash "$SANDBOX/scripts/build-release.sh" 1.5.0 > "$TMP/tar-fail.log" 2>&1; then
+  echo "FAIL: simulated tarball generation failure was accepted"
+  exit 1
+fi
+[ "$(cat "$ISO")" = "previous iso" ] || { echo "FAIL: ISO changed after tarball failure"; exit 1; }
+[ "$(cat "$TAR")" = "previous tar" ] || { echo "FAIL: tarball changed after its generation failure"; exit 1; }
+[ "$(cat "$SUM")" = "previous checksums" ] || { echo "FAIL: checksum manifest changed after tarball failure"; exit 1; }
+[ "$(cat "$REL/KEEP-ME")" = "previous release directory" ] || { echo "FAIL: versioned release directory changed after tarball failure"; exit 1; }
+echo "PASS: failed tarball build preserves previous published artifacts"
+
 if ! PATH="$MOCKBIN:$PATH" bash "$SANDBOX/scripts/build-release.sh" 1.5.0 > "$TMP/pass.log" 2>&1; then
   cat "$TMP/pass.log"
   echo "FAIL: mocked successful release build failed"
