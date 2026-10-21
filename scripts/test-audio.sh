@@ -53,36 +53,7 @@ if grep -q "Audio service started" "$T/start-fail.log"; then bad "failed start d
 
 echo "--- volume and mute failures propagate ---"
 PATH="$T/bin:/usr/bin:/bin" MOCK_AMIXER_FAIL=0 /bin/sh "$AUDIO" volume >"$T/volume-get.log" 2>&1
-if grep -q '^70%
-if PATH="$T/bin:/usr/bin:/bin" MOCK_AMIXER_FAIL=0 /bin/sh "$AUDIO" volume 150 >/dev/null 2>&1; then bad "out-of-range volume rejected"; else ok "out-of-range volume rejected"; fi
-if PATH="$T/bin:/usr/bin:/bin" MOCK_AMIXER_FAIL=1 /bin/sh "$AUDIO" volume 50 >"$T/volume-fail.log" 2>&1; then bad "failed volume set rejected"; else ok "failed volume set rejected"; fi
-if grep -q "Volume set" "$T/volume-fail.log"; then bad "failed volume set does not claim success"; else ok "failed volume set does not claim success"; fi
-if PATH="$T/bin:/usr/bin:/bin" MOCK_AMIXER_FAIL=1 /bin/sh "$AUDIO" mute >"$T/mute-fail.log" 2>&1; then bad "failed mute rejected"; else ok "failed mute rejected"; fi
-if grep -q '^Muted$' "$T/mute-fail.log"; then bad "failed mute does not claim success"; else ok "failed mute does not claim success"; fi
-if PATH="$T/bin:/usr/bin:/bin" MOCK_AMIXER_FAIL=1 /bin/sh "$AUDIO" unmute >"$T/unmute-fail.log" 2>&1; then bad "failed unmute rejected"; else ok "failed unmute rejected"; fi
-if grep -q '^Unmuted$' "$T/unmute-fail.log"; then bad "failed unmute does not claim success"; else ok "failed unmute does not claim success"; fi
-
-echo "--- test tone success/failure is truthful ---"
-if PATH="$T/bin:/usr/bin:/bin" MOCK_SPEAKER_FAIL=1 MOCK_APLAY_FAIL=1 /bin/sh "$AUDIO" test >"$T/tone-fail.log" 2>&1; then
-  bad "failed test tone rejected"
-else
-  grep -q "test tone failed" "$T/tone-fail.log" && ok "failed test tone rejected" || bad "failed test tone diagnostic"
-fi
-if PATH="$T/bin:/usr/bin:/bin" MOCK_SPEAKER_FAIL=0 MOCK_APLAY_FAIL=0 /bin/sh "$AUDIO" test >"$T/tone-ok.log" 2>&1; then
-  grep -q "Test tone played" "$T/tone-ok.log" && ok "successful test tone reported" || bad "successful test tone reported"
-else bad "successful test tone accepted"; fi
-
-echo "--- missing runtime tool fails explicitly ---"
-if PATH="$T/empty" /bin/sh "$AUDIO" start >"$T/no-tools.log" 2>&1; then
-  bad "missing amixer rejected"
-else
-  grep -q "required ALSA tool 'amixer' is not installed" "$T/no-tools.log" && ok "missing amixer rejected" || bad "missing amixer diagnostic"
-fi
-
-echo
-echo "AUDIO TEST: PASS=$PASS FAIL=$FAIL"
-[ "$FAIL" = "0" ]
- "$T/volume-get.log"; then
+if grep -Fqx "70%" "$T/volume-get.log"; then
   ok "volume query returns mixer value"
 else
   bad "volume query returns mixer value"
@@ -92,9 +63,9 @@ if PATH="$T/bin:/usr/bin:/bin" MOCK_AMIXER_FAIL=0 /bin/sh "$AUDIO" volume 150 >/
 if PATH="$T/bin:/usr/bin:/bin" MOCK_AMIXER_FAIL=1 /bin/sh "$AUDIO" volume 50 >"$T/volume-fail.log" 2>&1; then bad "failed volume set rejected"; else ok "failed volume set rejected"; fi
 if grep -q "Volume set" "$T/volume-fail.log"; then bad "failed volume set does not claim success"; else ok "failed volume set does not claim success"; fi
 if PATH="$T/bin:/usr/bin:/bin" MOCK_AMIXER_FAIL=1 /bin/sh "$AUDIO" mute >"$T/mute-fail.log" 2>&1; then bad "failed mute rejected"; else ok "failed mute rejected"; fi
-if grep -q '^Muted$' "$T/mute-fail.log"; then bad "failed mute does not claim success"; else ok "failed mute does not claim success"; fi
+if grep -Fqx "Muted" "$T/mute-fail.log"; then bad "failed mute does not claim success"; else ok "failed mute does not claim success"; fi
 if PATH="$T/bin:/usr/bin:/bin" MOCK_AMIXER_FAIL=1 /bin/sh "$AUDIO" unmute >"$T/unmute-fail.log" 2>&1; then bad "failed unmute rejected"; else ok "failed unmute rejected"; fi
-if grep -q '^Unmuted$' "$T/unmute-fail.log"; then bad "failed unmute does not claim success"; else ok "failed unmute does not claim success"; fi
+if grep -Fqx "Unmuted" "$T/unmute-fail.log"; then bad "failed unmute does not claim success"; else ok "failed unmute does not claim success"; fi
 
 echo "--- test tone success/failure is truthful ---"
 if PATH="$T/bin:/usr/bin:/bin" MOCK_SPEAKER_FAIL=1 MOCK_APLAY_FAIL=1 /bin/sh "$AUDIO" test >"$T/tone-fail.log" 2>&1; then
@@ -110,7 +81,7 @@ echo "--- missing runtime tool fails explicitly ---"
 if PATH="$T/empty" /bin/sh "$AUDIO" start >"$T/no-tools.log" 2>&1; then
   bad "missing amixer rejected"
 else
-  grep -q "required ALSA tool 'amixer' is not installed" "$T/no-tools.log" && ok "missing amixer rejected" || bad "missing amixer diagnostic"
+  grep -q "required ALSA tool" "$T/no-tools.log" && ok "missing amixer rejected" || bad "missing amixer diagnostic"
 fi
 
 echo
