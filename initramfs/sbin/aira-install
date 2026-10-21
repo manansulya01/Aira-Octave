@@ -46,6 +46,12 @@ done
 
 [ -n "$TARGET" ] || { echo "Error: --target required"; usage; exit 1; }
 [ -b "$TARGET" ] || { echo "Error: $TARGET is not a block device"; exit 1; }
+case "$HOSTNAME" in ""|*[!A-Za-z0-9.-]*|.*|*.) echo "Error: invalid hostname"; exit 1 ;; esac
+case "$USERNAME" in ""|*[!A-Za-z0-9_-]*|[0-9]*) echo "Error: invalid username"; exit 1 ;; esac
+if [ -n "$PASSWORD_FILE" ]; then
+    [ -r "$PASSWORD_FILE" ] || { echo "Error: password file is not readable"; exit 1; }
+    command -v openssl >/dev/null 2>&1 || { echo "Error: openssl is required to hash the supplied password (disk was not changed)"; exit 1; }
+fi
 
 # --auto is intentionally not sufficient by itself to authorize disk erasure.
 # Scripts must provide the second explicit acknowledgement as well.
@@ -197,30 +203,85 @@ EOF
 
 # Create user if not root
 if [ "$USERNAME" != "root" ]; then
-    # Add user to passwd/shadow
-    UID=1000
-    GID=1000
-    # Find next available UID
-    while grep -q ":$UID:" "$TARGET_MNT/etc/passwd" 2>/dev/null; do
-        UID=$((UID+1))
-    done
-    while grep -q ":$GID:" "$TARGET_MNT/etc/group" 2>/dev/null; do
-        GID=$((GID+1))
-    done
-    
-    echo "$USERNAME:x:$UID:$GID:$USERNAME:/home/$USERNAME:/bin/sh" >> "$TARGET_MNT/etc/passwd"
-    echo "$USERNAME:x:$GID:" >> "$TARGET_MNT/etc/group"
-    echo "$USERNAME:*:19000:0:99999:7:::" >> "$TARGET_MNT/etc/shadow"
-    
-    mkdir -p "$TARGET_MNT/home/$USERNAME"
-    chown "$UID:$GID" "$TARGET_MNT/home/$USERNAME"
-    chmod 755 "$TARGET_MNT/home/$USERNAME"
-    
-    # Set password if provided
-    if [ -n "$PASSWORD_FILE" ] && [ -f "$PASSWORD_FILE" ]; then
-        PASS=$(cat "$PASSWORD_FILE")
-        HASH=$(echo -n "$PASS" | sha256sum | cut -d' ' -f1)
-        sed -i "s|^$USERNAME:\*:|$USERNAME:$HASH:|" "$TARGET_MNT/etc/shadow"
+    PASSWD_FILE="$TARGET_MNT/etc/passwd"
+    GROUP_FILE="$TARGET_MNT/etc/group"
+    SHADOW_FILE="$TARGET_MNT/etc/shadow"
+    [ -f "$PASSWD_FILE" ] || { echo "Error: installed passwd database missing"; exit 1; }
+    [ -f "$GROUP_FILE" ] || { echo "Error: installed group database missing"; exit 1; }
+    [ -f "$SHADOW_FILE" ] || { echo "Error: installed shadow database missing"; exit 1; }
+
+    # Reuse an existing account rather than appending duplicate passwd entries.
+    if grep -q "^$USERNAME:" "$PASSWD_FILE"; then
+        USER_UID="$(awk -F: -v n="$USERNAME" '$1==n {print $3; exit}' "$PASSWD_FILE")"
+        USER_GID="$(awk -F: -v n="$USERNAME" '$1==n {print $4; exit}' "$PASSWD_FILE")"
+    else
+        USER_UID=1000
+        USER_GID=1000
+        while grep -q ":$USER_UID:" "$PASSWD_FILE" 2>/dev/null; do USER_UID=$((USER_UID+1)); done
+        while grep -q ":$USER_GID:" "$GROUP_FILE" 2>/dev/null; do USER_GID=$((USER_GID+1)); done
+        echo "$USERNAME:x:$USER_UID:$USER_GID:$USERNAME:/home/$USERNAME:/bin/sh" >> "$PASSWD_FILE" || exit 1
+    fi
+    [ -n "$USER_UID" ] && [ -n "$USER_GID" ] || { echo "Error: could not resolve user identity"; exit 1; }
+    if ! grep -q "^$USERNAME:" "$GROUP_FILE"; then
+        echo "$USERNAME:x:$USER_GID:" >> "$GROUP_FILE" || exit 1
+    fi
+    if ! grep -q "^$USERNAME:" "$SHADOW_FILE"; then
+        echo "$USERNAME:*:19000:0:99999:7:::" >> "$SHADOW_FILE" || exit 1
+    fi
+
+    mkdir -p "$TARGET_MNT/home/$USERNAME" || exit 1
+    chown "$USER_UID:$USER_GID" "$TARGET_MNT/home/$USERNAME" || exit 1
+    chmod 755 "$TARGET_MNT/home/$USERNAME" || exit 1
+
+    # Use a real SHA-512 crypt hash; a raw SHA-256 digest is not a shadow hash.
+    if [ -n "$PASSWORD_FILE" ]; then
+        HASH="$(openssl passwd -6 -stdin < "$PASSWORD_FILE")" || { echo "Error: password hashing failed"; exit 1; }
+        case "$HASH" in '$6
+
+# Install bootloader (GRUB for BIOS, or just kernel for direct boot)
+echo "[install] Installing bootloader..."
+mkdir -p "$TARGET_MNT/boot/grub" || { echo "Cannot create boot directory"; exit 1; }
+cp -f "$KERNEL_IMAGE" "$TARGET_MNT/boot/bzImage" || { echo "Kernel copy failed"; exit 1; }
+cp -f "$INITRAMFS_IMAGE" "$TARGET_MNT/boot/initramfs.cpio" || { echo "Initramfs copy failed"; exit 1; }
+grub-install --target=i386-pc --boot-directory="$TARGET_MNT/boot" "$TARGET" || {
+    echo "GRUB installation failed; refusing to report success"
+    exit 1
+}
+cat > "$TARGET_MNT/boot/grub/grub.cfg" <<EOF
+set timeout=5
+set default=0
+
+menuentry "AiraOS-Octave" {
+    linux /boot/bzImage console=ttyS0 rdinit=/init loglevel=7
+    initrd /boot/initramfs.cpio
+}
+EOF
+
+# Create boot marker
+echo "airaos-installed=$(date -u +%Y%m%d-%H%M%S)" > "$TARGET_MNT/etc/aira-install.info"
+echo "version=$(grep VERSION /etc/os-release | cut -d= -f2 | tr -d '\"')" >> "$TARGET_MNT/etc/aira-install.info"
+
+# Verify while the target filesystem is still mounted, then cleanly unmount.
+[ -s "$TARGET_MNT/boot/bzImage" ] && [ -s "$TARGET_MNT/boot/initramfs.cpio" ] || {
+    echo "Installed boot payload verification failed"
+    exit 1
+}
+umount "$TARGET_MNT" || { echo "Unmount failed"; exit 1; }
+TARGET_MOUNTED=0
+
+echo "[install] Installation complete!"
+echo "You can now reboot and boot from $TARGET"
+echo "Note: For QEMU, use -drive file=<disk.img>,format=raw"*) ;; *) echo "Error: unsupported password hash result"; exit 1 ;; esac
+        if grep -q "^$USERNAME:" "$SHADOW_FILE"; then
+            awk -F: -v OFS=: -v n="$USERNAME" -v h="$HASH" '$1==n {$2=h} {print}' "$SHADOW_FILE" > "$SHADOW_FILE.tmp" &&
+                cat "$SHADOW_FILE.tmp" > "$SHADOW_FILE" && rm -f "$SHADOW_FILE.tmp" || {
+                    rm -f "$SHADOW_FILE.tmp"
+                    echo "Error: could not update shadow entry"
+                    exit 1
+                }
+        else
+            echo "$USERNAME:$HASH:19000:0:99999:7:::" >> "$SHADOW_FILE" || exit 1
+        fi
     fi
 fi
 
