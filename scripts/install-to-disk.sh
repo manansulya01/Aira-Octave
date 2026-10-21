@@ -108,6 +108,42 @@ GRUB_MODULE_DIR="$(find /usr/lib/grub /usr/lib64/grub -maxdepth 2 -type d -name 
   exit 1
 }
 
+# Validate the rootfs image itself before asking to erase a disk. A read-only
+# mount with noload avoids journal replay or writes to the release image.
+PREFLIGHT_MNT="$(mktemp -d /tmp/aira-rootfs-preflight.XXXXXX)" || {
+  echo "ERROR: cannot create rootfs preflight mountpoint; target disk was not changed."
+  exit 1
+}
+PREFLIGHT_MOUNTED=0
+cleanup_preflight() {
+  set +e
+  if (( PREFLIGHT_MOUNTED != 0 )); then umount "$PREFLIGHT_MNT" 2>/dev/null; fi
+  [[ -z "$PREFLIGHT_MNT" ]] || rmdir "$PREFLIGHT_MNT"
+}
+trap cleanup_preflight EXIT HUP INT TERM
+# Mark the attempt before calling mount so cleanup also handles partial failures.
+PREFLIGHT_MOUNTED=1
+if ! mount -o loop,ro,noload "$ROOTFS_IMAGE" "$PREFLIGHT_MNT"; then
+  echo "ERROR: rootfs image cannot be mounted read-only; target disk was not changed."
+  exit 1
+fi
+if [[ ! -d "$PREFLIGHT_MNT/etc/aira" ||
+      ! -x "$PREFLIGHT_MNT/usr/bin/aira-session" ||
+      ! -x "$PREFLIGHT_MNT/usr/bin/jwm" ||
+      ! -x "$PREFLIGHT_MNT/usr/bin/xterm" ]]; then
+  echo "ERROR: rootfs image is missing required desktop files; target disk was not changed."
+  exit 1
+fi
+if ! umount "$PREFLIGHT_MNT"; then
+  echo "ERROR: cannot unmount rootfs preflight image; target disk was not changed."
+  exit 1
+fi
+PREFLIGHT_MOUNTED=0
+rmdir "$PREFLIGHT_MNT"
+PREFLIGHT_MNT=""
+trap - EXIT HUP INT TERM
+echo "[preflight] Rootfs mounted read-only; required desktop payload present."
+
 echo "TARGET DISK: $TARGET"
 lsblk -dn -o MODEL,SIZE,TYPE "$TARGET"
 echo "Release: $RELEASE_DIR"
