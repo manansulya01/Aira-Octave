@@ -289,3 +289,14 @@
 - Pull request #11 runs shell validation and package/update/installer safety
   regressions before merge. Its checks are still in progress; no install to a
   physical disk was performed.
+
+- PR #11 merged as `80ef22aed613f888579c9a00b8b276dfc46cc98d` after its core CI
+  passed at `f5669c5709fd6ea5796a827b974a58bf6d7a7dcd`. The run parsed 49 shell
+  scripts, passed all selected initramfs `sh -n` checks, and passed rootfs/release
+  atomicity, updater fail-closed, installer guard, guest-installer guard, and
+  package transaction tests. Package suite result: `PASS=43 FAIL=0`, including
+  injected partial-copy failure and restoration of the overwritten file.
+- New full build run
+  [`39579206079`](https://github.com/manansulya01/Aira-Octave/actions/runs/39579206079)
+  is queued for the direct-APT GUI fix and merged safety changes. End-to-end
+  release status remains unverified until this run reaches QEMU and ISO boot.
