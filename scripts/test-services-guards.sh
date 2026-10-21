@@ -12,6 +12,7 @@ RUN="$BASE/run/aira-services"
 LOG="$BASE/var/log/airaos"
 mkdir -p "$SVC" "$EN" "$RUN" "$LOG"
 printf 'must survive\n' > "$TMP/outside-sentinel"
+printf 'private-log-marker\n' > "$TMP/outside-sentinel.log"
 
 run_init() {
   AIRA_SVC_DIR="$SVC" AIRA_EN_DIR="$EN" AIRA_RUN_DIR="$RUN" AIRA_LOG_DIR="$LOG" \
@@ -19,7 +20,7 @@ run_init() {
 }
 
 # Four parent components escape the enabled/services directories into $TMP.
-for operation in disable enable start status; do
+for operation in disable enable start status logs; do
   if run_init "$operation" ../../../../outside-sentinel >"$TMP/$operation.out" 2>&1; then
     echo "FAIL: $operation accepted a traversal service name"
     exit 1
@@ -33,6 +34,14 @@ for operation in disable enable start status; do
     echo "FAIL: $operation modified a file outside the service directories"
     exit 1
   }
+  [ "$(cat "$TMP/outside-sentinel.log")" = "private-log-marker" ] || {
+    echo "FAIL: $operation modified a log outside the service log directory"
+    exit 1
+  }
+  if grep -q 'private-log-marker' "$TMP/$operation.out"; then
+    echo "FAIL: $operation exposed a log outside the service log directory"
+    exit 1
+  fi
 done
 echo "PASS: service operations reject path traversal"
 
