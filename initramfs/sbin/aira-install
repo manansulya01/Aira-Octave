@@ -1,6 +1,6 @@
 #!/bin/sh
 # AiraOS Installer - install AiraOS to a target disk.
-# Usage: aira-install [--target /dev/vda] [--size 512M] [--hostname aira] [--user aira] [--password-file /path]
+# Usage: aira-install [--target /dev/vda] [--hostname aira] [--user aira] [--password-file /path]
 
 set -u
 
@@ -16,7 +16,6 @@ aira-install — Install AiraOS to disk
   aira-install [options]
 Options:
   --target DEVICE       Target block device (e.g., /dev/vda)
-  --size SIZE           Root filesystem size (default: 512M)
   --hostname NAME       System hostname (default: aira)
   --user NAME           Username to create (default: aira)
   --password-file FILE  File containing password for user
@@ -25,7 +24,7 @@ Options:
   --help                Show this help
 
 Example:
-  aira-install --target /dev/vda --size 2G --user myuser --password-file /tmp/pass.txt
+  aira-install --target /dev/vda --user myuser --password-file /tmp/pass.txt
 EOF
 }
 
@@ -122,7 +121,6 @@ done < /proc/mounts
 if [ -z "${AUTO:-}" ]; then
     echo "WARNING: This will ERASE all data on $TARGET"
     echo "Target: $TARGET"
-    echo "Size: $SIZE"
     echo "Hostname: $HOSTNAME"
     echo "User: $USERNAME"
     echo -n "Continue? (yes/no): "
