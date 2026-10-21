@@ -183,9 +183,31 @@ case "$cmd" in
     mkdir -p "$staged/backup"
     : > "$staged/files"
     : > "$staged/backup-files"
-    # If reinstalling, preserve previous backup if forced? start fresh.
-    (cd "$tmp" && find . -mindepth 1 -not -name PKGINFO -not -name members.txt -not -name list.txt) > "$tmp/list.txt"
+    # Sort payload paths for deterministic install/rollback order.
+    (cd "$tmp" && find . -mindepth 1 -not -name PKGINFO -not -name members.txt -not -name list.txt | LC_ALL=C sort) > "$tmp/list.txt"
     _install_failed=0
+    rollback_payload() {
+      _rb_failed=0
+      if [ -f "$staged/files" ]; then
+        while IFS= read -r _rb_pf; do
+          [ -n "$_rb_pf" ] || continue
+          rm -f "$ROOT$_rb_pf" 2>/dev/null || _rb_failed=1
+        done < "$staged/files"
+      fi
+      if [ -f "$staged/backup-files" ]; then
+        while IFS= read -r _rb_pf; do
+          [ -n "$_rb_pf" ] || continue
+          _rb_rel="${_rb_pf#/}"
+          _rb_dest="$ROOT$_rb_pf"
+          _rb_backup="$staged/backup/$_rb_rel"
+          if [ -f "$_rb_backup" ]; then
+            mkdir -p "$(dirname "$_rb_dest")" || _rb_failed=1
+            cp -p "$_rb_backup" "$_rb_dest" || _rb_failed=1
+          fi
+        done < "$staged/backup-files"
+      fi
+      return "$_rb_failed"
+    }
     while IFS= read -r rel; do
       rel="${rel#./}"
       [ -n "$rel" ] || continue
@@ -194,8 +216,7 @@ case "$cmd" in
         members.txt|list.txt) continue ;;
       esac
       src="$tmp/$rel"
-      # Record the DEPLOYED path (with prefix) but keep the package-relative
-      # path in the DB, so removing/verifying still works if the prefix changes.
+      # Keep package-relative paths in the DB; apply ROOT only at deployment time.
       dest="$ROOT/$rel"
       rec="/$rel"
       if [ -d "$src" ] && [ ! -L "$src" ]; then
@@ -206,10 +227,17 @@ case "$cmd" in
       else
         mkdir -p "$(dirname "$dest")" || { _install_failed=1; break; }
         if [ -e "$dest" ]; then
-          mkdir -p "$staged/backup/$(dirname "$rel")" 2>/dev/null
-          cp -f "$dest" "$staged/backup/$rel" 2>/dev/null
-          echo "$dest" >> "$staged/backup-files"
+          if ! mkdir -p "$staged/backup/$(dirname "$rel")" 2>/dev/null ||
+             ! cp -p "$dest" "$staged/backup/$rel" 2>/dev/null; then
+            echo "airapkg: could not back up existing file $rec; refusing overwrite" >&2
+            _install_failed=1
+            break
+          fi
+          echo "$rec" >> "$staged/backup-files" || { _install_failed=1; break; }
         fi
+        # Record before copying so a partially written file is also removed on
+        # rollback if the copy fails part-way through.
+        echo "$rec" >> "$staged/files" || { _install_failed=1; break; }
         cp -p "$src" "$dest" 2>/dev/null || cp -f "$src" "$dest" || { _install_failed=1; break; }
         # busybox chmod has no --reference: cp -p already preserved the mode;
         # only repair the old blind-+x bug if mode looks wrong.
@@ -218,25 +246,17 @@ case "$cmd" in
         else
           if [ -x "$dest" ]; then chmod 644 "$dest" 2>/dev/null || true; fi
         fi
-        echo "$rec" >> "$staged/files"
       fi
     done < "$tmp/list.txt"
     if     [ "$_install_failed" = "1" ]; then
       echo "airapkg: install failed, rolling back partial" >&2
       tx install "${NAME:-unknown}" "failed-rolling-back"
-      # rollback partial copies using staged/files
-      if [ -f "$staged/files" ]; then
-        while IFS= read -r pf; do rm -f "$pf" 2>/dev/null || true; done < "$staged/files"
+      if rollback_payload; then
+        rm -rf "$staged"
+      else
+        echo "CRITICAL: payload rollback incomplete; recovery files retained at $staged" >&2
       fi
-      # restore overwritten files from staged/backup
-      if [ -f "$staged/backup-files" ]; then
-        while IFS= read -r pf; do
-          rel="${pf#/}"
-          # pf is a package-relative path ("/usr/..."), not a deployed one
-          if [ -f "$staged/backup/${pf#/}" ]; then cp -f "$staged/backup/${pf#/}" "$pf" 2>/dev/null || true; fi
-        done < "$staged/backup-files"
-      fi
-      rm -rf "$staged" "$tmp"
+      rm -rf "$tmp"
       exit 1
     fi
     # Commit the DB entry atomically. `rm -rf` followed by `mv` is NOT atomic:
@@ -252,16 +272,26 @@ case "$cmd" in
     fi
     _prev=""
     if [ -d "$(pkgdir "$NAME")" ]; then
-      _prev="$(pkgdir "$NAME").prev.$$"
-      mv "$(pkgdir "$NAME")" "$_prev" 2>/dev/null || { _prev=""; }
+      _prev="$(pkgdir "$NAME").prev.$"
+      if ! mv "$(pkgdir "$NAME")" "$_prev" 2>/dev/null; then
+        echo "airapkg: could not stage previous DB entry; rolling back payload" >&2
+        if rollback_payload; then rm -rf "$staged"; else echo "CRITICAL: recovery files retained at $staged" >&2; fi
+        rm -rf "$tmp"
+        exit 1
+      fi
     fi
     if mv "$staged" "$(pkgdir "$NAME")" 2>/dev/null; then
       [ -n "$_prev" ] && rm -rf "$_prev" 2>/dev/null
     else
-      # commit failed: put the previous DB entry back, leave payload as-is
-      if [ -n "$_prev" ]; then mv "$_prev" "$(pkgdir "$NAME")" 2>/dev/null || true; fi
-      rm -rf "$staged" "$tmp" 2>/dev/null
-      echo "airapkg: DB commit failed; previous state restored" >&2
+      # The payload is already on disk: restore it before discarding backups.
+      if [ -n "$_prev" ]; then mv "$_prev" "$(pkgdir "$NAME")" 2>/dev/null || echo "CRITICAL: previous package DB entry restore failed" >&2; fi
+      if rollback_payload; then
+        rm -rf "$staged"
+      else
+        echo "CRITICAL: payload rollback incomplete; recovery files retained at $staged" >&2
+      fi
+      rm -rf "$tmp" 2>/dev/null
+      echo "airapkg: DB commit failed; payload rollback attempted" >&2
       exit 1
     fi
     # remove stale files present in old version but absent from new version
@@ -269,7 +299,7 @@ case "$cmd" in
       while IFS= read -r _of; do
         [ -n "$_of" ] || continue
         if ! grep -Fxq "$_of" "$(pkgdir "$NAME")/files" 2>/dev/null; then
-          rm -f "$_of" 2>/dev/null && echo "removed stale $_of"
+          rm -f "$ROOT$_of" 2>/dev/null && echo "removed stale $_of"
         fi
       done < "$_oldfiles"
       rm -f "$_oldfiles"

@@ -52,6 +52,11 @@ jobs:
             initramfs/usr/bin/aira \
             initramfs/usr/bin/aira-info \
             initramfs/usr/bin/aira-support-bundle \
+            initramfs/sbin/aira-install \
+            initramfs/sbin/aira-update \
+            initramfs/usr/bin/airapkg \
+            initramfs/usr/bin/aira-power \
+            initramfs/usr/bin/aira-audio \
             initramfs/sbin/guest-autotest.sh \
             initramfs/sbin/guest-supporttest.sh; do
             if [[ ! -f "$script" ]]; then
@@ -75,3 +80,7 @@ jobs:
           set -euo pipefail
           bash scripts/test-build-rootfs-atomic.sh
           bash scripts/test-build-release-guards.sh
+          bash scripts/test-update-safety.sh
+          bash scripts/test-install-guard.sh
+          bash scripts/test-guest-installer-guard.sh
+          bash scripts/test-pkg.sh

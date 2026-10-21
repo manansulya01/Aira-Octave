@@ -37,13 +37,13 @@ mkpkg hello-aira 1.0 "$T/build-hello-aira/usr/share/aira/hello.txt" "$T/hello-ai
 [ -f "$T/hello-aira.apkg" ] && ok "apkg built" || bad "apkg built"
 
 echo "--- install/list/query/verify ---"
-if P install "$T/hello-aira.apkg" > /tmp/pkg-install.out 2>&1; then
+if P install "$T/hello-aira.apkg" > "$T/pkg-install.out" 2>&1; then
   P install "$T/hello-aira.apkg" 2>&1 | grep -q "already installed" \
     && ok "install" || ok "install (already-installed on retry)"
-  sed 's/^/  INFO: /' /tmp/pkg-install.out | head -5
+  sed 's/^/  INFO: /' "$T/pkg-install.out" | head -5
 else
   bad "install"
-  sed 's/^/  INFO: /' /tmp/pkg-install.out | head -10
+  sed 's/^/  INFO: /' "$T/pkg-install.out" | head -10
 fi
 P list | grep -q "hello-aira" && ok "list" || bad "list"
 P query hello-aira | grep -q 'NAME="hello-aira"' && ok "query metadata" || bad "query metadata"
@@ -109,6 +109,34 @@ P install "$T/bad2.apkg" >/dev/null 2>&1 && bad "slash in NAME rejected" || ok "
 echo "--- reinstall requires --force ---"
 P install "$T/hello-aira.apkg" >/dev/null 2>&1 && bad "reinstall refused" || ok "reinstall refused"
 P install --force "$T/hello-aira.apkg" | grep -q "installed" && ok "forced reinstall" || bad "forced reinstall"
+
+echo "--- partial install failure rolls back inside package root ---"
+F="$T/failtxn"; rm -rf "$F"; mkdir -p "$F/usr/share/aira"
+printf 'NAME="failtxn"\nVERSION="1.0"\nDESC="failure transaction"\nDEPS=""\n' > "$F/PKGINFO"
+printf 'must be rolled back\n' > "$F/usr/share/aira/aaa-good.txt"
+printf 'copy is injected to fail\n' > "$F/usr/share/aira/zzz-fail.txt"
+tar -czf "$T/failtxn.apkg" -C "$F" .
+mkdir -p "$AIRA_PKG_ROOT/usr/share/aira"
+printf 'original value\n' > "$AIRA_PKG_ROOT/usr/share/aira/aaa-good.txt"
+mkdir -p "$T/failbin"
+cat > "$T/failbin/cp" <<'MOCK_CP'
+#!/bin/sh
+last=""
+for arg do last="$arg"; done
+case "$last" in
+  */zzz-fail.txt) exit 77 ;;
+esac
+exec /bin/cp "$@"
+MOCK_CP
+chmod +x "$T/failbin/cp"
+if PATH="$T/failbin:$PATH" P install "$T/failtxn.apkg" > "$T/failtxn.log" 2>&1; then
+  bad "injected partial copy failure rejected"
+else
+  ok "injected partial copy failure rejected"
+fi
+[ "$(cat "$AIRA_PKG_ROOT/usr/share/aira/aaa-good.txt" 2>/dev/null)" = "original value" ] && ok "overwritten file restored in package root" || bad "overwritten file restored in package root"
+[ ! -e "$AIRA_PKG_ROOT/usr/share/aira/zzz-fail.txt" ] && ok "failed destination absent" || bad "failed destination absent"
+[ ! -d "$AIRA_PKG_DB/installed/failtxn" ] && ok "failed package DB entry absent" || bad "failed package DB entry absent"
 
 echo "--- remove cleans payload ---"
 P remove hello-aira | grep -q "removed" && ok "remove" || bad "remove"

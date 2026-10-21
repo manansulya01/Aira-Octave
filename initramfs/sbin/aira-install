@@ -1,321 +1,35 @@
 #!/bin/sh
-# AiraOS Installer - install AiraOS to a target disk.
-# Usage: aira-install [--target /dev/vda] [--size 512M] [--hostname aira] [--user aira] [--password-file /path]
-
+# The in-guest installer is intentionally fail-closed.
+#
+# The live initramfs does not guarantee a complete host-side partitioning and
+# GRUB toolchain or a readable copy of its own kernel/initramfs artifacts.
+# Formatting a disk from this incomplete environment previously risked leaving
+# a half-installed, unbootable system. Use scripts/install-to-disk.sh from the
+# source checkout on a Linux host, after building and checksum-verifying a
+# release. This command must never pretend installation succeeded.
 set -u
-
-TARGET=""
-SIZE="512M"
-HOSTNAME="aira"
-USERNAME="aira"
-PASSWORD_FILE=""
-ALLOW_ERASE=0
 
 usage() {
     cat <<'EOF'
-aira-install — Install AiraOS to disk
-  aira-install [options]
-Options:
-  --target DEVICE       Target block device (e.g., /dev/vda)
-  --size SIZE           Root filesystem size (default: 512M)
-  --hostname NAME       System hostname (default: aira)
-  --user NAME           Username to create (default: aira)
-  --password-file FILE  File containing password for user
-  --auto                Non-interactive mode (requires --allow-erase)
-  --allow-erase         Explicitly authorize formatting the selected target
-  --help                Show this help
+aira-install — in-guest installer status
 
-Example:
-  aira-install --target /dev/vda --size 2G --user myuser --password-file /tmp/pass.txt
+This live image does not currently provide a supported in-guest installation
+workflow. No disk will be partitioned or formatted by this command.
+
+For a built release, run the host-side installer from the source checkout:
+  sudo scripts/install-to-disk.sh --target /dev/sdX
+Read docs/INSTALL.md first. The host installer supports legacy BIOS/MBR only.
 EOF
 }
 
-while [ $# -gt 0 ]; do
-    case "$1" in
-        --target) TARGET="$2"; shift 2 ;;
-        --size) SIZE="$2"; shift 2 ;;
-        --hostname) HOSTNAME="$2"; shift 2 ;;
-        --user) USERNAME="$2"; shift 2 ;;
-        --password-file) PASSWORD_FILE="$2"; shift 2 ;;
-        --auto) AUTO=1; shift ;;
-        --allow-erase) ALLOW_ERASE=1; shift ;;
-        --help|-h) usage; exit 0 ;;
-        *) echo "Unknown option: $1"; usage; exit 1 ;;
-    esac
-done
-
-[ -n "$TARGET" ] || { echo "Error: --target required"; usage; exit 1; }
-[ -b "$TARGET" ] || { echo "Error: $TARGET is not a block device"; exit 1; }
-case "$HOSTNAME" in ""|*[!A-Za-z0-9.-]*|.*|*.) echo "Error: invalid hostname"; exit 1 ;; esac
-case "$USERNAME" in ""|*[!A-Za-z0-9_-]*|[0-9]*) echo "Error: invalid username"; exit 1 ;; esac
-if [ -n "$PASSWORD_FILE" ]; then
-    [ -r "$PASSWORD_FILE" ] || { echo "Error: password file is not readable"; exit 1; }
-    command -v openssl >/dev/null 2>&1 || { echo "Error: openssl is required to hash the supplied password (disk was not changed)"; exit 1; }
-fi
-
-# --auto is intentionally not sufficient by itself to authorize disk erasure.
-# Scripts must provide the second explicit acknowledgement as well.
-if [ -n "${AUTO:-}" ] && [ "${ALLOW_ERASE:-0}" != "1" ]; then
-    echo "Error: --auto also requires --allow-erase; refusing unattended disk erasure"
-    exit 1
-fi
-
-# Fail before partitioning if the running environment cannot actually install
-# and boot a system. Never report success after silently omitting the kernel,
-# initramfs, or bootloader.
-for tool in fdisk mkfs.ext4 mount umount cp mkdir chmod chown grep sed date grub-install; do
-    command -v "$tool" >/dev/null 2>&1 || {
-        echo "Error: required installer tool missing: $tool (disk was not changed)"
-        exit 1
-    }
-done
-
-KERNEL_IMAGE="${AIRA_INSTALL_KERNEL:-}"
-INITRAMFS_IMAGE="${AIRA_INSTALL_INITRAMFS:-}"
-for candidate in /boot/bzImage /airaos-bzImage /mnt/boot/bzImage; do
-    if [ -z "$KERNEL_IMAGE" ] && [ -s "$candidate" ]; then KERNEL_IMAGE="$candidate"; fi
-done
-for candidate in /initramfs.cpio /boot/initramfs.cpio /mnt/boot/initramfs.cpio; do
-    if [ -z "$INITRAMFS_IMAGE" ] && [ -s "$candidate" ]; then INITRAMFS_IMAGE="$candidate"; fi
-done
-MEDIA_MOUNT="/mnt/aira-install-media"
-MEDIA_MOUNTED=0
-if [ -z "$KERNEL_IMAGE" ] || [ -z "$INITRAMFS_IMAGE" ]; then
-    mkdir -p "$MEDIA_MOUNT" || { echo "Error: cannot create installer media mountpoint"; exit 1; }
-    for media in /dev/sr0 /dev/sr1 /dev/cdrom; do
-        [ -b "$media" ] || continue
-        if mount -t iso9660 -o ro "$media" "$MEDIA_MOUNT" 2>/dev/null; then
-            MEDIA_MOUNTED=1
-            [ -n "$KERNEL_IMAGE" ] || { [ ! -s "$MEDIA_MOUNT/boot/bzImage" ] || KERNEL_IMAGE="$MEDIA_MOUNT/boot/bzImage"; }
-            [ -n "$INITRAMFS_IMAGE" ] || { [ ! -s "$MEDIA_MOUNT/boot/initramfs.cpio" ] || INITRAMFS_IMAGE="$MEDIA_MOUNT/boot/initramfs.cpio"; }
-            if [ -n "$KERNEL_IMAGE" ] && [ -n "$INITRAMFS_IMAGE" ]; then break; fi
-            umount "$MEDIA_MOUNT" 2>/dev/null || true
-            MEDIA_MOUNTED=0
-        fi
-    done
-fi
-[ -n "$KERNEL_IMAGE" ] && [ -s "$KERNEL_IMAGE" ] || {
-    echo "Error: bootable kernel image unavailable (disk was not changed)"
-    exit 1
-}
-[ -n "$INITRAMFS_IMAGE" ] && [ -s "$INITRAMFS_IMAGE" ] || {
-    echo "Error: bootable initramfs unavailable (disk was not changed)"
-    exit 1
-}
-
-# Refuse to format a disk or partition that is currently mounted.
-while read -r mounted _rest; do
-    case "$mounted" in
-        "$TARGET"|"$TARGET"[0-9]*|"$TARGET"p[0-9]*)
-            echo "Error: target or one of its partitions is mounted: $mounted (disk was not changed)"
-            exit 1
-            ;;
-    esac
-done < /proc/mounts
-
-TARGET_MNT="/mnt/aira-install"
-TARGET_MOUNTED=0
-cleanup_install() {
-    [ "$TARGET_MOUNTED" -eq 0 ] || umount "$TARGET_MNT" 2>/dev/null || true
-    [ "$MEDIA_MOUNTED" -eq 0 ] || umount "$MEDIA_MOUNT" 2>/dev/null || true
-}
-trap cleanup_install EXIT HUP INT TERM
-
-# Confirm unless --auto
-if [ -z "${AUTO:-}" ]; then
-    echo "WARNING: This will ERASE all data on $TARGET"
-    echo "Target: $TARGET"
-    echo "Size: $SIZE"
-    echo "Hostname: $HOSTNAME"
-    echo "User: $USERNAME"
-    echo -n "Continue? (yes/no): "
-    read -r confirm
-    [ "$confirm" = "yes" ] || { echo "Aborted"; exit 1; }
-fi
-
-echo "[install] Installing AiraOS to $TARGET..."
-
-# Partition the disk
-echo "[install] Partitioning $TARGET..."
-(
-    echo "o"      # New DOS partition table
-    echo "n"      # New partition
-    echo "p"      # Primary
-    echo "1"      # Partition 1
-    echo ""      # Default start
-    echo ""      # Default end (full disk)
-    echo "w"      # Write
-) | fdisk "$TARGET" >/dev/null 2>&1 || { echo "Partitioning failed"; exit 1; }
-
-sleep 1
-
-# Get partition
-PART="${TARGET}1"
-[ -b "$PART" ] || PART="${TARGET}p1"
-[ -b "$PART" ] || { echo "Partition not found"; exit 1; }
-
-# Create filesystem
-echo "[install] Creating ext4 filesystem on $PART..."
-mkfs.ext4 -L AIRA_ROOT "$PART" >/dev/null 2>&1 || { echo "Filesystem creation failed"; exit 1; }
-
-# Mount target
-mkdir -p "$TARGET_MNT" || { echo "Mountpoint creation failed"; exit 1; }
-mount "$PART" "$TARGET_MNT" || { echo "Mount failed"; exit 1; }
-TARGET_MOUNTED=1
-
-# Copy rootfs (from /persist if available, else from initramfs)
-if [ -d /persist ] && mount | grep -q " /persist "; then
-    SOURCE="/persist"
-else
-    SOURCE="/"
-fi
-
-echo "[install] Copying system files from $SOURCE..."
-# Copy essential directories
-for dir in bin sbin etc lib lib64 usr var root home opt; do
-    if [ -d "$SOURCE/$dir" ]; then
-        cp -a "$SOURCE/$dir" "$TARGET_MNT/" || {
-            echo "Copy failed for $SOURCE/$dir"
-            exit 1
-        }
-    fi
-done
-
-# Create necessary directories
-for dir in proc sys dev run tmp mnt media; do
-    mkdir -p "$TARGET_MNT/$dir" || { echo "Directory creation failed: $dir"; exit 1; }
-done
-chmod 1777 "$TARGET_MNT/tmp" || { echo "Could not set /tmp permissions"; exit 1; }
-
-# Set hostname
-echo "$HOSTNAME" > "$TARGET_MNT/etc/hostname"
-
-# Configure fstab
-cat > "$TARGET_MNT/etc/fstab" <<EOF
-# AiraOS fstab
-LABEL=AIRA_ROOT  /          ext4  defaults  0  1
-proc             /proc      proc  defaults  0  0
-sysfs            /sys       sysfs defaults  0  0
-devtmpfs         /dev       devtmpfs defaults  0  0
-tmpfs            /tmp       tmpfs defaults  0  0
-tmpfs            /run       tmpfs defaults  0  0
-EOF
-
-# Create user if not root
-if [ "$USERNAME" != "root" ]; then
-    PASSWD_FILE="$TARGET_MNT/etc/passwd"
-    GROUP_FILE="$TARGET_MNT/etc/group"
-    SHADOW_FILE="$TARGET_MNT/etc/shadow"
-    [ -f "$PASSWD_FILE" ] || { echo "Error: installed passwd database missing"; exit 1; }
-    [ -f "$GROUP_FILE" ] || { echo "Error: installed group database missing"; exit 1; }
-    [ -f "$SHADOW_FILE" ] || { echo "Error: installed shadow database missing"; exit 1; }
-
-    # Reuse an existing account rather than appending duplicate passwd entries.
-    if grep -q "^$USERNAME:" "$PASSWD_FILE"; then
-        USER_UID="$(awk -F: -v n="$USERNAME" '$1==n {print $3; exit}' "$PASSWD_FILE")"
-        USER_GID="$(awk -F: -v n="$USERNAME" '$1==n {print $4; exit}' "$PASSWD_FILE")"
-    else
-        USER_UID=1000
-        USER_GID=1000
-        while grep -q ":$USER_UID:" "$PASSWD_FILE" 2>/dev/null; do USER_UID=$((USER_UID+1)); done
-        while grep -q ":$USER_GID:" "$GROUP_FILE" 2>/dev/null; do USER_GID=$((USER_GID+1)); done
-        echo "$USERNAME:x:$USER_UID:$USER_GID:$USERNAME:/home/$USERNAME:/bin/sh" >> "$PASSWD_FILE" || exit 1
-    fi
-    [ -n "$USER_UID" ] && [ -n "$USER_GID" ] || { echo "Error: could not resolve user identity"; exit 1; }
-    if ! grep -q "^$USERNAME:" "$GROUP_FILE"; then
-        echo "$USERNAME:x:$USER_GID:" >> "$GROUP_FILE" || exit 1
-    fi
-    if ! grep -q "^$USERNAME:" "$SHADOW_FILE"; then
-        echo "$USERNAME:*:19000:0:99999:7:::" >> "$SHADOW_FILE" || exit 1
-    fi
-
-    mkdir -p "$TARGET_MNT/home/$USERNAME" || exit 1
-    chown "$USER_UID:$USER_GID" "$TARGET_MNT/home/$USERNAME" || exit 1
-    chmod 755 "$TARGET_MNT/home/$USERNAME" || exit 1
-
-    # Use a real SHA-512 crypt hash; a raw SHA-256 digest is not a shadow hash.
-    if [ -n "$PASSWORD_FILE" ]; then
-        HASH="$(openssl passwd -6 -stdin < "$PASSWORD_FILE")" || { echo "Error: password hashing failed"; exit 1; }
-        case "$HASH" in '$6
-
-# Install bootloader (GRUB for BIOS, or just kernel for direct boot)
-echo "[install] Installing bootloader..."
-mkdir -p "$TARGET_MNT/boot/grub" || { echo "Cannot create boot directory"; exit 1; }
-cp -f "$KERNEL_IMAGE" "$TARGET_MNT/boot/bzImage" || { echo "Kernel copy failed"; exit 1; }
-cp -f "$INITRAMFS_IMAGE" "$TARGET_MNT/boot/initramfs.cpio" || { echo "Initramfs copy failed"; exit 1; }
-grub-install --target=i386-pc --boot-directory="$TARGET_MNT/boot" "$TARGET" || {
-    echo "GRUB installation failed; refusing to report success"
-    exit 1
-}
-cat > "$TARGET_MNT/boot/grub/grub.cfg" <<EOF
-set timeout=5
-set default=0
-
-menuentry "AiraOS-Octave" {
-    linux /boot/bzImage console=ttyS0 rdinit=/init loglevel=7
-    initrd /boot/initramfs.cpio
-}
-EOF
-
-# Create boot marker
-echo "airaos-installed=$(date -u +%Y%m%d-%H%M%S)" > "$TARGET_MNT/etc/aira-install.info"
-echo "version=$(grep VERSION /etc/os-release | cut -d= -f2 | tr -d '\"')" >> "$TARGET_MNT/etc/aira-install.info"
-
-# Verify while the target filesystem is still mounted, then cleanly unmount.
-[ -s "$TARGET_MNT/boot/bzImage" ] && [ -s "$TARGET_MNT/boot/initramfs.cpio" ] || {
-    echo "Installed boot payload verification failed"
-    exit 1
-}
-umount "$TARGET_MNT" || { echo "Unmount failed"; exit 1; }
-TARGET_MOUNTED=0
-
-echo "[install] Installation complete!"
-echo "You can now reboot and boot from $TARGET"
-echo "Note: For QEMU, use -drive file=<disk.img>,format=raw"*) ;; *) echo "Error: unsupported password hash result"; exit 1 ;; esac
-        if grep -q "^$USERNAME:" "$SHADOW_FILE"; then
-            awk -F: -v OFS=: -v n="$USERNAME" -v h="$HASH" '$1==n {$2=h} {print}' "$SHADOW_FILE" > "$SHADOW_FILE.tmp" &&
-                cat "$SHADOW_FILE.tmp" > "$SHADOW_FILE" && rm -f "$SHADOW_FILE.tmp" || {
-                    rm -f "$SHADOW_FILE.tmp"
-                    echo "Error: could not update shadow entry"
-                    exit 1
-                }
-        else
-            echo "$USERNAME:$HASH:19000:0:99999:7:::" >> "$SHADOW_FILE" || exit 1
-        fi
-    fi
-fi
-
-# Install bootloader (GRUB for BIOS, or just kernel for direct boot)
-echo "[install] Installing bootloader..."
-mkdir -p "$TARGET_MNT/boot/grub" || { echo "Cannot create boot directory"; exit 1; }
-cp -f "$KERNEL_IMAGE" "$TARGET_MNT/boot/bzImage" || { echo "Kernel copy failed"; exit 1; }
-cp -f "$INITRAMFS_IMAGE" "$TARGET_MNT/boot/initramfs.cpio" || { echo "Initramfs copy failed"; exit 1; }
-grub-install --target=i386-pc --boot-directory="$TARGET_MNT/boot" "$TARGET" || {
-    echo "GRUB installation failed; refusing to report success"
-    exit 1
-}
-cat > "$TARGET_MNT/boot/grub/grub.cfg" <<EOF
-set timeout=5
-set default=0
-
-menuentry "AiraOS-Octave" {
-    linux /boot/bzImage console=ttyS0 rdinit=/init loglevel=7
-    initrd /boot/initramfs.cpio
-}
-EOF
-
-# Create boot marker
-echo "airaos-installed=$(date -u +%Y%m%d-%H%M%S)" > "$TARGET_MNT/etc/aira-install.info"
-echo "version=$(grep VERSION /etc/os-release | cut -d= -f2 | tr -d '\"')" >> "$TARGET_MNT/etc/aira-install.info"
-
-# Verify while the target filesystem is still mounted, then cleanly unmount.
-[ -s "$TARGET_MNT/boot/bzImage" ] && [ -s "$TARGET_MNT/boot/initramfs.cpio" ] || {
-    echo "Installed boot payload verification failed"
-    exit 1
-}
-umount "$TARGET_MNT" || { echo "Unmount failed"; exit 1; }
-TARGET_MOUNTED=0
-
-echo "[install] Installation complete!"
-echo "You can now reboot and boot from $TARGET"
-echo "Note: For QEMU, use -drive file=<disk.img>,format=raw"
+case "${1:-}" in
+    --help|-h|help)
+        usage
+        exit 0
+        ;;
+    *)
+        usage >&2
+        echo "aira-install: installation refused; no disk was changed." >&2
+        exit 2
+        ;;
+esac

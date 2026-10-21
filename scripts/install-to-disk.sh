@@ -47,8 +47,13 @@ if (( ASSUME_YES == 1 && ALLOW_ERASE != 1 )); then
   echo "ERROR: --yes requires the separate --allow-erase acknowledgement."
   exit 2
 fi
+[[ -d "$RELEASE_DIR" ]] || { echo "ERROR: release directory missing: $RELEASE_DIR"; exit 1; }
+RELEASE_DIR="$(cd "$RELEASE_DIR" && pwd)"
+RELEASE_NAME="$(basename "$RELEASE_DIR")"
+RELEASE_PARENT="$(dirname "$RELEASE_DIR")"
+SUM_FILE="$RELEASE_PARENT/$RELEASE_NAME.sha256"
 
-for tool in lsblk findmnt sfdisk partprobe mkfs.ext4 mount umount cp grub-install sync; do
+for tool in lsblk findmnt sfdisk partprobe mkfs.ext4 mount umount cp grub-install sync blockdev stat sha256sum file grep awk find; do
   command -v "$tool" >/dev/null 2>&1 || { echo "ERROR: required tool missing: $tool"; exit 1; }
 done
 
@@ -66,8 +71,13 @@ for file in "$KERNEL_IMAGE" "$INITRAMFS_IMAGE" "$ROOTFS_IMAGE"; do
   [[ -s "$file" ]] || { echo "ERROR: required release artifact missing/empty: $file"; exit 1; }
 done
 
-# Verify the rootfs image is a readable ext filesystem before touching the disk.
-command -v file >/dev/null 2>&1 || { echo "ERROR: required tool missing: file"; exit 1; }
+# Verify the complete release manifest before touching the target disk.
+[[ -s "$SUM_FILE" ]] || { echo "ERROR: release checksum manifest missing: $SUM_FILE"; exit 1; }
+echo "[preflight] Verifying release checksums: $SUM_FILE"
+(cd "$RELEASE_PARENT" && sha256sum -c "$(basename "$SUM_FILE")") || {
+  echo "ERROR: release checksum verification failed; disk was not changed."
+  exit 1
+}
 file "$ROOTFS_IMAGE" | grep -Eqi 'ext[234] filesystem data' || {
   echo "ERROR: release rootfs is not recognized as an ext filesystem image."
   exit 1
@@ -81,6 +91,22 @@ if findmnt -rn -S "$TARGET" >/dev/null 2>&1; then
   echo "ERROR: target is mounted; refusing to erase it."
   exit 1
 fi
+TARGET_BYTES="$(blockdev --getsize64 "$TARGET")"
+ROOTFS_BYTES="$(stat -c %s "$ROOTFS_IMAGE")"
+[[ "$TARGET_BYTES" =~ ^[0-9]+$ && "$ROOTFS_BYTES" =~ ^[0-9]+$ ]] || {
+  echo "ERROR: could not determine target/rootfs size; disk was not changed."
+  exit 1
+}
+MIN_TARGET_BYTES=$((ROOTFS_BYTES + 64 * 1024 * 1024))
+if (( TARGET_BYTES < MIN_TARGET_BYTES )); then
+  echo "ERROR: target disk is too small (${TARGET_BYTES} bytes); need at least ${MIN_TARGET_BYTES} bytes for the rootfs plus partition overhead."
+  exit 1
+fi
+GRUB_MODULE_DIR="$(find /usr/lib/grub /usr/lib64/grub -maxdepth 2 -type d -name i386-pc -print -quit 2>/dev/null || true)"
+[[ -n "$GRUB_MODULE_DIR" ]] || {
+  echo "ERROR: BIOS GRUB modules (i386-pc) are missing; install the host GRUB PC modules before formatting."
+  exit 1
+}
 
 echo "TARGET DISK: $TARGET"
 lsblk -dn -o MODEL,SIZE,TYPE "$TARGET"

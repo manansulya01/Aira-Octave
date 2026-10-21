@@ -56,6 +56,9 @@ for spec in \
     "network:scripts/test-net.sh" \
     "user:scripts/test-user.sh" \
     "packages:scripts/test-pkg.sh" \
+    "update-safety:scripts/test-update-safety.sh" \
+    "install-guard:scripts/test-install-guard.sh" \
+    "guest-installer-guard:scripts/test-guest-installer-guard.sh" \
     "support-bundle:scripts/test-support-bundle.sh" \
     "doctor:scripts/test-doctor.sh" \
     "manifest:scripts/test-manifest.sh" \
