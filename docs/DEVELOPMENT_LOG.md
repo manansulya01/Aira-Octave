@@ -438,3 +438,17 @@
   full run at `b8381dd20cef6cc254171e8b9102ad3b95e84856` was still building the
   Linux kernel when last inspected. Neither run is a verified release yet;
   wait for the latest run to complete all QEMU and ISO boot gates.
+
+## 2026-10-21 — Account database atomic-write audit (review branch)
+- Audit found `_commit()` truncated live credential files with `cat > target`,
+  ignored `chmod` failures, and multi-file adduser/deluser changes could leave
+  group, shadow, and passwd inconsistent after a mid-commit failure.
+- Branch `fix/user-db-atomic-commits` stages each replacement in the target
+  directory and renames it atomically after preserving mode/owner. Adduser and
+  deluser now back up all three files and restore them if a later replacement
+  fails; usermod lock/unlock uses a two-file transaction and rolls a home move
+  back when the database commit fails. Direct single-file updates now check
+  commit failures instead of reporting success.
+- `scripts/test-user.sh` injects a failure on the second credential-file
+  replacement and checks the original passwd, shadow, and group bytes are
+  restored with no partial account rows. This branch must pass CI before merge.
