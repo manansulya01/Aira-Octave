@@ -5,7 +5,6 @@
 set -u
 
 TARGET=""
-SIZE="512M"
 HOSTNAME="aira"
 USERNAME="aira"
 PASSWORD_FILE=""
@@ -33,7 +32,6 @@ EOF
 while [ $# -gt 0 ]; do
     case "$1" in
         --target) TARGET="$2"; shift 2 ;;
-        --size) SIZE="$2"; shift 2 ;;
         --hostname) HOSTNAME="$2"; shift 2 ;;
         --user) USERNAME="$2"; shift 2 ;;
         --password-file) PASSWORD_FILE="$2"; shift 2 ;;
@@ -63,7 +61,7 @@ fi
 # Fail before partitioning if the running environment cannot actually install
 # and boot a system. Never report success after silently omitting the kernel,
 # initramfs, or bootloader.
-for tool in fdisk mkfs.ext4 mount umount cp mkdir chmod chown grep sed date grub-install; do
+for tool in fdisk mkfs.ext4 mount umount cp mkdir chmod chown grep sed awk date grub-install; do
     command -v "$tool" >/dev/null 2>&1 || {
         echo "Error: required installer tool missing: $tool (disk was not changed)"
         exit 1
@@ -80,6 +78,13 @@ for candidate in /initramfs.cpio /boot/initramfs.cpio /mnt/boot/initramfs.cpio; 
 done
 MEDIA_MOUNT="/mnt/aira-install-media"
 MEDIA_MOUNTED=0
+TARGET_MNT="/mnt/aira-install"
+TARGET_MOUNTED=0
+cleanup_install() {
+    [ "$TARGET_MOUNTED" -eq 0 ] || umount "$TARGET_MNT" 2>/dev/null || true
+    [ "$MEDIA_MOUNTED" -eq 0 ] || umount "$MEDIA_MOUNT" 2>/dev/null || true
+}
+trap cleanup_install EXIT HUP INT TERM
 if [ -z "$KERNEL_IMAGE" ] || [ -z "$INITRAMFS_IMAGE" ]; then
     mkdir -p "$MEDIA_MOUNT" || { echo "Error: cannot create installer media mountpoint"; exit 1; }
     for media in /dev/sr0 /dev/sr1 /dev/cdrom; do
@@ -112,14 +117,6 @@ while read -r mounted _rest; do
             ;;
     esac
 done < /proc/mounts
-
-TARGET_MNT="/mnt/aira-install"
-TARGET_MOUNTED=0
-cleanup_install() {
-    [ "$TARGET_MOUNTED" -eq 0 ] || umount "$TARGET_MNT" 2>/dev/null || true
-    [ "$MEDIA_MOUNTED" -eq 0 ] || umount "$MEDIA_MOUNT" 2>/dev/null || true
-}
-trap cleanup_install EXIT HUP INT TERM
 
 # Confirm unless --auto
 if [ -z "${AUTO:-}" ]; then
