@@ -154,12 +154,93 @@ _tmpfile() { # _tmpfile <basename>
     }
 }
 _commit() { # _commit <tmp> <target> [mode]
-    [ -s "$1" ] || { rm -f "$1"; echo "Refusing to write empty $2" >&2; exit 1; }
-    cat "$1" > "$2" 2>/dev/null || { rm -f "$1"; echo "Failed to write $2" >&2; exit 1; }
-    # chmod the TARGET: `cat >` preserves the destination's existing mode, so
-    # chmoding the tmp file would have no effect on an existing 0644 shadow.
-    [ -n "${3:-}" ] && chmod "$3" "$2" 2>/dev/null
-    rm -f "$1"
+    _c_src="$1"; _c_target="$2"; _c_requested_mode="${3:-}"
+    [ -s "$_c_src" ] || { rm -f "$_c_src"; echo "Refusing to write empty $_c_target" >&2; return 1; }
+    [ -f "$_c_target" ] && [ ! -L "$_c_target" ] || {
+        rm -f "$_c_src"; echo "Refusing to replace unsafe target $_c_target" >&2; return 1;
+    }
+    _c_dir="$(dirname "$_c_target")" || { rm -f "$_c_src"; return 1; }
+    _c_stage="$(mktemp "$_c_dir/.aira-commit.XXXXXX" 2>/dev/null)" || {
+        rm -f "$_c_src"; echo "Cannot create atomic staging file for $_c_target" >&2; return 1;
+    }
+    if ! cat "$_c_src" > "$_c_stage" 2>/dev/null; then
+        rm -f "$_c_src" "$_c_stage"; echo "Failed to stage $_c_target" >&2; return 1
+    fi
+    _c_old_mode="$(stat -c '%a' "$_c_target" 2>/dev/null)" || {
+        rm -f "$_c_src" "$_c_stage"; echo "Cannot inspect mode for $_c_target" >&2; return 1;
+    }
+    _c_old_owner="$(stat -c '%u:%g' "$_c_target" 2>/dev/null)" || {
+        rm -f "$_c_src" "$_c_stage"; echo "Cannot inspect owner for $_c_target" >&2; return 1;
+    }
+    _c_stage_owner="$(stat -c '%u:%g' "$_c_stage" 2>/dev/null)" || {
+        rm -f "$_c_src" "$_c_stage"; echo "Cannot inspect staging file owner" >&2; return 1;
+    }
+    if [ "$_c_stage_owner" != "$_c_old_owner" ] && ! chown "$_c_old_owner" "$_c_stage" 2>/dev/null; then
+        rm -f "$_c_src" "$_c_stage"; echo "Cannot preserve owner for $_c_target" >&2; return 1
+    fi
+    _c_mode="${_c_requested_mode:-$_c_old_mode}"
+    if ! chmod "$_c_mode" "$_c_stage" 2>/dev/null; then
+        rm -f "$_c_src" "$_c_stage"; echo "Cannot set mode for $_c_target" >&2; return 1
+    fi
+    if ! mv -f "$_c_stage" "$_c_target" 2>/dev/null; then
+        rm -f "$_c_src" "$_c_stage"; echo "Failed to atomically replace $_c_target" >&2; return 1
+    fi
+    rm -f "$_c_src"
+    return 0
+}
+
+_restore_file() { # _restore_file <backup> <target>
+    _r_backup="$1"; _r_target="$2"
+    _r_dir="$(dirname "$_r_target")" || return 1
+    _r_stage="$(mktemp "$_r_dir/.aira-restore.XXXXXX" 2>/dev/null)" || return 1
+    if ! cp -p "$_r_backup" "$_r_stage" 2>/dev/null; then
+        rm -f "$_r_stage"; return 1
+    fi
+    if ! mv -f "$_r_stage" "$_r_target" 2>/dev/null; then
+        rm -f "$_r_stage"; return 1
+    fi
+    return 0
+}
+
+_commit_account_db() { # _commit_account_db <group.tmp> <shadow.tmp> <passwd.tmp>
+    _txn_dir="$(mktemp -d "$ETC/.aira-user-txn.XXXXXX" 2>/dev/null)" || {
+        echo "Cannot create account transaction backup directory" >&2; return 1;
+    }
+    if ! cp -p "$GROUP" "$_txn_dir/group" 2>/dev/null ||
+       ! cp -p "$SHADOW" "$_txn_dir/shadow" 2>/dev/null ||
+       ! cp -p "$PASSWD" "$_txn_dir/passwd" 2>/dev/null; then
+        rm -rf "$_txn_dir"; echo "Cannot back up account database before commit" >&2; return 1
+    fi
+    if ! _commit "$1" "$GROUP" "" ||
+       ! _commit "$2" "$SHADOW" "$SHADOW_MODE" ||
+       ! _commit "$3" "$PASSWD" ""; then
+        _restore_file "$_txn_dir/group" "$GROUP" || echo "CRITICAL: failed to restore $GROUP after account transaction failure" >&2
+        _restore_file "$_txn_dir/shadow" "$SHADOW" || echo "CRITICAL: failed to restore $SHADOW after account transaction failure" >&2
+        _restore_file "$_txn_dir/passwd" "$PASSWD" || echo "CRITICAL: failed to restore $PASSWD after account transaction failure" >&2
+        rm -f "$1" "$2" "$3"
+        rm -rf "$_txn_dir"
+        return 1
+    fi
+    rm -rf "$_txn_dir"
+    return 0
+}
+
+_commit_passwd_shadow() { # _commit_passwd_shadow <passwd.tmp> <shadow.tmp>
+    _txn_dir="$(mktemp -d "$ETC/.aira-user-txn.XXXXXX" 2>/dev/null)" || {
+        echo "Cannot create account transaction backup directory" >&2; return 1;
+    }
+    if ! cp -p "$PASSWD" "$_txn_dir/passwd" 2>/dev/null ||
+       ! cp -p "$SHADOW" "$_txn_dir/shadow" 2>/dev/null; then
+        rm -rf "$_txn_dir"; echo "Cannot back up account database before commit" >&2; return 1
+    fi
+    if ! _commit "$1" "$PASSWD" "" || ! _commit "$2" "$SHADOW" "$SHADOW_MODE"; then
+        _restore_file "$_txn_dir/passwd" "$PASSWD" || echo "CRITICAL: failed to restore $PASSWD after account transaction failure" >&2
+        _restore_file "$_txn_dir/shadow" "$SHADOW" || echo "CRITICAL: failed to restore $SHADOW after account transaction failure" >&2
+        rm -f "$1" "$2"
+        rm -rf "$_txn_dir"
+        return 1
+    fi
+    rm -rf "$_txn_dir"
     return 0
 }
 
