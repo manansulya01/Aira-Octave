@@ -52,7 +52,7 @@ jobs:
           sudo apt-get install -y --no-install-recommends \
             build-essential bc bison flex libssl-dev libelf-dev libncurses-dev \
             cpio gzip xz-utils file e2fsprogs qemu-system-x86 \
-            grub-common grub-pc-bin xorriso curl
+            grub-common grub-pc-bin xorriso mtools curl
 
       - name: Build Linux 7.2.2 kernel
         run: bash scripts/build-kernel.sh
