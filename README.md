@@ -24,8 +24,8 @@ A minimal, bootable x86_64 Linux operating system built from scratch.
 - **Recovery** - Check/fix services, storage, network, packages, graphics
 
 ### 1.5 Flagship
-- **Installer** - Disk partitioning, filesystem, bootloader, user creation
-- **Updater** - Atomic updates with snapshot rollback
+- **Installer** - Host-side BIOS/MBR disk installer (`scripts/install-to-disk.sh`); UEFI is not yet supported
+- **Updater** - Fail-closed client; remote updates remain disabled until a trusted signed feed and transactional rollback are implemented
 - **SDK** - Headers, libraries, examples, package building
 - **Audio** - ALSA mixer, device enumeration, test tones
 - **Power** - Shutdown, reboot, suspend, hibernate, ACPI
@@ -33,35 +33,46 @@ A minimal, bootable x86_64 Linux operating system built from scratch.
 
 ## Quick Start
 
-### Boot in QEMU (Live)
+### Build a bootable release
+
+Run on an Ubuntu/Debian Linux build host with the dependencies listed in
+[BUILD.md](docs/BUILD.md). GUI packages are staged from the host's configured
+Ubuntu repositories.
+
 ```bash
-qemu-system-x86_64 \
-    -machine q35,accel=kvm \
-    -cpu host \
-    -m 1G \
-    -kernel bzImage \
-    -initrd initramfs.cpio \
-    -append "console=ttyS0 aira_gui=1" \
-    -serial stdio
+scripts/build-kernel.sh
+scripts/build-initramfs.sh
+scripts/build-gui.sh
+scripts/build-rootfs.sh 512
+scripts/build-release.sh 1.5.0
 ```
 
-### Boot with Persistence
-```bash
-# Create disk image
-qemu-img create -f raw aira-rootfs.img 2G
+### Boot in QEMU
 
-# Boot with disk
+```bash
 qemu-system-x86_64 \
-    -machine q35,accel=kvm \
-    -cpu host \
+    -machine pc \
     -m 1G \
-    -kernel bzImage \
-    -initrd initramfs.cpio \
-    -drive file=aira-rootfs.img,format=raw,if=virtio \
+    -kernel release/aira-octave-1.5.0/boot/bzImage \
+    -initrd release/aira-octave-1.5.0/boot/initramfs.cpio \
+    -append "console=ttyS0 rdinit=/init aira_gui=1" \
+    -drive file=release/aira-octave-1.5.0/aira-rootfs.img,format=raw,if=virtio \
     -netdev user,id=net0 -device virtio-net-pci,netdev=net0 \
-    -append "console=ttyS0 aira_gui=1" \
     -serial stdio
 ```
+
+**Important:** do not create a blank `aira-rootfs.img` with `qemu-img create`
+and expect it to mount. The persistent disk must contain the ext4 filesystem
+created by `scripts/build-rootfs.sh`.
+
+For a text-only boot without the persistent desktop filesystem, omit the
+`-drive` argument and `aira_gui=1` from the kernel command line.
+
+### Install to a separate disk
+
+See [docs/INSTALL.md](docs/INSTALL.md) before using
+`sudo scripts/install-to-disk.sh`. It erases the selected whole disk and
+currently supports legacy BIOS/MBR only. Use a disposable VM disk while testing.
 
 ### Keyboard Shortcuts
 | Key | Action |
