@@ -91,3 +91,21 @@
   behavior, `sh -n`). Rebuilt initramfs + release + ISO + manifest afterwards
   so artifacts match source; re-ran autotest/ISO/manifest/userspace.
 - No commits, no pushes, no resets; `"$_gtmp"|` still preserved.
+
+
+## 2026-10-21 — Full-build CI failure analysis and correction
+- Inspected full OS workflow run 39247102383 at commit
+  `6a514432b650c2bb437a88b4e45371da4847badd`.
+- Evidence: Linux 7.2.2 kernel build PASS; initramfs build PASS; rootfs step
+  failed with `ERROR: rootfs staging directory is missing: .../rootfs`.
+  All downstream guest/recovery/persistence/release/ISO checks were skipped.
+- Root cause in workflow ordering: it invoked `scripts/build-rootfs.sh 256`
+  without first running the existing `scripts/build-gui.sh`, which stages
+  desktop packages into `rootfs/`. The repository's `.gitignore` excludes
+  `rootfs/`, so a clean CI checkout does not contain that generated staging tree.
+- Correction committed to `main` as
+  `ff03d0c84bc8751959af35ad11376890f377e014`: stage GUI before rootfs, use
+  the documented 512 MiB desktop image size, and explicitly install curl.
+- Verification status at log time: correction committed; follow-up full workflow
+  has not yet been confirmed green. Do not claim release/boot success until
+  the new run completes and its logs are inspected.
