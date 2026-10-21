@@ -202,6 +202,37 @@ case "$MODE" in
   *) bad "shadow mode $MODE" ;;
 esac
 
+echo "--- account database rollback on mid-commit failure ---"
+mkdir -p "$T/failchmod"
+cat > "$T/failchmod/chmod" <<'EOF'
+#!/bin/sh
+n=0
+[ ! -f "$AIRA_CHMOD_COUNT_FILE" ] || n="$(cat "$AIRA_CHMOD_COUNT_FILE")"
+n=$((n+1))
+printf '%s\n' "$n" > "$AIRA_CHMOD_COUNT_FILE"
+[ "$n" -eq 2 ] && exit 1
+exec /bin/chmod "$@"
+EOF
+chmod +x "$T/failchmod/chmod"
+cp -p "$AIRA_USER_ETC/passwd" "$T/passwd.before"
+cp -p "$AIRA_USER_ETC/shadow" "$T/shadow.before"
+cp -p "$AIRA_USER_ETC/group" "$T/group.before"
+P_FAILCHMOD() { PATH="$T/failchmod:$PATH" AIRA_CHMOD_COUNT_FILE="$T/chmod-count" sh "$U" "$@"; }
+if P_FAILCHMOD adduser atomicfail --uid 1901 --home "$HOME_ROOT/atomicfail" >/dev/null 2>&1; then
+  bad "mid-commit chmod failure aborts account creation"
+else
+  ok "mid-commit chmod failure aborts account creation"
+fi
+[ "$(cat "$T/chmod-count")" = "2" ] && ok "failure injected after first database file" || bad "failure injected after first database file"
+cmp -s "$T/passwd.before" "$AIRA_USER_ETC/passwd" && ok "passwd restored after partial commit" || bad "passwd restored after partial commit"
+cmp -s "$T/shadow.before" "$AIRA_USER_ETC/shadow" && ok "shadow restored after partial commit" || bad "shadow restored after partial commit"
+cmp -s "$T/group.before" "$AIRA_USER_ETC/group" && ok "group restored after partial commit" || bad "group restored after partial commit"
+if grep -q '^atomicfail:' "$AIRA_USER_ETC/passwd" || grep -q '^atomicfail:' "$AIRA_USER_ETC/group" || grep -q '^atomicfail:' "$AIRA_USER_ETC/shadow"; then
+  bad "failed account creation leaves no partial rows"
+else
+  ok "failed account creation leaves no partial rows"
+fi
+
 echo "--- usermod correctness ---"
 if P usermod newuser --uid 1502 2>&1; then
   grep -q "^newuser:x:1502:" "$AIRA_USER_ETC/passwd" && ok "usermod changed uid" || bad "usermod changed uid (line: $(grep '^newuser:' "$AIRA_USER_ETC/passwd"))"
