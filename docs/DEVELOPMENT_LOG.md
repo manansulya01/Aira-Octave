@@ -376,3 +376,9 @@
   for malformed limits. No host service state or block devices are touched.
 - This branch is based on the current main tip to avoid conflicts with recent
   GUI and development-log changes. The regression suite must pass before merge.
+
+- Verification update: GitHub Actions Core shell syntax run `39594799324`
+  passed on commit `df0335eb731b5357aa4c816acb288bf265c0b6b5`. It parsed the
+  script set and passed the mocked regression step, including the sandbox
+  service-name traversal and resource-limit/nice enforcement tests. The full OS
+  QEMU run is separate and still pending; this PR has not been merged.
