@@ -24,11 +24,18 @@
 #   AFTER=...          services that should start before this one (alias for DEPS)
 set -u
 ROOT_FS="/"
-SVC_DIR="/etc/aira/services"
-EN_DIR="/etc/aira/enabled"
-RUN_DIR="/run/aira-services"
-LOG_DIR="/var/log/airaos"
+SVC_DIR="${AIRA_SVC_DIR:-/etc/aira/services}"
+EN_DIR="${AIRA_EN_DIR:-/etc/aira/enabled}"
+RUN_DIR="${AIRA_RUN_DIR:-/run/aira-services}"
+LOG_DIR="${AIRA_LOG_DIR:-/var/log/airaos}"
 mkdir -p "$RUN_DIR" "$LOG_DIR" "$EN_DIR"
+
+valid_service_name() {
+  case "${1:-}" in
+    ""|*[!a-z0-9_-]*) return 1 ;;
+    *) return 0 ;;
+  esac
+}
 
 svc_file() { echo "$SVC_DIR/$1.conf"; }
 pid_file() { echo "$RUN_DIR/$1.pid"; }
@@ -38,6 +45,7 @@ respawn_file() { echo "$RUN_DIR/$1.respawn"; }
 
 load_svc() {
   local name="$1" f
+  valid_service_name "$name" || { echo "bad service name: $name" >&2; return 2; }
   f="$(svc_file "$name")"
   [ -f "$f" ] || { echo "unknown service: $name" >&2; return 1; }
   CMD=""; DEPS=""; DESC=""; RESPAWN="yes"; USER="root"; TYPE="daemon"
@@ -50,6 +58,27 @@ load_svc() {
   case "${TYPE:-daemon}" in
     daemon|oneshot) ;;
     *) echo "service $name has bad TYPE (want daemon|oneshot)" >&2; return 1 ;;
+  esac
+  validate_service_limits || {
+    echo "service $name has invalid resource-limit, NICE, or UMASK settings" >&2
+    return 1
+  }
+}
+
+validate_service_limits() {
+  local value
+  for value in "$LIMIT_CPU" "$LIMIT_MEM" "$LIMIT_FSIZE" "$LIMIT_NOFILE"; do
+    [ -z "$value" ] && continue
+    case "$value" in *[!0-9]*) return 1 ;; esac
+    [ "$value" -gt 0 ] 2>/dev/null || return 1
+  done
+  case "$NICE" in
+    -20|-1[0-9]|-[1-9]|0|[1-9]|1[0-9]) ;;
+    *) return 1 ;;
+  esac
+  case "$UMASK" in
+    [0-7][0-7][0-7]|[0-7][0-7][0-7][0-7]) ;;
+    *) return 1 ;;
   esac
 }
 
@@ -67,21 +96,28 @@ is_failed() {
 }
 
 apply_limits() {
-  # Apply resource limits for the current process
-  [ -n "$LIMIT_CPU" ] && ulimit -t "$LIMIT_CPU" 2>/dev/null
-  [ -n "$LIMIT_MEM" ] && ulimit -v "$LIMIT_MEM" 2>/dev/null
-  [ -n "$LIMIT_FSIZE" ] && ulimit -f "$LIMIT_FSIZE" 2>/dev/null
-  [ -n "$LIMIT_NOFILE" ] && ulimit -n "$LIMIT_NOFILE" 2>/dev/null
-  [ -n "$NICE" ] && [ "$NICE" != "0" ] && renice "$NICE" $$ 2>/dev/null
-  [ -n "$UMASK" ] && umask "$UMASK"
+  # Emit commands for the child shell; ulimit in this command-substitution
+  # shell would not propagate to the service process.
+  [ -z "$LIMIT_CPU" ] || printf 'ulimit -t %s 2>/dev/null || exit 125\n' "$LIMIT_CPU"
+  [ -z "$LIMIT_MEM" ] || printf 'ulimit -v %s 2>/dev/null || exit 125\n' "$LIMIT_MEM"
+  [ -z "$LIMIT_FSIZE" ] || printf 'ulimit -f %s 2>/dev/null || exit 125\n' "$LIMIT_FSIZE"
+  [ -z "$LIMIT_NOFILE" ] || printf 'ulimit -n %s 2>/dev/null || exit 125\n' "$LIMIT_NOFILE"
+  if [ -n "$NICE" ] && [ "$NICE" != "0" ]; then
+    local pid_expr
+    pid_expr="$(printf '\044\044')"
+    printf 'renice %s "%s" >/dev/null 2>&1 || exit 125\n' "$NICE" "$pid_expr"
+  fi
+  printf 'umask %s\n' "$UMASK"
 }
 
 run_cmd_as() {
-  local user="$1" logname="$2" runcmd="$3"
+  local user="$1" logname="$2" runcmd="$3" script
+  script="$(apply_limits)
+$runcmd"
   if [ "$user" = "root" ]; then
-    sh -c "$runcmd" >>"$LOG_DIR/$logname.log" 2>&1
+    sh -c "$script" >>"$LOG_DIR/$logname.log" 2>&1
   else
-    su -s /bin/sh "$user" -c "$runcmd" >>"$LOG_DIR/$logname.log" 2>&1
+    su -s /bin/sh "$user" -c "$script" >>"$LOG_DIR/$logname.log" 2>&1
   fi
 }
 
@@ -182,6 +218,7 @@ check_respawn() {
 
 do_stop_one() {
   local name="$1" pid
+  valid_service_name "$name" || { echo "bad service name: $name" >&2; return 2; }
   load_svc "$name" >/dev/null 2>&1 || { echo "unknown service: $name" >&2; return 1; }
   if [ "$TYPE" = "oneshot" ]; then
     if [ -f "$(done_file "$name")" ]; then echo "$name: nothing to stop (oneshot done)"; return 0; fi
@@ -200,6 +237,7 @@ do_stop_one() {
 
 do_status_one() {
   local name="$1"
+  valid_service_name "$name" || { echo "bad service name: $name" >&2; return 2; }
   load_svc "$name" >/dev/null 2>&1 || { echo "$name: unknown"; return 1; }
   if [ "$TYPE" = "oneshot" ]; then
     if [ -f "$(done_file "$name")" ]; then echo "$name: done (oneshot)";
@@ -224,6 +262,7 @@ do_status_one() {
 
 do_logs_one() {
   local name="$1" lines="${2:-50}"
+  valid_service_name "$name" || { echo "bad service name: $name" >&2; return 2; }
   LOG_FILE="$LOG_DIR/$name.log"
   [ -f "$LOG_FILE" ] || { echo "No log file for $name"; return 1; }
   tail -n "$lines" "$LOG_FILE"
@@ -231,6 +270,7 @@ do_logs_one() {
 
 do_diag_one() {
   local name="$1"
+  valid_service_name "$name" || { echo "bad service name: $name" >&2; return 2; }
   load_svc "$name" >/dev/null 2>&1 || { echo "$name: unknown"; return 1; }
   echo "=== Service Diagnostics: $name ==="
   echo "Type: $TYPE"
@@ -312,12 +352,14 @@ case "$cmd" in
     ;;
   enable)
     shift; [ $# -ge 1 ] || { echo "usage: aira-init enable <svc>" >&2; exit 2; }
+    valid_service_name "$1" || { echo "bad service name: $1" >&2; exit 2; }
     [ -f "$(svc_file "$1")" ] || { echo "unknown service: $1" >&2; exit 1; }
     ln -sf "../services/$1.conf" "$EN_DIR/$1" 2>/dev/null || cp -f "$(svc_file "$1")" "$EN_DIR/$1"
     echo "$1: enabled"
     ;;
   disable)
     shift; [ $# -ge 1 ] || { echo "usage: aira-init disable <svc>" >&2; exit 2; }
+    valid_service_name "$1" || { echo "bad service name: $1" >&2; exit 2; }
     rm -f "$EN_DIR/$1" "$EN_DIR/$1.conf"
     echo "$1: disabled"
     ;;
