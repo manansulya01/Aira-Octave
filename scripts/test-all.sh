@@ -56,6 +56,7 @@ for spec in \
     "network:scripts/test-net.sh" \
     "user:scripts/test-user.sh" \
     "packages:scripts/test-pkg.sh" \
+    "audio:scripts/test-audio.sh" \
     "update-safety:scripts/test-update-safety.sh" \
     "install-guard:scripts/test-install-guard.sh" \
     "guest-installer-guard:scripts/test-guest-installer-guard.sh" \
