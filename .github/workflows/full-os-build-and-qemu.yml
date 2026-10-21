@@ -25,6 +25,7 @@ on:
       - "scripts/test-build-release-guards.sh"
       - "scripts/test-update-safety.sh"
       - "scripts/test-install-guard.sh"
+      - "scripts/test-guest-installer-guard.sh"
       - "scripts/test-pkg.sh"
       - "scripts/test-all.sh"
       - "scripts/test-iso.sh"
@@ -92,6 +93,7 @@ jobs:
           bash scripts/test-build-release-guards.sh
           bash scripts/test-update-safety.sh
           bash scripts/test-install-guard.sh
+          bash scripts/test-guest-installer-guard.sh
           bash scripts/test-pkg.sh
 
       - name: Build versioned release artifacts
