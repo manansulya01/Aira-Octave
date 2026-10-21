@@ -334,3 +334,31 @@
   from the blocked in-guest installer and the unimplemented signed OS updater.
   The matrix explicitly warns that historical evidence is not a fresh run of
   the current full-build workflow.
+
+## 2026-10-21 — Clean-runner QEMU exposed two desktop integration defects
+- Full build run `39591931946` verified the Linux 7.2.2 kernel build, initramfs
+  build, desktop package staging, rootfs image creation, static userspace checks,
+  and the baseline kernel/userspace boot. It then failed in GUI QEMU validation.
+- The captured guest log identified:
+  1. Xvfb could not execute `/usr/bin/xkbcomp` because the desktop lives under
+     `/persist`, while Xorg/Xvfb resolve XKB tools/data using absolute paths
+     in the initramfs root.
+  2. JWM could not load `libicuuc.so.74`; the manual GUI runtime package list
+     omitted the ICU package required by the Ubuntu Noble JWM binary.
+  3. The guest autotest invoked `aira-help doctor` after its deliberate service
+     shutdown check but before restoring the IPC daemon, so the test failed on
+     service state rather than the help/doctor command integration.
+- Fixes committed to `main`:
+  - `9a8a320d14e7aa3d831ecebfae02586816987394`: add ICU package resolution
+    (with version-name fallbacks) to GUI staging.
+  - `b31b7ac6da1eedce8ba070b38cd8afa5e9484591`: expose the mounted persistent
+    XKB compiler and X11 data directory at the absolute paths used by Xorg/Xvfb.
+  - `8ff81b9a30ed6c2e409cfc1ed254cd94eb42d989`: restart and probe IPC before
+    the help-doctor integration test after the intentional shutdown test.
+  - `95f49a60aa128fd16908470be80c082ccadb0011`: fail GUI staging early if
+    `xkbcomp` or an ICU runtime library is absent, instead of deferring this
+    dependency error until boot.
+- The previous run's kernel and base userspace boot passed; the GUI gate failed,
+  so networking, persistence, recovery, release creation, and ISO boot were
+  correctly skipped. The next full workflow run must prove these fixes before
+  any release claim is made.
