@@ -144,3 +144,20 @@
 - This is still awaiting the triggered clean-runner build. Package availability
   checks are not a substitute for actually booting and testing the resulting
   desktop in QEMU.
+
+## 2026-10-21 — Release directory failure-safety fix
+- Audit found `scripts/build-release.sh` previously wrote files directly into
+  the existing `release/aira-octave-$VER/` directory before ISO generation.
+  A simulated ISO failure could therefore preserve the old ISO/tar/checksum
+  while leaving the versioned directory partly overwritten.
+- Commit `91b8343d4ad0ad2c97615bea774683d213dbb82a` stages the versioned
+  release directory under the private temporary workspace, builds ISO/tar/
+  checksums from that staged content, and only swaps the directory after all
+  generated artifacts pass basic non-empty checks. If the directory rename
+  fails, it attempts to restore the previous directory.
+- Commit `63d7677b9a031e2bba78f4222e7b137861eafe95` extends
+  `scripts/test-build-release-guards.sh` to assert that a failed ISO build
+  preserves a marker in the previous versioned directory and that a successful
+  mocked build publishes the new directory content.
+- Regression test execution and clean-runner QEMU verification remain pending;
+  this entry records code changes, not a passing test result.
