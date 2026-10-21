@@ -28,7 +28,7 @@ PKGS="$PKGS libpixman-1-0 libxfont2 libgl1 libxaw7 libxmu6 libxpm4 libxft2 libxi
 PKGS="$PKGS libglvnd0 libglx-mesa0 libglapi-mesa libegl-mesa0 libgbm1 libwayland-client0 libglx0 libopengl0 libegl1 libbz2-1.0 liblz4-1 libcap2 libgcrypt20 libgpg-error0 libxfixes3 libatomic1 libbrotli1 libcairo-gobject2 libcap-ng0 libcom-err2 libssl3t64 libepoxy0 libfribidi0 libgcc-s1 libgdk-pixbuf-2.0-0 libharfbuzz0b libjpeg-turbo8 libpangocairo-1.0-0 libpciaccess0 libthai0 libudev1 libxcb-dri3-0 libxcb-glx0 libxcb-randr0 libxcb-render0 libxcb-shm0 libxml2-16 libxxhash0 libdatrie1 libgl1-mesa-dri libglycin-2-0 libgraphite2-3 mesa-libgallium liblcms2-2 libseccomp2 libllvm21 libdrm-amdgpu1 libdrm-intel1 libelf1t64 libsensors5 libstdc++6 libxcb-sync1 libedit2 fontconfig fontconfig-config fonts-dejavu-core"
 PKGS="$PKGS libinput10 libevdev2 libmtdev1t64 libwacom9 libdbus-1-3 libxcvt0 libgudev-1.0-0 libicu74"
 # Real ALSA userspace tools and profile/config data for aira-audio.
-PKGS="$PKGS alsa-utils alsa-topology-conf alsa-ucm-conf libasound2t64 libatopology2t64 libfftw3-single3 libsamplerate0 libncursesw6"
+PKGS="$PKGS alsa-utils alsa-topology-conf alsa-ucm-conf libasound2-data libasound2t64 libatopology2t64 libfftw3-single3 libsamplerate0 libncursesw6"
 
 # Resolve package names against the actual runner repositories. The manifest
 # spans Ubuntu releases, where several runtime library package names changed.
