@@ -59,6 +59,27 @@ load_svc() {
     daemon|oneshot) ;;
     *) echo "service $name has bad TYPE (want daemon|oneshot)" >&2; return 1 ;;
   esac
+  validate_service_limits || {
+    echo "service $name has invalid resource-limit, NICE, or UMASK settings" >&2
+    return 1
+  }
+}
+
+validate_service_limits() {
+  local value
+  for value in "$LIMIT_CPU" "$LIMIT_MEM" "$LIMIT_FSIZE" "$LIMIT_NOFILE"; do
+    [ -z "$value" ] && continue
+    case "$value" in *[!0-9]*) return 1 ;; esac
+    [ "$value" -gt 0 ] 2>/dev/null || return 1
+  done
+  case "$NICE" in
+    -20|-1[0-9]|-[1-9]|0|[1-9]|1[0-9]) ;;
+    *) return 1 ;;
+  esac
+  case "$UMASK" in
+    [0-7][0-7][0-7]|[0-7][0-7][0-7][0-7]) ;;
+    *) return 1 ;;
+  esac
 }
 
 is_running() {
@@ -75,21 +96,26 @@ is_failed() {
 }
 
 apply_limits() {
-  # Apply resource limits for the current process
-  [ -n "$LIMIT_CPU" ] && ulimit -t "$LIMIT_CPU" 2>/dev/null
-  [ -n "$LIMIT_MEM" ] && ulimit -v "$LIMIT_MEM" 2>/dev/null
-  [ -n "$LIMIT_FSIZE" ] && ulimit -f "$LIMIT_FSIZE" 2>/dev/null
-  [ -n "$LIMIT_NOFILE" ] && ulimit -n "$LIMIT_NOFILE" 2>/dev/null
-  [ -n "$NICE" ] && [ "$NICE" != "0" ] && renice "$NICE" $$ 2>/dev/null
-  [ -n "$UMASK" ] && umask "$UMASK"
+  # Emit commands for the child shell. Executing ulimit inside this function
+  # would run it in command-substitution subshell and silently lose the limits.
+  [ -z "$LIMIT_CPU" ] || printf 'ulimit -t %s 2>/dev/null || exit 125\n' "$LIMIT_CPU"
+  [ -z "$LIMIT_MEM" ] || printf 'ulimit -v %s 2>/dev/null || exit 125\n' "$LIMIT_MEM"
+  [ -z "$LIMIT_FSIZE" ] || printf 'ulimit -f %s 2>/dev/null || exit 125\n' "$LIMIT_FSIZE"
+  [ -z "$LIMIT_NOFILE" ] || printf 'ulimit -n %s 2>/dev/null || exit 125\n' "$LIMIT_NOFILE"
+  if [ -n "$NICE" ] && [ "$NICE" != "0" ]; then
+    printf 'renice %s "$" >/dev/null 2>&1 || exit 125\n' "$NICE"
+  fi
+  printf 'umask %s\n' "$UMASK"
 }
 
 run_cmd_as() {
-  local user="$1" logname="$2" runcmd="$3"
+  local user="$1" logname="$2" runcmd="$3" script
+  script="$(apply_limits)
+$runcmd"
   if [ "$user" = "root" ]; then
-    sh -c "$runcmd" >>"$LOG_DIR/$logname.log" 2>&1
+    sh -c "$script" >>"$LOG_DIR/$logname.log" 2>&1
   else
-    su -s /bin/sh "$user" -c "$runcmd" >>"$LOG_DIR/$logname.log" 2>&1
+    su -s /bin/sh "$user" -c "$script" >>"$LOG_DIR/$logname.log" 2>&1
   fi
 }
 
