@@ -154,12 +154,93 @@ _tmpfile() { # _tmpfile <basename>
     }
 }
 _commit() { # _commit <tmp> <target> [mode]
-    [ -s "$1" ] || { rm -f "$1"; echo "Refusing to write empty $2" >&2; exit 1; }
-    cat "$1" > "$2" 2>/dev/null || { rm -f "$1"; echo "Failed to write $2" >&2; exit 1; }
-    # chmod the TARGET: `cat >` preserves the destination's existing mode, so
-    # chmoding the tmp file would have no effect on an existing 0644 shadow.
-    [ -n "${3:-}" ] && chmod "$3" "$2" 2>/dev/null
-    rm -f "$1"
+    _c_src="$1"; _c_target="$2"; _c_requested_mode="${3:-}"
+    [ -s "$_c_src" ] || { rm -f "$_c_src"; echo "Refusing to write empty $_c_target" >&2; return 1; }
+    [ -f "$_c_target" ] && [ ! -L "$_c_target" ] || {
+        rm -f "$_c_src"; echo "Refusing to replace unsafe target $_c_target" >&2; return 1;
+    }
+    _c_dir="$(dirname "$_c_target")" || { rm -f "$_c_src"; return 1; }
+    _c_stage="$(mktemp "$_c_dir/.aira-commit.XXXXXX" 2>/dev/null)" || {
+        rm -f "$_c_src"; echo "Cannot create atomic staging file for $_c_target" >&2; return 1;
+    }
+    if ! cat "$_c_src" > "$_c_stage" 2>/dev/null; then
+        rm -f "$_c_src" "$_c_stage"; echo "Failed to stage $_c_target" >&2; return 1
+    fi
+    _c_old_mode="$(stat -c '%a' "$_c_target" 2>/dev/null)" || {
+        rm -f "$_c_src" "$_c_stage"; echo "Cannot inspect mode for $_c_target" >&2; return 1;
+    }
+    _c_old_owner="$(stat -c '%u:%g' "$_c_target" 2>/dev/null)" || {
+        rm -f "$_c_src" "$_c_stage"; echo "Cannot inspect owner for $_c_target" >&2; return 1;
+    }
+    _c_stage_owner="$(stat -c '%u:%g' "$_c_stage" 2>/dev/null)" || {
+        rm -f "$_c_src" "$_c_stage"; echo "Cannot inspect staging file owner" >&2; return 1;
+    }
+    if [ "$_c_stage_owner" != "$_c_old_owner" ] && ! chown "$_c_old_owner" "$_c_stage" 2>/dev/null; then
+        rm -f "$_c_src" "$_c_stage"; echo "Cannot preserve owner for $_c_target" >&2; return 1
+    fi
+    _c_mode="${_c_requested_mode:-$_c_old_mode}"
+    if ! chmod "$_c_mode" "$_c_stage" 2>/dev/null; then
+        rm -f "$_c_src" "$_c_stage"; echo "Cannot set mode for $_c_target" >&2; return 1
+    fi
+    if ! mv -f "$_c_stage" "$_c_target" 2>/dev/null; then
+        rm -f "$_c_src" "$_c_stage"; echo "Failed to atomically replace $_c_target" >&2; return 1
+    fi
+    rm -f "$_c_src"
+    return 0
+}
+
+_restore_file() { # _restore_file <backup> <target>
+    _r_backup="$1"; _r_target="$2"
+    _r_dir="$(dirname "$_r_target")" || return 1
+    _r_stage="$(mktemp "$_r_dir/.aira-restore.XXXXXX" 2>/dev/null)" || return 1
+    if ! cp -p "$_r_backup" "$_r_stage" 2>/dev/null; then
+        rm -f "$_r_stage"; return 1
+    fi
+    if ! mv -f "$_r_stage" "$_r_target" 2>/dev/null; then
+        rm -f "$_r_stage"; return 1
+    fi
+    return 0
+}
+
+_commit_account_db() { # _commit_account_db <group.tmp> <shadow.tmp> <passwd.tmp>
+    _txn_dir="$(mktemp -d "$ETC/.aira-user-txn.XXXXXX" 2>/dev/null)" || {
+        echo "Cannot create account transaction backup directory" >&2; return 1;
+    }
+    if ! cp -p "$GROUP" "$_txn_dir/group" 2>/dev/null ||
+       ! cp -p "$SHADOW" "$_txn_dir/shadow" 2>/dev/null ||
+       ! cp -p "$PASSWD" "$_txn_dir/passwd" 2>/dev/null; then
+        rm -rf "$_txn_dir"; echo "Cannot back up account database before commit" >&2; return 1
+    fi
+    if ! _commit "$1" "$GROUP" "" ||
+       ! _commit "$2" "$SHADOW" "$SHADOW_MODE" ||
+       ! _commit "$3" "$PASSWD" ""; then
+        _restore_file "$_txn_dir/group" "$GROUP" || echo "CRITICAL: failed to restore $GROUP after account transaction failure" >&2
+        _restore_file "$_txn_dir/shadow" "$SHADOW" || echo "CRITICAL: failed to restore $SHADOW after account transaction failure" >&2
+        _restore_file "$_txn_dir/passwd" "$PASSWD" || echo "CRITICAL: failed to restore $PASSWD after account transaction failure" >&2
+        rm -f "$1" "$2" "$3"
+        rm -rf "$_txn_dir"
+        return 1
+    fi
+    rm -rf "$_txn_dir"
+    return 0
+}
+
+_commit_passwd_shadow() { # _commit_passwd_shadow <passwd.tmp> <shadow.tmp>
+    _txn_dir="$(mktemp -d "$ETC/.aira-user-txn.XXXXXX" 2>/dev/null)" || {
+        echo "Cannot create account transaction backup directory" >&2; return 1;
+    }
+    if ! cp -p "$PASSWD" "$_txn_dir/passwd" 2>/dev/null ||
+       ! cp -p "$SHADOW" "$_txn_dir/shadow" 2>/dev/null; then
+        rm -rf "$_txn_dir"; echo "Cannot back up account database before commit" >&2; return 1
+    fi
+    if ! _commit "$1" "$PASSWD" "" || ! _commit "$2" "$SHADOW" "$SHADOW_MODE"; then
+        _restore_file "$_txn_dir/passwd" "$PASSWD" || echo "CRITICAL: failed to restore $PASSWD after account transaction failure" >&2
+        _restore_file "$_txn_dir/shadow" "$SHADOW" || echo "CRITICAL: failed to restore $SHADOW after account transaction failure" >&2
+        rm -f "$1" "$2"
+        rm -rf "$_txn_dir"
+        return 1
+    fi
+    rm -rf "$_txn_dir"
     return 0
 }
 
@@ -238,9 +319,10 @@ case "$cmd" in
         printf '%s:x:%s:%s:%s:%s:%s\n' "$NAME" "$UID" "$GID" "${GECOS:-$NAME}" "$HOME" "$SHELL" >> "$_ptmp"
         printf '%s:*:19000:0:99999:7:::\n' "$NAME" >> "$_stmp"
 
-        _commit "$_gtmp" "$GROUP"
-        _commit "$_stmp" "$SHADOW" "$SHADOW_MODE"
-        _commit "$_ptmp" "$PASSWD"
+        _commit_account_db "$_gtmp" "$_stmp" "$_ptmp" || {
+            echo "Failed to commit user database; prior files restored" >&2
+            exit 1
+        }
 
         # Create home directory
         mkdir -p "$HOME" 2>/dev/null || echo "Warning: could not create $HOME" >&2
@@ -290,9 +372,10 @@ case "$cmd" in
           function sep(list, item,  a,i,out){ m=split(list,a,","); out="";
             for(i=1;i<=m;i++){ if(a[i]==item) continue; out=(out==""? a[i] : out "," a[i]) } return out }' \
           "$GROUP" > "$_gtmp" 2>/dev/null || { rm -f "$_ptmp" "$_stmp" "$_gtmp"; echo "Failed to update $GROUP" >&2; exit 1; }
-        _commit "$_gtmp" "$GROUP"
-        _commit "$_stmp" "$SHADOW" "$SHADOW_MODE" || true
-        _commit "$_ptmp" "$PASSWD"
+        _commit_account_db "$_gtmp" "$_stmp" "$_ptmp" || {
+            echo "Failed to commit user deletion; prior files restored" >&2
+            exit 1
+        }
 
         if [ "$REMOVE_HOME" = "1" ]; then
             if [ -n "$_uhome" ] && valid_path "$_uhome" && [ "$_uhome" != "/" ]; then
@@ -368,7 +451,10 @@ case "$cmd" in
         _stmp="$(_tmpfile shadow)"
         awk -F: -v n="$NAME" -v h="$_newhash" 'BEGIN{OFS=":"} $1==n{$2=h} {print}' "$SHADOW" > "$_stmp" 2>/dev/null \
             || { rm -f "$_stmp"; echo "Failed to update $SHADOW" >&2; exit 1; }
-        _commit "$_stmp" "$SHADOW" "$SHADOW_MODE"
+        _commit "$_stmp" "$SHADOW" "$SHADOW_MODE" || {
+            echo "Failed to commit password update" >&2
+            exit 1
+        }
         unset PASS PASS1 PASS2
         echo "Password updated for $NAME"
         ;;
@@ -402,7 +488,7 @@ case "$cmd" in
         cat "$GROUP" > "$_gtmp"
         ensure_trailing_nl "$_gtmp"
         printf '%s:x:%s:\n' "$NAME" "$GID" >> "$_gtmp"
-        _commit "$_gtmp" "$GROUP"
+        _commit "$_gtmp" "$GROUP" "" || { echo "Failed to commit group creation" >&2; exit 1; }
         echo "Group $NAME created (gid=$GID)"
         ;;
 
@@ -429,7 +515,7 @@ case "$cmd" in
           function sep(list, item,  a,i,out){ m=split(list,a,","); out="";
             for(i=1;i<=m;i++){ if(a[i]==item) continue; out=(out==""? a[i] : out "," a[i]) } return out }' \
           "$GROUP" > "$_gtmp" 2>/dev/null || { rm -f "$_gtmp"; echo "Failed to update $GROUP" >&2; exit 1; }
-        _commit "$_gtmp" "$GROUP"
+        _commit "$_gtmp" "$GROUP" "" || { echo "Failed to commit group deletion" >&2; exit 1; }
         echo "Group $NAME deleted"
         ;;
 
@@ -500,35 +586,53 @@ case "$cmd" in
             [ -z "$_o" ] || { echo "UID $UID already used by $_o" >&2; exit 1; }
         fi
 
-        # Move the home directory AFTER the UID check and only between valid,
-        # absolute paths (a rejected request must not disturb existing data).
-        if [ "$NEW_HOME" != "$OHOME" ] && [ -d "$OHOME" ] && valid_home "$NEW_HOME"; then
+        [ "$LOCK" = "1" ] && [ "$UNLOCK" = "1" ] && { echo "Cannot lock and unlock the same user in one operation" >&2; exit 1; }
+
+        # Move the home only after all path/UID checks. If the database commit
+        # fails, the move is rolled back so passwd and the filesystem agree.
+        _HOME_MOVED=0
+        if [ "$NEW_HOME" != "$OHOME" ] && [ -d "$OHOME" ]; then
             if mv "$OHOME" "$NEW_HOME" 2>/dev/null; then
-                chown -R "$NEW_UID:$NEW_GID" "$NEW_HOME" 2>/dev/null || true
+                _HOME_MOVED=1
             else
-                echo "Warning: could not move $OHOME -> $NEW_HOME" >&2
+                echo "Failed to move $OHOME -> $NEW_HOME; account unchanged" >&2
+                exit 1
             fi
         fi
 
-        # Update passwd atomically (exact field match)
+        # Prepare passwd and, when locking/unlocking, shadow before committing.
         _ptmp="$(_tmpfile passwd)"
         awk -F: -v n="$NAME" -v u="$NEW_UID" -v g="$NEW_GID" -v ge="$NEW_GECOS" -v h="$NEW_HOME" -v sh="$NEW_SHELL" \
             'BEGIN{OFS=":"} $1==n{$2="x";$3=u;$4=g;$5=ge;$6=h;$7=sh} {print}' "$PASSWD" > "$_ptmp" 2>/dev/null \
-            || { rm -f "$_ptmp"; echo "Failed to update $PASSWD" >&2; exit 1; }
-        _commit "$_ptmp" "$PASSWD"
+            || { rm -f "$_ptmp"; [ "$_HOME_MOVED" = "1" ] && mv "$NEW_HOME" "$OHOME" 2>/dev/null; echo "Failed to update $PASSWD" >&2; exit 1; }
 
-        if [ "$LOCK" = "1" ]; then
+        if [ "$LOCK" = "1" ] || [ "$UNLOCK" = "1" ]; then
             _stmp="$(_tmpfile shadow)"
-            awk -F: -v n="$NAME" 'BEGIN{OFS=":"} $1==n{$2="!"} {print}' "$SHADOW" > "$_stmp" 2>/dev/null || true
-            _commit "$_stmp" "$SHADOW" "$SHADOW_MODE" || true
-            echo "User $NAME locked"
+            if [ "$LOCK" = "1" ]; then
+                awk -F: -v n="$NAME" 'BEGIN{OFS=":"} $1==n{$2="!"} {print}' "$SHADOW" > "$_stmp" 2>/dev/null
+            else
+                awk -F: -v n="$NAME" 'BEGIN{OFS=":"} $1==n{$2="*"} {print}' "$SHADOW" > "$_stmp" 2>/dev/null
+            fi
+            if [ "$?" -ne 0 ] || [ ! -s "$_stmp" ]; then
+                rm -f "$_ptmp" "$_stmp"
+                [ "$_HOME_MOVED" = "1" ] && mv "$NEW_HOME" "$OHOME" 2>/dev/null
+                echo "Failed to prepare shadow update" >&2
+                exit 1
+            fi
+            if ! _commit_passwd_shadow "$_ptmp" "$_stmp"; then
+                [ "$_HOME_MOVED" = "1" ] && mv "$NEW_HOME" "$OHOME" 2>/dev/null || true
+                echo "Failed to commit user update; prior account files restored" >&2
+                exit 1
+            fi
+            if [ "$LOCK" = "1" ]; then echo "User $NAME locked"; else echo "User $NAME unlocked"; fi
+        else
+            if ! _commit "$_ptmp" "$PASSWD" ""; then
+                [ "$_HOME_MOVED" = "1" ] && mv "$NEW_HOME" "$OHOME" 2>/dev/null || true
+                echo "Failed to commit passwd update" >&2
+                exit 1
+            fi
         fi
-        if [ "$UNLOCK" = "1" ]; then
-            _stmp="$(_tmpfile shadow)"
-            awk -F: -v n="$NAME" 'BEGIN{OFS=":"} $1==n{$2="*"} {print}' "$SHADOW" > "$_stmp" 2>/dev/null || true
-            _commit "$_stmp" "$SHADOW" "$SHADOW_MODE" || true
-            echo "User $NAME unlocked"
-        fi
+        if [ "$_HOME_MOVED" = "1" ]; then chown -R "$NEW_UID:$NEW_GID" "$NEW_HOME" 2>/dev/null || echo "Warning: could not update ownership for $NEW_HOME" >&2; fi
         echo "User $NAME modified"
         ;;
 
