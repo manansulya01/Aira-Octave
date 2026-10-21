@@ -62,6 +62,12 @@ jobs:
       - name: Boot kernel and verify userspace
         run: bash scripts/test-kernel.sh
 
+      - name: Verify desktop and GUI applications in QEMU
+        run: bash scripts/test-gui.sh
+
+      - name: Verify network interfaces and loopback in QEMU
+        run: bash scripts/test-network.sh
+
       - name: Verify safe recovery boot
         run: bash scripts/test-safe-mode.sh
 
