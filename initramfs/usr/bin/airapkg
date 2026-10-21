@@ -216,8 +216,7 @@ case "$cmd" in
         members.txt|list.txt) continue ;;
       esac
       src="$tmp/$rel"
-      # Record the DEPLOYED path (with prefix) but keep the package-relative
-      # path in the DB, so removing/verifying still works if the prefix changes.
+      # Keep package-relative paths in the DB; apply ROOT only at deployment time.
       dest="$ROOT/$rel"
       rec="/$rel"
       if [ -d "$src" ] && [ ! -L "$src" ]; then
@@ -234,11 +233,11 @@ case "$cmd" in
             _install_failed=1
             break
           fi
-          echo "$rec" >> "$staged/backup-files"
+          echo "$rec" >> "$staged/backup-files" || { _install_failed=1; break; }
         fi
         # Record before copying so a partially written file is also removed on
         # rollback if the copy fails part-way through.
-        echo "$rec" >> "$staged/files"
+        echo "$rec" >> "$staged/files" || { _install_failed=1; break; }
         cp -p "$src" "$dest" 2>/dev/null || cp -f "$src" "$dest" || { _install_failed=1; break; }
         # busybox chmod has no --reference: cp -p already preserved the mode;
         # only repair the old blind-+x bug if mode looks wrong.
