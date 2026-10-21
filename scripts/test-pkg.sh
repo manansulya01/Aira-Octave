@@ -48,6 +48,8 @@ fi
 P list | grep -q "hello-aira" && ok "list" || bad "list"
 P query hello-aira | grep -q 'NAME="hello-aira"' && ok "query metadata" || bad "query metadata"
 P query hello-aira | grep -q "usr/share/aira/hello.txt" && ok "query file list" || bad "query file list"
+P query hello-aira | grep -q 'seen.txt' && bad "validation artifact excluded" || ok "validation artifact excluded"
+[ ! -e "$AIRA_PKG_ROOT/seen.txt" ] && ok "validation scratch file not deployed" || bad "validation scratch file not deployed"
 P verify hello-aira | grep -q "verify OK" && ok "verify" || bad "verify"
 [ -f "$AIRA_PKG_DB/installed/hello-aira/PKGINFO" ] && ok "DB entry persisted" || bad "DB entry persisted"
 
@@ -77,16 +79,207 @@ echo "--- malicious archives rejected ---"
 M="$T/mal"; rm -rf "$M"; mkdir -p "$M/usr/share"
 printf 'NAME="mal"\nVERSION="1.0"\nDESC="x"\nDEPS=""\n' > "$M/PKGINFO"
 printf 'evil\n' > "$M/usr/share/evil.txt"
-tar -czf "$T/mal-abs.tgz" -P -C / etc 2>/dev/null || true
+# Keep PKGINFO at archive root while transforming one payload member to an
+# absolute path. Assert the malicious member really exists before testing.
+tar -czf "$T/mal-abs.tgz" -P -C "$M" --transform='s,^usr/,/usr/,' PKGINFO usr/share/evil.txt
+if tar -tzf "$T/mal-abs.tgz" | grep -q '^/usr/share/evil.txt
+S="$T/sym"; rm -rf "$S"; mkdir -p "$S"
+printf 'NAME="sym"\nVERSION="1.0"\nDESC="x"\nDEPS=""\n' > "$S/PKGINFO"
+ln -sf /etc/passwd "$S/evil-link" 2>/dev/null || true
+tar -czf "$T/mal-sym.tgz" -C "$S" . 2>/dev/null || true
+P install "$T/mal-sym.tgz" >/dev/null 2>&1 && bad "symlink archive rejected" || ok "symlink archive rejected"
+printf 'not-a-tar' > "$T/corrupt.apkg"
+P install "$T/corrupt.apkg" >/dev/null 2>&1 && bad "corrupt archive rejected" || ok "corrupt archive rejected"
+P install "$T/does-not-exist.apkg" >/dev/null 2>&1 && bad "missing file rejected" || ok "missing file rejected"
+[ ! -f /etc/passwd.evil ] && ok "no payload escaped to /etc" || bad "no payload escaped to /etc"
+
+echo "--- bad PKGINFO rejected ---"
+B="$T/bad"; rm -rf "$B"; mkdir -p "$B"
+printf 'DESC="no name"\nVERSION="1.0"\n' > "$B/PKGINFO"
+tar -czf "$T/bad.apkg" -C "$B" . 2>/dev/null
+P install "$T/bad.apkg" >/dev/null 2>&1 && bad "missing NAME rejected" || ok "missing NAME rejected"
+printf 'NAME="x/../evil"\nVERSION="1.0"\n' > "$B/PKGINFO"
+tar -czf "$T/bad2.apkg" -C "$B" . 2>/dev/null
+P install "$T/bad2.apkg" >/dev/null 2>&1 && bad "slash in NAME rejected" || ok "slash in NAME rejected"
+
+echo "--- reinstall requires --force ---"
+P install "$T/hello-aira.apkg" >/dev/null 2>&1 && bad "reinstall refused" || ok "reinstall refused"
+P install --force "$T/hello-aira.apkg" | grep -q "installed" && ok "forced reinstall" || bad "forced reinstall"
+mkpkg hello-aira 2.0 "$T/build-hello-aira/usr/share/aira/other.txt" "$T/hello-aira-v2.apkg"
+P install --force "$T/hello-aira-v2.apkg" | grep -q "installed" && ok "version upgrade" || bad "version upgrade"
+[ -f "$AIRA_PKG_ROOT/usr/share/aira/other.txt" ] && ok "upgraded payload installed" || bad "upgraded payload installed"
+[ ! -e "$AIRA_PKG_ROOT/usr/share/aira/hello.txt" ] && ok "stale payload removed under package root" || bad "stale payload removed under package root"
+
+echo "--- partial install failure rolls back inside package root ---"
+F="$T/failtxn"; rm -rf "$F"; mkdir -p "$F/usr/share/aira"
+printf 'NAME="failtxn"\nVERSION="1.0"\nDESC="failure transaction"\nDEPS=""\n' > "$F/PKGINFO"
+printf 'must be rolled back\n' > "$F/usr/share/aira/aaa-good.txt"
+printf 'copy is injected to fail\n' > "$F/usr/share/aira/zzz-fail.txt"
+tar -czf "$T/failtxn.apkg" -C "$F" .
+mkdir -p "$AIRA_PKG_ROOT/usr/share/aira"
+printf 'original value\n' > "$AIRA_PKG_ROOT/usr/share/aira/aaa-good.txt"
+mkdir -p "$T/failbin"
+cat > "$T/failbin/cp" <<'MOCK_CP'
+#!/bin/sh
+last=""
+for arg do last="$arg"; done
+case "$last" in
+  */zzz-fail.txt) exit 77 ;;
+esac
+exec /bin/cp "$@"
+MOCK_CP
+chmod +x "$T/failbin/cp"
+if PATH="$T/failbin:$PATH" P install "$T/failtxn.apkg" > "$T/failtxn.log" 2>&1; then
+  bad "injected partial copy failure rejected"
+else
+  ok "injected partial copy failure rejected"
+fi
+[ "$(cat "$AIRA_PKG_ROOT/usr/share/aira/aaa-good.txt" 2>/dev/null)" = "original value" ] && ok "overwritten file restored in package root" || bad "overwritten file restored in package root"
+[ ! -e "$AIRA_PKG_ROOT/usr/share/aira/zzz-fail.txt" ] && ok "failed destination absent" || bad "failed destination absent"
+[ ! -d "$AIRA_PKG_DB/installed/failtxn" ] && ok "failed package DB entry absent" || bad "failed package DB entry absent"
+
+echo "--- remove cleans payload ---"
+P remove hello-aira | grep -q "removed" && ok "remove" || bad "remove"
+[ ! -f "$AIRA_PKG_DB/installed/hello-aira" ] && ok "DB entry removed" || bad "DB entry removed"
+grep -q "tx=remove pkg=hello-aira done" "$AIRA_PKG_TXLOG" 2>/dev/null && ok "remove logged" || bad "remove logged"
+P verify hello-aira >/dev/null 2>&1 && bad "verify after remove fails" || ok "verify after remove fails"
+
+echo "--- rollback restores overwritten files ---"
+printf 'original\n' > "$T/rollback-target.txt"
+R="$T/rb"; rm -rf "$R"; mkdir -p "$R/usr/share/aira"
+printf 'NAME="rbtest"\nVERSION="2.0"\nDESC="rollback"\nDEPS=""\n' > "$R/PKGINFO"
+printf 'replacement\n' > "$R/usr/share/aira/rollback-target.txt"
+tar -czf "$T/rbtest.apkg" -C "$R" .
+mkdir -p "$AIRA_PKG_ROOT/usr/share/aira"
+printf 'original\n' > "$AIRA_PKG_ROOT/usr/share/aira/rollback-target.txt"
+if P install "$T/rbtest.apkg" >/dev/null 2>&1; then
+  [ "$(cat "$AIRA_PKG_ROOT/usr/share/aira/rollback-target.txt" 2>/dev/null)" = "replacement" ] \
+    && ok "replacement installed" || bad "replacement installed"
+  P rollback rbtest >/dev/null 2>&1 && ok "rollback runs" || bad "rollback runs"
+  [ "$(cat "$AIRA_PKG_ROOT/usr/share/aira/rollback-target.txt" 2>/dev/null)" = "original" ] \
+    && ok "rollback restored original" || bad "rollback restored original"
+  grep -q "tx=rollback pkg=rbtest" "$AIRA_PKG_TXLOG" 2>/dev/null && ok "rollback logged" || bad "rollback logged"
+else
+  bad "rbtest install"
+fi
+P rollback no-such-pkg >/dev/null 2>&1 && bad "rollback unknown rejected" || ok "rollback unknown rejected"
+
+echo "--- search/query edge cases ---"
+P query no-such-package >/dev/null 2>&1 && bad "query unknown" || ok "query unknown rejected"
+P search zzz-nomatch >/dev/null 2>&1 && ok "search no-match ok" || bad "search no-match ok"
+P install >/dev/null 2>&1 && bad "install usage" || ok "install usage enforced"
+P remove >/dev/null 2>&1 && bad "remove usage" || ok "remove usage enforced"
+P verify >/dev/null 2>&1 && bad "verify usage" || ok "verify usage enforced"
+
+rm -rf "$T"
+trap - EXIT
+
+echo
+echo "PKG TEST: PASS=$PASS FAIL=$FAIL"
+[ "$FAIL" = "0" ]; then
+  P install "$T/mal-abs.tgz" >/dev/null 2>&1 && bad "absolute path archive rejected" || ok "absolute path archive rejected"
+else
+  bad "absolute path archive crafted"
+fi
 L="$T/maxtrav"; rm -rf "$L"; mkdir -p "$L/x"
 printf 'NAME="trav"\nVERSION="1.0"\nDESC="x"\nDEPS=""\n' > "$L/PKGINFO"
 printf 'evil\n' > "$L/x/evil.txt"
-tar -czf "$T/mal-trav.tgz" -C "$L" --transform 's,^x/,\.\./,' x/evil.txt 2>/dev/null \
-  || tar -czf "$T/mal-trav.tgz" -C "$L" x 2>/dev/null || true
-for a in mal-abs mal-trav; do
-  [ -f "$T/$a.tgz" ] || continue
-  P install "$T/$a.tgz" >/dev/null 2>&1 && bad "$a rejected" || ok "$a rejected"
-done
+tar -czf "$T/mal-trav.tgz" -P -C "$L" --transform='s,^x/,../,' PKGINFO x/evil.txt
+if tar -tzf "$T/mal-trav.tgz" | grep -q '^\.\./evil.txt
+S="$T/sym"; rm -rf "$S"; mkdir -p "$S"
+printf 'NAME="sym"\nVERSION="1.0"\nDESC="x"\nDEPS=""\n' > "$S/PKGINFO"
+ln -sf /etc/passwd "$S/evil-link" 2>/dev/null || true
+tar -czf "$T/mal-sym.tgz" -C "$S" . 2>/dev/null || true
+P install "$T/mal-sym.tgz" >/dev/null 2>&1 && bad "symlink archive rejected" || ok "symlink archive rejected"
+printf 'not-a-tar' > "$T/corrupt.apkg"
+P install "$T/corrupt.apkg" >/dev/null 2>&1 && bad "corrupt archive rejected" || ok "corrupt archive rejected"
+P install "$T/does-not-exist.apkg" >/dev/null 2>&1 && bad "missing file rejected" || ok "missing file rejected"
+[ ! -f /etc/passwd.evil ] && ok "no payload escaped to /etc" || bad "no payload escaped to /etc"
+
+echo "--- bad PKGINFO rejected ---"
+B="$T/bad"; rm -rf "$B"; mkdir -p "$B"
+printf 'DESC="no name"\nVERSION="1.0"\n' > "$B/PKGINFO"
+tar -czf "$T/bad.apkg" -C "$B" . 2>/dev/null
+P install "$T/bad.apkg" >/dev/null 2>&1 && bad "missing NAME rejected" || ok "missing NAME rejected"
+printf 'NAME="x/../evil"\nVERSION="1.0"\n' > "$B/PKGINFO"
+tar -czf "$T/bad2.apkg" -C "$B" . 2>/dev/null
+P install "$T/bad2.apkg" >/dev/null 2>&1 && bad "slash in NAME rejected" || ok "slash in NAME rejected"
+
+echo "--- reinstall requires --force ---"
+P install "$T/hello-aira.apkg" >/dev/null 2>&1 && bad "reinstall refused" || ok "reinstall refused"
+P install --force "$T/hello-aira.apkg" | grep -q "installed" && ok "forced reinstall" || bad "forced reinstall"
+
+echo "--- partial install failure rolls back inside package root ---"
+F="$T/failtxn"; rm -rf "$F"; mkdir -p "$F/usr/share/aira"
+printf 'NAME="failtxn"\nVERSION="1.0"\nDESC="failure transaction"\nDEPS=""\n' > "$F/PKGINFO"
+printf 'must be rolled back\n' > "$F/usr/share/aira/aaa-good.txt"
+printf 'copy is injected to fail\n' > "$F/usr/share/aira/zzz-fail.txt"
+tar -czf "$T/failtxn.apkg" -C "$F" .
+mkdir -p "$AIRA_PKG_ROOT/usr/share/aira"
+printf 'original value\n' > "$AIRA_PKG_ROOT/usr/share/aira/aaa-good.txt"
+mkdir -p "$T/failbin"
+cat > "$T/failbin/cp" <<'MOCK_CP'
+#!/bin/sh
+last=""
+for arg do last="$arg"; done
+case "$last" in
+  */zzz-fail.txt) exit 77 ;;
+esac
+exec /bin/cp "$@"
+MOCK_CP
+chmod +x "$T/failbin/cp"
+if PATH="$T/failbin:$PATH" P install "$T/failtxn.apkg" > "$T/failtxn.log" 2>&1; then
+  bad "injected partial copy failure rejected"
+else
+  ok "injected partial copy failure rejected"
+fi
+[ "$(cat "$AIRA_PKG_ROOT/usr/share/aira/aaa-good.txt" 2>/dev/null)" = "original value" ] && ok "overwritten file restored in package root" || bad "overwritten file restored in package root"
+[ ! -e "$AIRA_PKG_ROOT/usr/share/aira/zzz-fail.txt" ] && ok "failed destination absent" || bad "failed destination absent"
+[ ! -d "$AIRA_PKG_DB/installed/failtxn" ] && ok "failed package DB entry absent" || bad "failed package DB entry absent"
+
+echo "--- remove cleans payload ---"
+P remove hello-aira | grep -q "removed" && ok "remove" || bad "remove"
+[ ! -f "$AIRA_PKG_DB/installed/hello-aira" ] && ok "DB entry removed" || bad "DB entry removed"
+grep -q "tx=remove pkg=hello-aira done" "$AIRA_PKG_TXLOG" 2>/dev/null && ok "remove logged" || bad "remove logged"
+P verify hello-aira >/dev/null 2>&1 && bad "verify after remove fails" || ok "verify after remove fails"
+
+echo "--- rollback restores overwritten files ---"
+printf 'original\n' > "$T/rollback-target.txt"
+R="$T/rb"; rm -rf "$R"; mkdir -p "$R/usr/share/aira"
+printf 'NAME="rbtest"\nVERSION="2.0"\nDESC="rollback"\nDEPS=""\n' > "$R/PKGINFO"
+printf 'replacement\n' > "$R/usr/share/aira/rollback-target.txt"
+tar -czf "$T/rbtest.apkg" -C "$R" .
+mkdir -p "$AIRA_PKG_ROOT/usr/share/aira"
+printf 'original\n' > "$AIRA_PKG_ROOT/usr/share/aira/rollback-target.txt"
+if P install "$T/rbtest.apkg" >/dev/null 2>&1; then
+  [ "$(cat "$AIRA_PKG_ROOT/usr/share/aira/rollback-target.txt" 2>/dev/null)" = "replacement" ] \
+    && ok "replacement installed" || bad "replacement installed"
+  P rollback rbtest >/dev/null 2>&1 && ok "rollback runs" || bad "rollback runs"
+  [ "$(cat "$AIRA_PKG_ROOT/usr/share/aira/rollback-target.txt" 2>/dev/null)" = "original" ] \
+    && ok "rollback restored original" || bad "rollback restored original"
+  grep -q "tx=rollback pkg=rbtest" "$AIRA_PKG_TXLOG" 2>/dev/null && ok "rollback logged" || bad "rollback logged"
+else
+  bad "rbtest install"
+fi
+P rollback no-such-pkg >/dev/null 2>&1 && bad "rollback unknown rejected" || ok "rollback unknown rejected"
+
+echo "--- search/query edge cases ---"
+P query no-such-package >/dev/null 2>&1 && bad "query unknown" || ok "query unknown rejected"
+P search zzz-nomatch >/dev/null 2>&1 && ok "search no-match ok" || bad "search no-match ok"
+P install >/dev/null 2>&1 && bad "install usage" || ok "install usage enforced"
+P remove >/dev/null 2>&1 && bad "remove usage" || ok "remove usage enforced"
+P verify >/dev/null 2>&1 && bad "verify usage" || ok "verify usage enforced"
+
+rm -rf "$T"
+trap - EXIT
+
+echo
+echo "PKG TEST: PASS=$PASS FAIL=$FAIL"
+[ "$FAIL" = "0" ]; then
+  P install "$T/mal-trav.tgz" >/dev/null 2>&1 && bad "traversal archive rejected" || ok "traversal archive rejected"
+else
+  bad "traversal archive crafted"
+fi
 S="$T/sym"; rm -rf "$S"; mkdir -p "$S"
 printf 'NAME="sym"\nVERSION="1.0"\nDESC="x"\nDEPS=""\n' > "$S/PKGINFO"
 ln -sf /etc/passwd "$S/evil-link" 2>/dev/null || true
