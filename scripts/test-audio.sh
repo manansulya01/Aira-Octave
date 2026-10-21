@@ -11,6 +11,7 @@ trap 'rm -rf "$T"' EXIT
 mkdir -p "$T/bin" "$T/empty"
 cat > "$T/bin/amixer" <<'EOF'
 #!/bin/sh
+case "$*" in *"sget"*) exit 0 ;; esac
 [ "${MOCK_AMIXER_FAIL:-0}" = 1 ] && exit 1
 case "$*" in *"get Master"*) echo "Mono: Playback 70 [70%] [on]" ;; esac
 exit 0
