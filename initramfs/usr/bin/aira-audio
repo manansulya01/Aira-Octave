@@ -57,7 +57,6 @@ select_mixer_control() {
 start_audio() {
     echo "[audio] Starting audio service..."
     require_tool amixer || return 1
-    select_mixer_control || return 1
 
     # Optional module probes: the device may be built in or use another driver.
     modprobe -q snd_pcm 2>/dev/null || true
@@ -65,6 +64,7 @@ start_audio() {
     modprobe -q snd_virtio 2>/dev/null || true
     modprobe -q snd_intel8x0 2>/dev/null || true
     modprobe -q snd_hda_intel 2>/dev/null || true
+    select_mixer_control || return 1
 
     if command -v alsactl >/dev/null 2>&1; then
         alsactl init 2>/dev/null || echo "[audio] WARNING: alsactl init unavailable for this device" >&2
