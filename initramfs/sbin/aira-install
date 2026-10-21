@@ -9,6 +9,7 @@ SIZE="512M"
 HOSTNAME="aira"
 USERNAME="aira"
 PASSWORD_FILE=""
+ALLOW_ERASE=0
 
 usage() {
     cat <<'EOF'
@@ -20,7 +21,8 @@ Options:
   --hostname NAME       System hostname (default: aira)
   --user NAME           Username to create (default: aira)
   --password-file FILE  File containing password for user
-  --auto                Non-interactive mode (use defaults)
+  --auto                Non-interactive mode (requires --allow-erase)
+  --allow-erase         Explicitly authorize formatting the selected target
   --help                Show this help
 
 Example:
@@ -36,6 +38,7 @@ while [ $# -gt 0 ]; do
         --user) USERNAME="$2"; shift 2 ;;
         --password-file) PASSWORD_FILE="$2"; shift 2 ;;
         --auto) AUTO=1; shift ;;
+        --allow-erase) ALLOW_ERASE=1; shift ;;
         --help|-h) usage; exit 0 ;;
         *) echo "Unknown option: $1"; usage; exit 1 ;;
     esac
@@ -164,7 +167,12 @@ fi
 echo "[install] Copying system files from $SOURCE..."
 # Copy essential directories
 for dir in bin sbin etc lib lib64 usr var root home opt; do
-    [ -d "$SOURCE/$dir" ] && cp -a "$SOURCE/$dir" "$TARGET_MNT/" 2>/dev/null
+    if [ -d "$SOURCE/$dir" ]; then
+        cp -a "$SOURCE/$dir" "$TARGET_MNT/" || {
+            echo "Copy failed for $SOURCE/$dir"
+            exit 1
+        }
+    fi
 done
 
 # Create necessary directories
@@ -239,13 +247,13 @@ EOF
 echo "airaos-installed=$(date -u +%Y%m%d-%H%M%S)" > "$TARGET_MNT/etc/aira-install.info"
 echo "version=$(grep VERSION /etc/os-release | cut -d= -f2 | tr -d '\"')" >> "$TARGET_MNT/etc/aira-install.info"
 
-# Unmount and verify that the installed boot payload is present.
-umount "$TARGET_MNT" || { echo "Unmount failed"; exit 1; }
-TARGET_MOUNTED=0
+# Verify while the target filesystem is still mounted, then cleanly unmount.
 [ -s "$TARGET_MNT/boot/bzImage" ] && [ -s "$TARGET_MNT/boot/initramfs.cpio" ] || {
     echo "Installed boot payload verification failed"
     exit 1
 }
+umount "$TARGET_MNT" || { echo "Unmount failed"; exit 1; }
+TARGET_MOUNTED=0
 
 echo "[install] Installation complete!"
 echo "You can now reboot and boot from $TARGET"
