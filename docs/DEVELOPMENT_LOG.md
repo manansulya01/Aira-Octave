@@ -259,3 +259,33 @@
   including successful replacement of the old versioned release directory.
   The full kernel/QEMU run `39576932208` is separate and still in progress;
   core checks are not a substitute for the end-to-end boot.
+
+## 2026-10-21 — End-to-end build failure and follow-up fixes
+- Full workflow run
+  [`39576932208`](https://github.com/manansulya01/Aira-Octave/actions/runs/39576932208)
+  successfully compiled Linux 7.2.2 and built the initramfs, then failed in GUI
+  staging. The uploaded log showed 154 available package names, two Ubuntu
+  package-name fallbacks, and `PACKAGE_URL_COUNT=0`: `apt-get download
+  --print-uris` was being treated as a URI-printing command even though the
+  stage needs actual package archives.
+- Branch commit `fb92cff1c637b162315534d5a0432ad1c1324395` changes GUI staging to
+  download the resolved packages directly with `apt-get download`, then count
+  and validate the resulting `.deb` files. This fix has not yet passed a
+  complete clean-runner build.
+- Package-manager audit found that partial rollback ignored `AIRA_PKG_ROOT`,
+  backups could fail silently, a DB commit failure left payload changes behind,
+  and stale-file removal ignored the configured root. Commits
+  `862c5bf31aacbf44c0cf172f6eef8a3ef4a6ecb0` and
+  `834085c6745d0f5a0403deafe23be67a7f59855b` address rollback paths, preserve
+  recovery data on incomplete rollback, and use unique previous-DB names.
+  Regression coverage is in `a2df79195a50e0c8d1060e5fe88eae41f7a7a605` and
+  `692306e3d66677b0218efcd36f2f74c43b790adb`.
+- The new BusyBox-shell CI check exposed malformed syntax in the in-guest
+  installer after an earlier edit. Rather than leave a broken disk-writing
+  script, commit `2b9a5ebcf04a63d426bb49bd0374a0da55af24ea` makes the live-image
+  command fail closed and points users to the host-side installer. The host
+  installer now verifies the release checksum manifest, target capacity, and
+  BIOS GRUB modules before formatting (`9a6f9c341082122545c98f4dbeddf165128c2579`).
+- Pull request #11 runs shell validation and package/update/installer safety
+  regressions before merge. Its checks are still in progress; no install to a
+  physical disk was performed.
