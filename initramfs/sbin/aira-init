@@ -103,7 +103,9 @@ apply_limits() {
   [ -z "$LIMIT_FSIZE" ] || printf 'ulimit -f %s 2>/dev/null || exit 125\n' "$LIMIT_FSIZE"
   [ -z "$LIMIT_NOFILE" ] || printf 'ulimit -n %s 2>/dev/null || exit 125\n' "$LIMIT_NOFILE"
   if [ -n "$NICE" ] && [ "$NICE" != "0" ]; then
-    printf 'renice %s "%s%s" >/dev/null 2>&1 || exit 125\n' "$NICE" '
+    local pid_expr
+    pid_expr="$(printf '\\044\\044')"
+    printf 'renice %s "%s" >/dev/null 2>&1 || exit 125\\n' "$NICE" "$pid_expr"
   fi
   printf 'umask %s\n' "$UMASK"
 }
