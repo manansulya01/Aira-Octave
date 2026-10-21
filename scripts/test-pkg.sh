@@ -116,6 +116,8 @@ printf 'NAME="failtxn"\nVERSION="1.0"\nDESC="failure transaction"\nDEPS=""\n' > 
 printf 'must be rolled back\n' > "$F/usr/share/aira/aaa-good.txt"
 printf 'copy is injected to fail\n' > "$F/usr/share/aira/zzz-fail.txt"
 tar -czf "$T/failtxn.apkg" -C "$F" .
+mkdir -p "$AIRA_PKG_ROOT/usr/share/aira"
+printf 'original value\n' > "$AIRA_PKG_ROOT/usr/share/aira/aaa-good.txt"
 mkdir -p "$T/failbin"
 cat > "$T/failbin/cp" <<'MOCK_CP'
 #!/bin/sh
@@ -132,7 +134,7 @@ if PATH="$T/failbin:$PATH" P install "$T/failtxn.apkg" > "$T/failtxn.log" 2>&1; 
 else
   ok "injected partial copy failure rejected"
 fi
-[ ! -e "$AIRA_PKG_ROOT/usr/share/aira/aaa-good.txt" ] && ok "partial payload removed from package root" || bad "partial payload removed from package root"
+[ "$(cat "$AIRA_PKG_ROOT/usr/share/aira/aaa-good.txt" 2>/dev/null)" = "original value" ] && ok "overwritten file restored in package root" || bad "overwritten file restored in package root"
 [ ! -e "$AIRA_PKG_ROOT/usr/share/aira/zzz-fail.txt" ] && ok "failed destination absent" || bad "failed destination absent"
 [ ! -d "$AIRA_PKG_DB/installed/failtxn" ] && ok "failed package DB entry absent" || bad "failed package DB entry absent"
 
