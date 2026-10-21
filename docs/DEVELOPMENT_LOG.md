@@ -395,3 +395,18 @@
 - Regression coverage was added for traversal names, fake signing claims, and
   malicious recorded paths attempting to escape the package root. The changes
   are not merged; automated checks must pass before merging.
+
+## 2026-10-21 — User home path safety (review branch)
+- Source audit found `aira-user adduser --home /` could pass the existing
+  absolute-path/character allowlist and then attempt `chown`/ `chmod` on the
+  filesystem root. Existing system directories such as `/etc` were also
+  accepted as home paths. `usermod --home` could similarly accept an unsafe
+  destination.
+- Branch `fix/user-home-path-safety` restricts home paths to descendants of
+  configured home roots, rejects the root/home-root paths themselves, refuses
+  to take ownership of an already-existing destination, and validates changed
+  `usermod` destinations before moving a home directory.
+- `scripts/test-user.sh` now covers `/`, `/etc`, a home root itself,
+  pre-existing home content, and rejected usermod home changes. CI must pass
+  before this fix is merged. The tests use sandbox credential files and do not
+  intentionally alter host system directories.
