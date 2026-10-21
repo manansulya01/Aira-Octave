@@ -152,7 +152,8 @@ P adduser existinghome --home "$HOME_ROOT/existing" >/dev/null 2>&1 && bad "exis
 [ "$(cat "$HOME_ROOT/existing/marker")" = "keep-existing-home" ] && ok "existing home content preserved" || bad "existing home content preserved"
 if grep -q '^existinghome:' "$AIRA_USER_ETC/passwd"; then bad "existing-home account not partially created"; else ok "existing-home account not partially created"; fi
 P usermod newuser --home "/" >/dev/null 2>&1 && bad "unsafe usermod home rejected" || ok "unsafe usermod home rejected"
-grep -q '^newuser:x:1501:.*:/home/newuser:/bin/sh
+grep -q '^newuser:x:1501:.*:/home/newuser:/bin/sh$' "$AIRA_USER_ETC/passwd" && ok "rejected usermod leaves home unchanged" || bad "rejected usermod leaves home unchanged"
+P adduser badpath --uid "abc" >/dev/null 2>&1 && bad "non-numeric uid rejected" || ok "non-numeric uid rejected"
 P adduser badpath --uid "99999" >/dev/null 2>&1 && bad "out-of-range uid rejected" || ok "out-of-range uid rejected"
 P adduser badpath --shell "/bin/sh;id" >/dev/null 2>&1 && bad "shell metachars rejected" || ok "shell metachars rejected"
 P adduser badpath --gecos "a:b" >/dev/null 2>&1 && bad "gecos colon rejected" || ok "gecos colon rejected"
