@@ -194,3 +194,21 @@
 - The failing CI run was a valid red result, not ignored. The new commit triggers
   another syntax + full-build run. Await its regression result before treating
   the release fix as verified.
+
+## 2026-10-21 — Update subsystem fail-closed correction
+- Source audit found `initramfs/sbin/aira-update` was not a functioning updater:
+  it wrote a hard-coded version, created an empty fake package, ignored package
+  installation failure, and could still report success/change the OS version.
+  Its snapshot/rollback path also did not validate snapshot completeness.
+- Commit `4fa7dd5d1bdf6050a07fac44af185a2a2989f0b4` removes simulated download,
+  install, and rollback behavior. Until a trusted feed, cryptographic signature
+  verification, and transactional restore are implemented, those operations
+  now fail closed and explicitly report that no data was changed. Status reports
+  legacy candidates as unverified instead of implying rollback is available.
+- Added `scripts/test-update-safety.sh` in commit
+  `17260357bd23ef85a333bfd7bd96d68ec4e224fd`; it asserts check/download/install/
+  rollback cannot claim success or modify version/legacy package state without
+  a trusted backend. Added it to full-build regression gates in
+  `fe554d4c7f009cbbf649b70b55d21604927411c6`.
+- This is a correctness/security fix, not a claim that OTA updates are complete.
+  A real signed update system remains an unfinished OS capability.
