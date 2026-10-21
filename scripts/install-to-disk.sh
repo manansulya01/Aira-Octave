@@ -117,15 +117,16 @@ PREFLIGHT_MNT="$(mktemp -d /tmp/aira-rootfs-preflight.XXXXXX)" || {
 PREFLIGHT_MOUNTED=0
 cleanup_preflight() {
   set +e
-  if (( PREFLIGHT_MOUNTED != 0 )); then umount "$PREFLIGHT_MNT"; fi
+  if (( PREFLIGHT_MOUNTED != 0 )); then umount "$PREFLIGHT_MNT" 2>/dev/null; fi
   [[ -z "$PREFLIGHT_MNT" ]] || rmdir "$PREFLIGHT_MNT"
 }
 trap cleanup_preflight EXIT HUP INT TERM
+# Mark the attempt before calling mount so cleanup also handles partial failures.
+PREFLIGHT_MOUNTED=1
 if ! mount -o loop,ro,noload "$ROOTFS_IMAGE" "$PREFLIGHT_MNT"; then
   echo "ERROR: rootfs image cannot be mounted read-only; target disk was not changed."
   exit 1
 fi
-PREFLIGHT_MOUNTED=1
 if [[ ! -d "$PREFLIGHT_MNT/etc/aira" ||
       ! -x "$PREFLIGHT_MNT/usr/bin/aira-session" ||
       ! -x "$PREFLIGHT_MNT/usr/bin/jwm" ||
