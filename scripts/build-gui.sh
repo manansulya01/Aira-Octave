@@ -26,7 +26,7 @@ PKGS="jwm xterm xvfb xserver-xorg-core xserver-xorg-input-libinput xserver-xorg-
 PKGS="$PKGS libc6 libx11-6 libxcb1 libbsd0 libmd0 libpcre2-8-0 liblzma5 zlib1g libzstd1 libexpat1 libuuid1 libblkid1 libmount1 libsmartcols1 libfdisk1 libffi8 libdrm2 libxshmfence1 libfontenc1"
 PKGS="$PKGS libpixman-1-0 libxfont2 libgl1 libxaw7 libxmu6 libxpm4 libxft2 libxinerama1 libxrender1 libxext6 libxt6t64 libice6 libsm6 libfontconfig1 libfreetype6 libglib2.0-0t64 libslang2 libgpm2 libssh2-1t64 libext2fs2t64 libcairo2 libpango-1.0-0 libpangoft2-1.0-0 libpangoxft-1.0-0 libjpeg8 libpng16-16t64 librsvg2-2 libxcomposite1 libxrandr2 libxkbfile1 libxmuu1 libxtst6 libxv1 libxxf86dga1 libxxf86vm1 libxcb-shape0 libx11-xcb1 libutempter0 libtinfo6 libaudit1 libselinux1 libsystemd0 libunwind8 libnettle8t64 libxdmcp6 libxau6 libxcursor1 libxi6 libxcb-damage0 libxcb-present0 libxcb-xfixes0"
 PKGS="$PKGS libglvnd0 libglx-mesa0 libglapi-mesa libegl-mesa0 libgbm1 libwayland-client0 libglx0 libopengl0 libegl1 libbz2-1.0 liblz4-1 libcap2 libgcrypt20 libgpg-error0 libxfixes3 libatomic1 libbrotli1 libcairo-gobject2 libcap-ng0 libcom-err2 libssl3t64 libepoxy0 libfribidi0 libgcc-s1 libgdk-pixbuf-2.0-0 libharfbuzz0b libjpeg-turbo8 libpangocairo-1.0-0 libpciaccess0 libthai0 libudev1 libxcb-dri3-0 libxcb-glx0 libxcb-randr0 libxcb-render0 libxcb-shm0 libxml2-16 libxxhash0 libdatrie1 libgl1-mesa-dri libglycin-2-0 libgraphite2-3 mesa-libgallium liblcms2-2 libseccomp2 libllvm21 libdrm-amdgpu1 libdrm-intel1 libelf1t64 libsensors5 libstdc++6 libxcb-sync1 libedit2 fontconfig fontconfig-config fonts-dejavu-core"
-PKGS="$PKGS libinput10 libevdev2 libmtdev1t64 libwacom9 libdbus-1-3 libxcvt0 libgudev-1.0-0"
+PKGS="$PKGS libinput10 libevdev2 libmtdev1t64 libwacom9 libdbus-1-3 libxcvt0 libgudev-1.0-0 libicu74"
 
 # Resolve package names against the actual runner repositories. The manifest
 # spans Ubuntu releases, where several runtime library package names changed.
@@ -46,6 +46,7 @@ for pkg in $PKGS; do
     libjpeg8) alternatives="libjpeg-turbo8 libjpeg62-turbo" ;;
     libmtdev1t64) alternatives="libmtdev1" ;;
     libwacom9) alternatives="libwacom8 libwacom7" ;;
+    libicu74) alternatives="libicu76 libicu78 libicu72 libicu70" ;;
     *) alternatives="" ;;
   esac
   selected=""
