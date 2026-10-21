@@ -439,47 +439,41 @@
   Linux kernel when last inspected. Neither run is a verified release yet;
   wait for the latest run to complete all QEMU and ISO boot gates.
 
-## 2026-10-21 — Account database atomic-write audit (review branch)
-- Audit found `_commit()` truncated live credential files with `cat > target`,
-  ignored `chmod` failures, and multi-file adduser/deluser changes could leave
+## 2026-10-21 — Account database atomic-write fix (merged)
+- Audit found \`_commit()\` truncated live credential files with \`cat > target\`,
+  ignored \`chmod\` failures, and multi-file adduser/deluser changes could leave
   group, shadow, and passwd inconsistent after a mid-commit failure.
-- Branch `fix/user-db-atomic-commits` stages each replacement in the target
-  directory and renames it atomically after preserving mode/owner. Adduser and
-  deluser now back up all three files and restore them if a later replacement
-  fails; usermod lock/unlock uses a two-file transaction and rolls a home move
-  back when the database commit fails. Direct single-file updates now check
-  commit failures instead of reporting success.
-- `scripts/test-user.sh` injects a failure on the second credential-file
-  replacement and checks the original passwd, shadow, and group bytes are
-  restored with no partial account rows. This branch must pass CI before merge.
+- PR #20 merged after core CI passed: user tests 90/0 and package tests 56/0.
+  The implementation stages each replacement in the target directory and
+  restores passwd/shadow/group if a later replacement fails. Full combined
+  release verification is tracked separately.
 
-## 2026-10-21 — ALSA audio implementation (review branch)
-- Audit found the advertised `aira-audio` controls were not backed by staged
+## 2026-10-21 — ALSA audio implementation (merged)
+- Audit found the advertised \`aira-audio\` controls were not backed by staged
   ALSA userspace tools, and start/volume/mute/test commands could print success
   after the underlying mixer or playback command failed.
-- Branch `feat/alsa-audio-runtime` stages `alsa-utils`, ALSA topology/UC
-  profiles, and the direct runtime libraries; the GUI stage now fails if the
-  required ALSA commands are absent. `aira-audio` exposes the persistent
-  tool/library paths, detects common mixer controls, and returns failure rather
-  than claiming that failed mixer or test-tone operations succeeded.
-- Kernel configuration enables common Intel HDA/Realtek/HDMI, AC97, USB audio,
-  and virtio sound drivers. QEMU boot gained an optional discard-backend HDA
-  device; the GUI test now requests that device and checks an in-guest audio
-  smoke-test marker. Mocked tests cover success, failure, invalid volume, and
-  missing-tool behavior.
-- The feature is not yet merged. Core CI and the full clean-runner build/QEMU
-  audio smoke test must pass before claiming hardware/guest audio verified.
+- PR #19 merged after core CI passed, including the mocked ALSA suite (17/0).
+  The implementation stages ALSA tools/libraries, enables common kernel sound
+  drivers, detects common mixer controls, and adds a QEMU guest audio smoke test.
+- The full clean-runner QEMU guest audio smoke test is pending; do not claim
+  guest/hardware audio verified until the combined full workflow passes.
 
-## 2026-10-21 — Installer rootfs preflight (review branch)
+## 2026-10-21 — Installer rootfs preflight (merged)
 - Audit found that the installer checked the rootfs image's file signature and
   checksum, but only attempted to mount it after repartitioning and formatting
-  the target disk. A damaged or structurally incomplete image could therefore
-  be discovered too late.
-- Branch `fix/installer-rootfs-preflight` mounts the image read-only with
-  journal replay disabled before confirmation, checks for the required Aira
-  desktop payload, and aborts with the target untouched if mounting or payload
-  validation fails. Cleanup removes the preflight mount on success and failure.
-- `scripts/test-install-guard.sh` checks that the preflight is ordered before
-  the erase confirmation, partition-table write, and filesystem format. The
-  branch still requires CI; the guard is static and does not replace a real
-  disposable-disk installer/boot test.
+  the target disk.
+- PR #21 merged after core CI passed, including the static install guard. The
+  installer now mounts the image read-only with journal replay disabled and
+  validates required desktop payload before confirmation or disk modification.
+- The guard verifies ordering only; a disposable-disk install-and-boot test
+  remains outstanding.
+
+## 2026-10-21 — Baseline clean-runner release verification
+- Full workflow run \`39599465206\` passed on baseline revision
+  \`b4b77c2857e82f2ecbcb13c54f89f95e4c696b48\`: kernel and initramfs build,
+  desktop/rootfs staging, userspace and kernel boot, GUI/QEMU, networking,
+  safe recovery, persistence across reboots, support bundle, mocked build
+  safety regressions, release artifact generation, and ISO boot.
+- That run predates the merged ALSA and installer preflight changes. The full
+  workflow for combined revision \`9336a185020e1bf1d944dc57cc8278742485fe82\`
+  is running; its result is the release gate for the combined revision.
