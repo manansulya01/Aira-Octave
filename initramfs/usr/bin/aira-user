@@ -83,7 +83,19 @@ valid_home() {
     for _home_root in $HOME_ROOTS; do
         [ "$1" != "$_home_root" ] || continue
         case "$1" in
-            "$_home_root"/*) return 0 ;;
+            "$_home_root"/*)
+                # Refuse symlinked roots or parent components: otherwise a
+                # safe-looking /home/link/newuser could resolve into /etc.
+                [ ! -L "$_home_root" ] || return 1
+                _home_parent="$(dirname "$1")"
+                while [ "$_home_parent" != "$_home_root" ]; do
+                    [ ! -L "$_home_parent" ] || return 1
+                    _home_next="$(dirname "$_home_parent")"
+                    [ "$_home_next" != "$_home_parent" ] || return 1
+                    _home_parent="$_home_next"
+                done
+                return 0
+                ;;
         esac
     done
     return 1
