@@ -118,3 +118,21 @@
   actual desktop and network path, not only kernel/initramfs startup.
 - The latest workflow run and its results still need to be inspected before
   marking these checks or the release as passing.
+
+## 2026-10-21 — CI build hardening follow-up
+- Updated `scripts/build-gui.sh` in commit
+  `d506b9202e97e59b7d1c65b1d7e6a9254da2909b`:
+  - records GUI package names unavailable in the runner's configured APT
+    repositories instead of letting one absent name silently invalidate the
+    entire URI-generation command;
+  - fails on unresolved URI generation, failed/empty downloads, and failed
+    package extraction instead of continuing with a partial desktop tree;
+  - keeps the minimum-package guard and emits counts for diagnosis.
+- Updated `.github/workflows/full-os-build-and-qemu.yml` in commit
+  `5be7d70cf01627b851a0927b2e51cac8ff1a0f3e` so changes to GUI/network tests
+  and build-safety regression scripts trigger full verification.
+- These are source/configuration changes only. This environment has not
+  executed the repository's WSL build or QEMU tests, and no passing Actions run
+  has yet been confirmed. The next gate is inspecting the triggered run and
+  correcting any actual failing step; do not mark the release verified yet.
+
