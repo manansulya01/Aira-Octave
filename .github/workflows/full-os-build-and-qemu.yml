@@ -15,9 +15,13 @@ on:
       - "scripts/boot-qemu.sh"
       - "scripts/test-kernel.sh"
       - "scripts/test-userspace.sh"
+      - "scripts/test-gui.sh"
+      - "scripts/test-network.sh"
       - "scripts/test-safe-mode.sh"
       - "scripts/test-storage.sh"
       - "scripts/test-support-bundle.sh"
+      - "scripts/test-build-rootfs-atomic.sh"
+      - "scripts/test-build-release-guards.sh"
       - "scripts/test-iso.sh"
 
 permissions:
