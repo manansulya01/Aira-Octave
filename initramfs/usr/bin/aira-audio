@@ -1,5 +1,5 @@
 #!/bin/sh
-# AiraOS Audio Service - ALSA-based audio management.
+# AiraOS Audio Service — ALSA userspace controls with explicit failure reporting.
 # Usage: aira-audio {start|stop|status|volume|mute|unmute|list|test}
 
 set -u
@@ -7,11 +7,20 @@ set -u
 CMD="${1:-status}"
 SND_CARD="${AIRA_AUDIO_CARD:-0}"
 
+# ALSA tools and shared libraries are staged on the persistent rootfs.
+case ":$PATH:" in
+    *:/persist/usr/bin:*) ;;
+    *) PATH="/persist/usr/bin:/persist/usr/sbin:/persist/bin:/persist/sbin:$PATH" ;;
+esac
+export PATH
+LD_LIBRARY_PATH="/persist/usr/lib/x86_64-linux-gnu:/persist/lib/x86_64-linux-gnu:/persist/usr/lib:/persist/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+export LD_LIBRARY_PATH
+
 usage() {
     cat <<'EOF'
 aira-audio — AiraOS audio management
-  aira-audio start               Start audio service
-  aira-audio stop                Stop audio service
+  aira-audio start               Initialize ALSA and set the default volume
+  aira-audio stop                Mute audio and save ALSA state when possible
   aira-audio status              Show audio status
   aira-audio volume [0-100]      Get/set master volume
   aira-audio mute                Mute master
@@ -21,29 +30,46 @@ aira-audio — AiraOS audio management
 EOF
 }
 
+require_tool() {
+    command -v "$1" >/dev/null 2>&1 || {
+        echo "aira-audio: required ALSA tool '$1' is not installed" >&2
+        return 1
+    }
+}
+
 start_audio() {
     echo "[audio] Starting audio service..."
-    # Load ALSA modules
-    modprobe -q snd_pcm 2>/dev/null
-    modprobe -q snd_timer 2>/dev/null
-    modprobe -q snd_virtio 2>/dev/null
-    modprobe -q snd_intel8x0 2>/dev/null
-    modprobe -q snd_hda_intel 2>/dev/null
-    
-    # Initialize ALSA
-    alsactl init 2>/dev/null || true
-    
-    # Set default volume
-    amixer -c "$SND_CARD" sset Master 70% unmute 2>/dev/null || true
-    
+    require_tool amixer || return 1
+
+    # Optional module probes: the device may be built in or use another driver.
+    modprobe -q snd_pcm 2>/dev/null || true
+    modprobe -q snd_timer 2>/dev/null || true
+    modprobe -q snd_virtio 2>/dev/null || true
+    modprobe -q snd_intel8x0 2>/dev/null || true
+    modprobe -q snd_hda_intel 2>/dev/null || true
+
+    if command -v alsactl >/dev/null 2>&1; then
+        alsactl init 2>/dev/null || echo "[audio] WARNING: alsactl init unavailable for this device" >&2
+    fi
+
+    if ! amixer -c "$SND_CARD" sset Master 70% unmute 2>/dev/null; then
+        echo "aira-audio: failed to initialize mixer for sound card '$SND_CARD'; no audio device or Master control may be available" >&2
+        return 1
+    fi
+
     echo "[audio] Audio service started"
 }
 
 stop_audio() {
     echo "[audio] Stopping audio service..."
-    # Mute and save state
-    amixer -c "$SND_CARD" sset Master mute 2>/dev/null || true
-    alsactl store 2>/dev/null || true
+    require_tool amixer || return 1
+    if ! amixer -c "$SND_CARD" sset Master mute 2>/dev/null; then
+        echo "aira-audio: failed to mute sound card '$SND_CARD'" >&2
+        return 1
+    fi
+    if command -v alsactl >/dev/null 2>&1 && ! alsactl store 2>/dev/null; then
+        echo "[audio] WARNING: could not save ALSA state" >&2
+    fi
     echo "[audio] Audio service stopped"
 }
 
@@ -52,45 +78,63 @@ status_audio() {
     echo "Sound card: $SND_CARD"
     echo
     echo "--- Playback devices ---"
-    aplay -l 2>/dev/null || echo "No playback devices"
+    if command -v aplay >/dev/null 2>&1; then aplay -l 2>/dev/null || echo "No playback devices"; else echo "aplay not installed"; fi
     echo
     echo "--- Capture devices ---"
-    arecord -l 2>/dev/null || echo "No capture devices"
+    if command -v arecord >/dev/null 2>&1; then arecord -l 2>/dev/null || echo "No capture devices"; else echo "arecord not installed"; fi
     echo
     echo "--- Mixer controls ---"
-    amixer -c "$SND_CARD" scontents 2>/dev/null | head -n 30 || echo "No mixer"
+    if command -v amixer >/dev/null 2>&1; then amixer -c "$SND_CARD" scontents 2>/dev/null | head -n 30 || echo "No mixer"; else echo "amixer not installed"; fi
     echo
     echo "--- ALSA state ---"
-    alsactl --file=- store 2>/dev/null | head -n 20
+    if command -v alsactl >/dev/null 2>&1; then alsactl --file=- store 2>/dev/null | head -n 20 || true; else echo "alsactl not installed"; fi
 }
 
 volume_audio() {
     VOL="${2:-}"
+    require_tool amixer || return 1
     if [ -z "$VOL" ]; then
-        # Get current volume
-        amixer -c "$SND_CARD" get Master 2>/dev/null | grep -o '[0-9]*%' | head -1
+        _volume_output="$(amixer -c "$SND_CARD" get Master 2>/dev/null)" || {
+            echo "aira-audio: failed to read mixer volume for card '$SND_CARD'" >&2
+            return 1
+        }
+        _volume="$(printf '%s\n' "$_volume_output" | grep -o '[0-9]*%' | head -n 1)"
+        [ -n "$_volume" ] || { echo "aira-audio: Master volume is unavailable" >&2; return 1; }
+        echo "$_volume"
     else
-        # Set volume
         case "$VOL" in
-            *[!0-9]*|"") echo "Invalid volume"; exit 1 ;;
+            *[!0-9]*|"") echo "Invalid volume"; return 1 ;;
         esac
-        [ "$VOL" -ge 0 ] && [ "$VOL" -le 100 ] || { echo "Volume must be 0-100"; exit 1; }
-        amixer -c "$SND_CARD" sset Master "${VOL}%" 2>/dev/null
-        echo "Volume set to ${VOL}%"
+        [ "$VOL" -ge 0 ] && [ "$VOL" -le 100 ] || { echo "Volume must be 0-100"; return 1; }
+        if ! amixer -c "$SND_CARD" sset Master "$VOL%" 2>/dev/null; then
+            echo "aira-audio: failed to set volume on sound card '$SND_CARD'" >&2
+            return 1
+        fi
+        echo "Volume set to $VOL%"
     fi
 }
 
 mute_audio() {
-    amixer -c "$SND_CARD" sset Master mute 2>/dev/null
+    require_tool amixer || return 1
+    amixer -c "$SND_CARD" sset Master mute 2>/dev/null || {
+        echo "aira-audio: failed to mute sound card '$SND_CARD'" >&2
+        return 1
+    }
     echo "Muted"
 }
 
 unmute_audio() {
-    amixer -c "$SND_CARD" sset Master unmute 2>/dev/null
+    require_tool amixer || return 1
+    amixer -c "$SND_CARD" sset Master unmute 2>/dev/null || {
+        echo "aira-audio: failed to unmute sound card '$SND_CARD'" >&2
+        return 1
+    }
     echo "Unmuted"
 }
 
 list_audio() {
+    require_tool aplay || return 1
+    require_tool arecord || return 1
     echo "=== Audio Devices ==="
     echo "Playback:"
     aplay -L 2>/dev/null | grep -v '^$' | sed 's/^/  /'
@@ -101,10 +145,16 @@ list_audio() {
 
 test_audio() {
     echo "[audio] Playing test tone..."
-    # Generate a simple sine wave test
-    speaker-test -t sine -f 440 -c 2 -l 1 2>/dev/null || \
-    (dd if=/dev/zero bs=1k count=48 2>/dev/null | aplay -f S16_LE -c 2 -r 48000 2>/dev/null) || \
-    echo "Test completed (no audio output device)"
+    if command -v speaker-test >/dev/null 2>&1 && speaker-test -t sine -f 440 -c 2 -l 1 2>/dev/null; then
+        echo "[audio] Test tone played"
+        return 0
+    fi
+    if command -v aplay >/dev/null 2>&1 && dd if=/dev/zero bs=1k count=48 2>/dev/null | aplay -f S16_LE -c 2 -r 48000 2>/dev/null; then
+        echo "[audio] Fallback test audio submitted"
+        return 0
+    fi
+    echo "aira-audio: test tone failed; check ALSA tools, sound card, and mixer configuration" >&2
+    return 1
 }
 
 case "$CMD" in
