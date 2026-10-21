@@ -51,6 +51,17 @@ else
 fi
 if grep -q "Audio service started" "$T/start-fail.log"; then bad "failed start does not claim success"; else ok "failed start does not claim success"; fi
 
+echo "--- stop reports the actual mixer result ---"
+if PATH="$T/bin:/usr/bin:/bin" MOCK_AMIXER_FAIL=0 /bin/sh "$AUDIO" stop >"$T/stop.log" 2>&1; then
+  grep -q "Audio service stopped" "$T/stop.log" && ok "successful stop reported" || bad "successful stop reported"
+else bad "mocked stop succeeds"; fi
+if PATH="$T/bin:/usr/bin:/bin" MOCK_AMIXER_FAIL=1 /bin/sh "$AUDIO" stop >"$T/stop-fail.log" 2>&1; then
+  bad "failed stop rejected"
+else
+  grep -q "failed to mute" "$T/stop-fail.log" && ok "failed stop rejected" || bad "failed stop diagnostic"
+fi
+if grep -q "Audio service stopped" "$T/stop-fail.log"; then bad "failed stop does not claim success"; else ok "failed stop does not claim success"; fi
+
 echo "--- volume and mute failures propagate ---"
 PATH="$T/bin:/usr/bin:/bin" MOCK_AMIXER_FAIL=0 /bin/sh "$AUDIO" volume >"$T/volume-get.log" 2>&1
 if grep -Fqx "70%" "$T/volume-get.log"; then
