@@ -174,3 +174,10 @@
 - These edits trigger the full workflow through the configured build/test path
   filters. The mocked test and full QEMU suite still need an observed run result;
   source inspection alone is not a test pass.
+
+- The GUI package audit also found that the resolver could omit an unavailable
+  core desktop component while still passing the broad minimum-package-count
+  check. Commit `1f659b07d1986a18839531b0f5a4d4c7204c23e8` now makes the core
+  JWM/X11/session packages mandatory and reports a specific missing package.
+  This prevents a partially downloaded package set from being presented as a
+  valid desktop stage. Clean-runner verification is still required.
