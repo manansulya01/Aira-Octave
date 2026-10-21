@@ -133,21 +133,38 @@ if ! {
 fi
 [ -s "$SUM_TMP" ] || { echo "ERROR: checksum file is empty." | tee -a "$LOG"; exit 1; }
 
-# Publish the staged version directory only after every artifact is ready.
-# Keep a rollback copy in the private workspace if the directory rename fails.
+# Publish as a rollback-capable transaction. Preserve every old artifact in
+# the private workspace until the entire new release is installed successfully.
 REL_BACKUP="$TMPDIR_BUILD/previous-release-dir"
+ISO_BACKUP="$TMPDIR_BUILD/previous-release.iso"
+TAR_BACKUP="$TMPDIR_BUILD/previous-release.tar.gz"
+SUM_BACKUP="$TMPDIR_BUILD/previous-release.sha256"
+HAD_REL=0; HAD_ISO=0; HAD_TAR=0; HAD_SUM=0
+rollback_publish() {
+  local failed=0
+  rm -rf -- "$REL" || failed=1
+  [ "$HAD_REL" -eq 0 ] || mv -- "$REL_BACKUP" "$REL" || failed=1
+  rm -f -- "$ISO" "$TAR" "$SUM" || failed=1
+  [ "$HAD_ISO" -eq 0 ] || mv -- "$ISO_BACKUP" "$ISO" || failed=1
+  [ "$HAD_TAR" -eq 0 ] || mv -- "$TAR_BACKUP" "$TAR" || failed=1
+  [ "$HAD_SUM" -eq 0 ] || mv -- "$SUM_BACKUP" "$SUM" || failed=1
+  return "$failed"
+}
 if [ -e "$REL" ] || [ -L "$REL" ]; then
-  mv -- "$REL" "$REL_BACKUP" || { echo "ERROR: could not stage previous release directory"; exit 1; }
+  mv -- "$REL" "$REL_BACKUP" || { echo "ERROR: could not back up previous release directory"; exit 1; }
+  HAD_REL=1
 fi
-if ! mv -- "$STAGE_REL" "$REL"; then
-  echo "ERROR: could not publish staged release directory" | tee -a "$LOG"
-  if [ -e "$REL_BACKUP" ] || [ -L "$REL_BACKUP" ]; then mv -- "$REL_BACKUP" "$REL" || echo "CRITICAL: previous release directory restore failed" | tee -a "$LOG"; fi
+if [ -e "$ISO" ] || [ -L "$ISO" ]; then mv -- "$ISO" "$ISO_BACKUP" || { echo "ERROR: could not back up previous ISO"; rollback_publish || echo "CRITICAL: release rollback incomplete" | tee -a "$LOG"; exit 1; }; HAD_ISO=1; fi
+if [ -e "$TAR" ] || [ -L "$TAR" ]; then mv -- "$TAR" "$TAR_BACKUP" || { echo "ERROR: could not back up previous tarball"; rollback_publish || echo "CRITICAL: release rollback incomplete" | tee -a "$LOG"; exit 1; }; HAD_TAR=1; fi
+if [ -e "$SUM" ] || [ -L "$SUM" ]; then mv -- "$SUM" "$SUM_BACKUP" || { echo "ERROR: could not back up previous checksums"; rollback_publish || echo "CRITICAL: release rollback incomplete" | tee -a "$LOG"; exit 1; }; HAD_SUM=1; fi
+if ! mv -- "$STAGE_REL" "$REL" ||
+   ! mv -- "$ISO_TMP" "$ISO" ||
+   ! mv -- "$TAR_TMP" "$TAR" ||
+   ! mv -- "$SUM_TMP" "$SUM"; then
+  echo "ERROR: release publication failed; restoring previous artifacts" | tee -a "$LOG"
+  rollback_publish || echo "CRITICAL: release rollback incomplete; inspect $TMPDIR_BUILD and $LOG" | tee -a "$LOG"
   exit 1
 fi
-# Publish top-level artifacts only after the new release directory is in place.
-mv -f -- "$ISO_TMP" "$ISO" || { echo "ERROR: could not publish ISO"; exit 1; }
-mv -f -- "$TAR_TMP" "$TAR" || { echo "ERROR: could not publish tarball"; exit 1; }
-mv -f -- "$SUM_TMP" "$SUM" || { echo "ERROR: could not publish checksums"; exit 1; }
 
 {
   echo "--- published artifacts ---"
