@@ -561,6 +561,21 @@ else
   echo "GUI-TEST: skipped (no aira_guitest=1)"
 fi
 
+echo "--- audio (only when requested by the QEMU audio test) ---"
+if grep -q "aira_audiotest=1" /proc/cmdline 2>/dev/null; then
+  if /usr/bin/aira-audio start >/tmp/aira-audio-start.out 2>&1 && /usr/bin/aira-audio test >/tmp/aira-audio-test.out 2>&1; then
+    echo "GUEST-TEST OK: audio"
+    echo "AUDIO TEST PASS"
+  else
+    echo "GUEST-TEST FAIL: audio"
+    cat /tmp/aira-audio-start.out /tmp/aira-audio-test.out 2>/dev/null
+    echo "AUDIO TEST FAIL"
+    PASS=0
+  fi
+else
+  echo "AUDIO-TEST: skipped (no aira_audiotest=1)"
+fi
+
 if [ "$PASS" = "1" ]; then echo "===== GUEST AUTOTEST PASS =====";
 else echo "===== GUEST AUTOTEST FAIL ====="; fi
 echo "powering off"
