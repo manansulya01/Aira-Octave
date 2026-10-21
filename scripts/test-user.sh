@@ -143,6 +143,106 @@ P adduser uidclash --uid 1000 >/dev/null 2>&1 && bad "duplicate uid rejected" ||
 echo "--- UID/GID/path validation ---"
 P adduser badpath --home "relative/path" >/dev/null 2>&1 && bad "relative home rejected" || ok "relative home rejected"
 P adduser badpath --home "/home/../etc" >/dev/null 2>&1 && bad "traversal home rejected" || ok "traversal home rejected"
+P adduser badroot --home "/" >/dev/null 2>&1 && bad "root-directory home rejected" || ok "root-directory home rejected"
+P adduser badetc --home "/etc" >/dev/null 2>&1 && bad "system-directory home rejected" || ok "system-directory home rejected"
+P adduser badroot --home "/home" >/dev/null 2>&1 && bad "home-root itself rejected" || ok "home-root itself rejected"
+mkdir -p "$HOME_ROOT/existing"
+printf 'keep-existing-home\n' > "$HOME_ROOT/existing/marker"
+P adduser existinghome --home "$HOME_ROOT/existing" >/dev/null 2>&1 && bad "existing home path refused" || ok "existing home path refused"
+[ "$(cat "$HOME_ROOT/existing/marker")" = "keep-existing-home" ] && ok "existing home content preserved" || bad "existing home content preserved"
+if grep -q '^existinghome:' "$AIRA_USER_ETC/passwd"; then bad "existing-home account not partially created"; else ok "existing-home account not partially created"; fi
+P usermod newuser --home "/" >/dev/null 2>&1 && bad "unsafe usermod home rejected" || ok "unsafe usermod home rejected"
+grep -q '^newuser:x:1501:.*:/home/newuser:/bin/sh
+P adduser badpath --uid "99999" >/dev/null 2>&1 && bad "out-of-range uid rejected" || ok "out-of-range uid rejected"
+P adduser badpath --shell "/bin/sh;id" >/dev/null 2>&1 && bad "shell metachars rejected" || ok "shell metachars rejected"
+P adduser badpath --gecos "a:b" >/dev/null 2>&1 && bad "gecos colon rejected" || ok "gecos colon rejected"
+P addgroup grp1 --gid abc >/dev/null 2>&1 && bad "group bad gid rejected" || ok "group bad gid rejected"
+
+echo "--- passwd hashing is salted, not a bare digest ---"
+printf 'hunter2hunter2\n' | P passwd newuser --stdin >/dev/null 2>&1
+LINE="$(awk -F: '$1=="newuser" { print $2; exit }' "$AIRA_USER_ETC/shadow")"
+case "$LINE" in
+  *aira1*) ok "uses tagged hash format" ;;
+  *) bad "uses tagged hash format (got: ${LINE:-none})" ;;
+esac
+case "$LINE" in
+  *'$'*) ok "hash carries salt/params" ;;
+  *) bad "hash carries salt/params" ;;
+esac
+case "$LINE" in
+  ""|"*") bad "password actually stored" ;;
+  *) ok "password actually stored" ;;
+esac
+# Two accounts with the SAME password must not produce the same hash (salt works).
+printf 'hunter2hunter2\n' | P passwd testuser --stdin >/dev/null 2>&1
+L1="$(awk -F: '$1=="newuser" { print $2; exit }' "$AIRA_USER_ETC/shadow")"
+L2="$(awk -F: '$1=="testuser" { print $2; exit }' "$AIRA_USER_ETC/shadow")"
+[ -n "$L1" ] && [ "$L1" != "$L2" ] && ok "identical passwords hash differently (salted)" || bad "identical passwords hash differently (salted)"
+# Weak passwords refused
+printf 'short\n' | P passwd newuser --stdin >/dev/null 2>&1 && bad "short password refused" || ok "short password refused"
+P passwd root --stdin </dev/null >/dev/null 2>&1 && bad "root passwd refused" || ok "root passwd refused"
+awk -F: '$1=="newuser" { exit ($2 ~ /^\$aira1\$/ ? 0 : 1) }' "$AIRA_USER_ETC/shadow" \
+  && ok "short-password attempt did not corrupt hash" || bad "short-password attempt did not corrupt hash"
+
+echo "--- shadow stays non-world-readable ---"
+MODE="$(stat -c %a "$AIRA_USER_ETC/shadow" 2>/dev/null || echo '?')"
+case "$MODE" in
+  [0-7][0-7][0-7])
+    if [ "$(( 8#$MODE & 0004 ))" -eq 0 ]; then
+      ok "shadow mode $MODE (not world-readable)"
+    else
+      bad "shadow mode $MODE (is world-readable)"
+    fi
+    ;;
+  *) bad "shadow mode $MODE" ;;
+esac
+
+echo "--- usermod correctness ---"
+if P usermod newuser --uid 1502 2>&1; then
+  grep -q "^newuser:x:1502:" "$AIRA_USER_ETC/passwd" && ok "usermod changed uid" || bad "usermod changed uid (line: $(grep '^newuser:' "$AIRA_USER_ETC/passwd"))"
+else
+  bad "usermod newuser --uid 1502 succeeded"
+fi
+P usermod newuser --lock >/dev/null 2>&1
+awk -F: '$1=="newuser" { exit ($2=="!" ? 0 : 1) }' "$AIRA_USER_ETC/shadow" \
+  && ok "lock sets ! marker" || bad "lock sets ! marker"
+P usermod newuser --unlock >/dev/null 2>&1
+awk -F: '$1=="newuser" { exit ($2=="*" ? 0 : 1) }' "$AIRA_USER_ETC/shadow" \
+  && ok "unlock resets to *" || bad "unlock resets to *"
+P usermod newuser --lock --unlock >/dev/null 2>&1 && bad "lock+unlock rejected" || ok "lock+unlock rejected"
+P usermod root --uid 0 --home /root >/dev/null 2>&1
+grep -q "^root:x:0:0:root:/root:/bin/sh$" "$AIRA_USER_ETC/passwd" && ok "root line unchanged" || bad "root line changed: $(grep '^root:' "$AIRA_USER_ETC/passwd")"
+
+echo "--- deluser safety ---"
+if P adduser doomed --home "$HOME_ROOT/doomed" >/dev/null 2>&1; then
+  mkdir -p "$HOME_ROOT/doomed"
+  printf 'x\n' > "$HOME_ROOT/doomed/file"
+  if P deluser doomed --remove-home >/dev/null 2>&1; then
+    grep -q "^doomed:" "$AIRA_USER_ETC/passwd" && bad "doomed removed from passwd" || ok "doomed removed from passwd"
+    [ -d "$HOME_ROOT/doomed" ] && bad "home removed" || ok "home removed"
+  else
+    bad "deluser doomed succeeded"
+  fi
+else
+  bad "adduser doomed succeeded"
+fi
+# A user whose home is "/" must not cause a recursive delete of the root fs.
+printf 'danger:x:1601:1601::/:/bin/sh\n' >> "$AIRA_USER_ETC/passwd"
+printf 'danger:*:19000:0:99999:7:::\n' >> "$AIRA_USER_ETC/shadow"
+P deluser danger --remove-home >/dev/null 2>&1
+[ -d "$T/etc" ] && ok "refused to rm -rf an unsafe home" || bad "deleted an unsafe home path"
+
+echo "--- delgroup correctness ---"
+P addgroup devgroup >/dev/null 2>&1 && ok "addgroup" || bad "addgroup"
+P delgroup devgroup >/dev/null 2>&1 && ok "delgroup" || bad "delgroup"
+grep -q "^devgroup:" "$AIRA_USER_ETC/group" && bad "devgroup removed" || ok "devgroup removed"
+P delgroup testuser >/dev/null 2>&1 && bad "primary group protected" || ok "primary group protected"
+grep -q "^testuser:" "$AIRA_USER_ETC/group" && ok "testuser group still present" || bad "testuser group deleted!"
+grep -q '^sudo:x:27:aira' "$AIRA_USER_ETC/group" && ok "supplementary membership preserved" || bad "supplementary membership lost"
+
+echo
+echo "USER TEST: PASS=$PASS FAIL=$FAIL"
+[ "$FAIL" = "0" ] "$AIRA_USER_ETC/passwd" && ok "rejected usermod leaves home unchanged" || bad "rejected usermod leaves home unchanged"
 P adduser badpath --uid "abc" >/dev/null 2>&1 && bad "non-numeric uid rejected" || ok "non-numeric uid rejected"
 P adduser badpath --uid "99999" >/dev/null 2>&1 && bad "out-of-range uid rejected" || ok "out-of-range uid rejected"
 P adduser badpath --shell "/bin/sh;id" >/dev/null 2>&1 && bad "shell metachars rejected" || ok "shell metachars rejected"
