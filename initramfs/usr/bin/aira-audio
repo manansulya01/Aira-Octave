@@ -125,7 +125,7 @@ volume_audio() {
     VOL="${2:-}"
     require_tool amixer || return 1
     select_mixer_control || return 1
-    if [ -z "$VOL"; then
+    if [ -z "$VOL" ]; then
         _volume_output="$(amixer -c "$SND_CARD" get "$MIXER_CONTROL" 2>/dev/null)" || {
             echo "aira-audio: failed to read mixer volume for card '$SND_CARD'" >&2
             return 1
