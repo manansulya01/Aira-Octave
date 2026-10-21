@@ -586,35 +586,53 @@ case "$cmd" in
             [ -z "$_o" ] || { echo "UID $UID already used by $_o" >&2; exit 1; }
         fi
 
-        # Move the home directory AFTER the UID check and only between valid,
-        # absolute paths (a rejected request must not disturb existing data).
-        if [ "$NEW_HOME" != "$OHOME" ] && [ -d "$OHOME" ] && valid_home "$NEW_HOME"; then
+        [ "$LOCK" = "1" ] && [ "$UNLOCK" = "1" ] && { echo "Cannot lock and unlock the same user in one operation" >&2; exit 1; }
+
+        # Move the home only after all path/UID checks. If the database commit
+        # fails, the move is rolled back so passwd and the filesystem agree.
+        _HOME_MOVED=0
+        if [ "$NEW_HOME" != "$OHOME" ] && [ -d "$OHOME" ]; then
             if mv "$OHOME" "$NEW_HOME" 2>/dev/null; then
-                chown -R "$NEW_UID:$NEW_GID" "$NEW_HOME" 2>/dev/null || true
+                _HOME_MOVED=1
             else
-                echo "Warning: could not move $OHOME -> $NEW_HOME" >&2
+                echo "Failed to move $OHOME -> $NEW_HOME; account unchanged" >&2
+                exit 1
             fi
         fi
 
-        # Update passwd atomically (exact field match)
+        # Prepare passwd and, when locking/unlocking, shadow before committing.
         _ptmp="$(_tmpfile passwd)"
         awk -F: -v n="$NAME" -v u="$NEW_UID" -v g="$NEW_GID" -v ge="$NEW_GECOS" -v h="$NEW_HOME" -v sh="$NEW_SHELL" \
             'BEGIN{OFS=":"} $1==n{$2="x";$3=u;$4=g;$5=ge;$6=h;$7=sh} {print}' "$PASSWD" > "$_ptmp" 2>/dev/null \
-            || { rm -f "$_ptmp"; echo "Failed to update $PASSWD" >&2; exit 1; }
-        _commit "$_ptmp" "$PASSWD"
+            || { rm -f "$_ptmp"; [ "$_HOME_MOVED" = "1" ] && mv "$NEW_HOME" "$OHOME" 2>/dev/null; echo "Failed to update $PASSWD" >&2; exit 1; }
 
-        if [ "$LOCK" = "1" ]; then
+        if [ "$LOCK" = "1" ] || [ "$UNLOCK" = "1" ]; then
             _stmp="$(_tmpfile shadow)"
-            awk -F: -v n="$NAME" 'BEGIN{OFS=":"} $1==n{$2="!"} {print}' "$SHADOW" > "$_stmp" 2>/dev/null || true
-            _commit "$_stmp" "$SHADOW" "$SHADOW_MODE" || true
-            echo "User $NAME locked"
+            if [ "$LOCK" = "1" ]; then
+                awk -F: -v n="$NAME" 'BEGIN{OFS=":"} $1==n{$2="!"} {print}' "$SHADOW" > "$_stmp" 2>/dev/null
+            else
+                awk -F: -v n="$NAME" 'BEGIN{OFS=":"} $1==n{$2="*"} {print}' "$SHADOW" > "$_stmp" 2>/dev/null
+            fi
+            if [ "$?" -ne 0 ] || [ ! -s "$_stmp" ]; then
+                rm -f "$_ptmp" "$_stmp"
+                [ "$_HOME_MOVED" = "1" ] && mv "$NEW_HOME" "$OHOME" 2>/dev/null
+                echo "Failed to prepare shadow update" >&2
+                exit 1
+            fi
+            if ! _commit_passwd_shadow "$_ptmp" "$_stmp"; then
+                [ "$_HOME_MOVED" = "1" ] && mv "$NEW_HOME" "$OHOME" 2>/dev/null || true
+                echo "Failed to commit user update; prior account files restored" >&2
+                exit 1
+            fi
+            if [ "$LOCK" = "1" ]; then echo "User $NAME locked"; else echo "User $NAME unlocked"; fi
+        else
+            if ! _commit "$_ptmp" "$PASSWD" ""; then
+                [ "$_HOME_MOVED" = "1" ] && mv "$NEW_HOME" "$OHOME" 2>/dev/null || true
+                echo "Failed to commit passwd update" >&2
+                exit 1
+            fi
         fi
-        if [ "$UNLOCK" = "1" ]; then
-            _stmp="$(_tmpfile shadow)"
-            awk -F: -v n="$NAME" 'BEGIN{OFS=":"} $1==n{$2="*"} {print}' "$SHADOW" > "$_stmp" 2>/dev/null || true
-            _commit "$_stmp" "$SHADOW" "$SHADOW_MODE" || true
-            echo "User $NAME unlocked"
-        fi
+        if [ "$_HOME_MOVED" = "1" ]; then chown -R "$NEW_UID:$NEW_GID" "$NEW_HOME" 2>/dev/null || echo "Warning: could not update ownership for $NEW_HOME" >&2; fi
         echo "User $NAME modified"
         ;;
 
