@@ -34,6 +34,8 @@ REL="$SANDBOX/release/aira-octave-1.5.0"
 ISO="$SANDBOX/release/aira-octave-1.5.0.iso"
 TAR="$SANDBOX/release/aira-octave-1.5.0.tar.gz"
 SUM="$SANDBOX/release/aira-octave-1.5.0.sha256"
+mkdir -p "$REL"
+printf 'previous release directory\n' > "$REL/KEEP-ME"
 printf 'previous iso\n' > "$ISO"
 printf 'previous tar\n' > "$TAR"
 printf 'previous checksums\n' > "$SUM"
@@ -55,6 +57,7 @@ fi
 [ "$(cat "$ISO")" = "previous iso" ] || { echo "FAIL: existing ISO overwritten on failure"; exit 1; }
 [ "$(cat "$TAR")" = "previous tar" ] || { echo "FAIL: existing tarball overwritten on failure"; exit 1; }
 [ "$(cat "$SUM")" = "previous checksums" ] || { echo "FAIL: existing checksum manifest overwritten on failure"; exit 1; }
+[ "$(cat "$REL/KEEP-ME")" = "previous release directory" ] || { echo "FAIL: existing versioned release directory changed on ISO failure"; exit 1; }
 grep -q 'existing published release artifacts were not replaced' "$TMP/fail.log" || {
   echo "FAIL: missing failure-safe diagnostic"
   exit 1
@@ -69,6 +72,8 @@ fi
 grep -q 'RELEASE BUILD PASS' "$TMP/pass.log" || { echo "FAIL: success marker missing"; exit 1; }
 [ "$(cat "$ISO")" = "mock iso artifact" ] || { echo "FAIL: ISO not published"; exit 1; }
 [ "$(cat "$TAR")" = "mock tar artifact" ] || { echo "FAIL: tarball not published"; exit 1; }
+[ ! -e "$REL/KEEP-ME" ] || { echo "FAIL: old versioned release directory was not replaced"; exit 1; }
+[ "$(cat "$REL/boot/bzImage")" = "kernel-input" ] || { echo "FAIL: new versioned release directory content incorrect"; exit 1; }
 [ "$(wc -l < "$SUM")" -eq 5 ] || { echo "FAIL: checksum manifest should contain five artifacts"; cat "$SUM"; exit 1; }
 grep -q '^.*  aira-octave-1.5.0.iso$' "$SUM" || { echo "FAIL: ISO checksum filename incorrect"; exit 1; }
 grep -q '^.*  aira-octave-1.5.0.tar.gz$' "$SUM" || { echo "FAIL: tar checksum filename incorrect"; exit 1; }
