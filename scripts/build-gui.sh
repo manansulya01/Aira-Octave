@@ -90,6 +90,20 @@ for d in "$DLDIR"/*.deb; do
   fi
 done
 
+# Fail at staging time if the desktop's runtime-critical XKB compiler or ICU
+# runtime is missing. The QEMU test also verifies the initramfs exposes these
+# persistent-tree resources at the absolute paths expected by Xorg/Xvfb.
+if [ ! -x "$STAGE/usr/bin/xkbcomp" ]; then
+  echo "ERROR: x11-xkb-utils extraction did not provide usr/bin/xkbcomp" | tee -a "$LOG"
+  exit 1
+fi
+ICU_RUNTIME="$(find "$STAGE/usr/lib" -name 'libicuuc.so.*' -print -quit 2>/dev/null)"
+if [ -z "$ICU_RUNTIME" ]; then
+  echo "ERROR: ICU runtime library libicuuc.so.* missing from GUI staging" | tee -a "$LOG"
+  exit 1
+fi
+echo "GUI_RUNTIME_CHECK PASS: xkbcomp=$STAGE/usr/bin/xkbcomp ICU=$ICU_RUNTIME" | tee -a "$LOG"
+
 # Aira GUI files
 mkdir -p "$STAGE/etc/jwm" "$STAGE/usr/bin" "$STAGE/etc/aira" "$STAGE/usr/lib"
 # C0: shared IPC client lib (canonical: usr/lib/aira-ipc.sh) for /persist apps
