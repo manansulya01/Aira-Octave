@@ -181,3 +181,16 @@
   JWM/X11/session packages mandatory and reports a specific missing package.
   This prevents a partially downloaded package set from being presented as a
   valid desktop stage. Clean-runner verification is still required.
+
+## 2026-10-21 — CI-discovered release directory replacement bug
+- The actual GitHub Actions run `39576094421` ran the mocked rootfs and release
+  regressions. Rootfs atomic tests passed; the release test caught a real defect:
+  POSIX `mv staged-directory existing-nonempty-directory` nests the staged
+  directory rather than replacing the old release directory.
+- Fixed in `0f9d6a798daf2501894afb5d31e2872f2d83b958`: after successful backups,
+  release publication removes the existing directory and moves the staged
+  directory into place; on any subsequent publish failure, the rollback routine
+  restores the previous copy.
+- The failing CI run was a valid red result, not ignored. The new commit triggers
+  another syntax + full-build run. Await its regression result before treating
+  the release fix as verified.
