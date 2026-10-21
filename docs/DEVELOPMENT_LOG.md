@@ -251,3 +251,11 @@
   `c01460389f09c29f1d020922a927707521d49f43` now uses release artifact paths,
   builds the real persistent image before boot, and corrects installer/updater
   status claims. This documentation correction does not itself verify a boot.
+
+- Follow-up result: Core shell workflow run
+  [`39576931985`](https://github.com/manansulya01/Aira-Octave/actions/runs/39576931985)
+  passed at commit `3670ddfc0458816fdcfbb741b5de637a6af40aed`. It parsed 48
+  shell scripts and passed the mocked rootfs atomic and release guard suites,
+  including successful replacement of the old versioned release directory.
+  The full kernel/QEMU run `39576932208` is separate and still in progress;
+  core checks are not a substitute for the end-to-end boot.
