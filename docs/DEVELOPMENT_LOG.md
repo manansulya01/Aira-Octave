@@ -109,3 +109,12 @@
 - Verification status at log time: correction committed; follow-up full workflow
   has not yet been confirmed green. Do not claim release/boot success until
   the new run completes and its logs are inspected.
+
+- Follow-up coverage improvement committed as
+  `16d39563f8792a9ffae9bf9da27b4036d8b6ac65`: the full CI workflow now also
+  runs the existing `test-gui.sh` (guest desktop/apps under QEMU) and
+  `test-network.sh` (QEMU NIC/loopback checks). These checks were absent from
+  the first full-build workflow; release verification should exercise the
+  actual desktop and network path, not only kernel/initramfs startup.
+- The latest workflow run and its results still need to be inspected before
+  marking these checks or the release as passing.
