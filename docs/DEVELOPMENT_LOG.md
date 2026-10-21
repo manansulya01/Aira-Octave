@@ -300,3 +300,17 @@
   [`39579206079`](https://github.com/manansulya01/Aira-Octave/actions/runs/39579206079)
   is queued for the direct-APT GUI fix and merged safety changes. End-to-end
   release status remains unverified until this run reaches QEMU and ISO boot.
+
+## 2026-10-21 — Clean-runner GUI dependency resolution
+- Inspection of the current `scripts/build-gui.sh` found the download command
+  used `$VALID_PKGS` without defining it. This would stop a clean runner at
+  the GUI staging stage under `set -u`; this was a concrete defect, not a
+  speculative roadmap item.
+- Commit `63b34a268e8eb5fc57d0234a04fffcb75e46d858` adds a repository-aware
+  package resolver before the download step, logs package-name fallbacks and
+  unavailable manifest entries, and ensures the download command receives
+  the resolved list.
+- Follow-up source inspection confirms the resolver is present in the current
+  file. It has not yet been validated by a successful Ubuntu runner or by
+  building and booting the resulting desktop; the full CI run remains the
+  required acceptance gate.
