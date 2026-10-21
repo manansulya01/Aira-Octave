@@ -123,7 +123,7 @@ P install --force "$T/hello-aira-v2.apkg" | grep -q "installed" && ok "version u
 [ -f "$AIRA_PKG_ROOT/usr/share/aira/other.txt" ] && ok "upgraded payload installed" || bad "upgraded payload installed"
 [ ! -e "$AIRA_PKG_ROOT/usr/share/aira/hello.txt" ] && ok "stale payload removed under package root" || bad "stale payload removed under package root"
 
-echo "--- partial install failure rolls back inside package root ---
+echo "--- partial install failure rolls back inside package root ---"
 F="$T/failtxn"; rm -rf "$F"; mkdir -p "$F/usr/share/aira"
 printf 'NAME="failtxn"\nVERSION="1.0"\nDESC="failure transaction"\nDEPS=""\n' > "$F/PKGINFO"
 printf 'must be rolled back\n' > "$F/usr/share/aira/aaa-good.txt"
