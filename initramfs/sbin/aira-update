@@ -1,138 +1,83 @@
 #!/bin/sh
-# AiraOS Update System - safe atomic updates with rollback.
-# Usage: aira-update {check|download|install|rollback|status}
-
+# AiraOS-Octave update client.
+#
+# Security boundary: this build has no configured, cryptographically verified
+# update feed. Never synthesize a version, create an empty package, mutate
+# os-release, or report an install/rollback as successful without verification.
 set -u
 
-CMD="${1:-check}"
-UPDATE_DIR="/var/lib/aira-update"
-CURRENT_VER=$(grep VERSION /etc/os-release | cut -d= -f2 | tr -d '\"')
-REPO_URL="${AIRA_UPDATE_REPO:-https://updates.airaos.org}"
-
-mkdir -p "$UPDATE_DIR"
+CMD="${1:-status}"
+OS_RELEASE="${AIRA_OS_RELEASE:-/etc/os-release}"
+UPDATE_DIR="${AIRA_UPDATE_DIR:-/var/lib/aira-update}"
+CURRENT_VER="$(sed -n 's/^VERSION="\(.*\)"/\1/p' "$OS_RELEASE" 2>/dev/null | head -n 1)"
+[ -n "$CURRENT_VER" ] || CURRENT_VER="unknown"
 
 usage() {
     cat <<'EOF'
-aira-update — AiraOS update system
-  aira-update check              Check for updates
-  aira-update download           Download update package
-  aira-update install            Install downloaded update
-  aira-update rollback           Rollback to previous version
-  aira-update status             Show update status
+aira-update — AiraOS-Octave update client
+  aira-update check       Check update-service readiness
+  aira-update download    Download a verified update (currently unavailable)
+  aira-update install     Install a verified update (currently unavailable)
+  aira-update rollback    Restore a verified update snapshot (currently unavailable)
+  aira-update status      Show version and update-service readiness
+
+Remote updates are disabled until a trusted feed, signature verification, and
+transactional rollback implementation are configured. Local package management
+is separate: use airapkg for packages in the local repository.
 EOF
 }
 
-check_update() {
-    echo "Checking for updates..."
-    echo "Current version: $CURRENT_VER"
-    
-    # In a real implementation, would fetch from repo
-    # For now, simulate check
-    if [ -f "$UPDATE_DIR/latest.version" ]; then
-        LATEST=$(cat "$UPDATE_DIR/latest.version")
-        if [ "$LATEST" != "$CURRENT_VER" ]; then
-            echo "Update available: $LATEST"
-            return 0
-        else
-            echo "Already at latest version"
-            return 1
-        fi
-    else
-        echo "No update info available (run 'aira-update download' to fetch)"
-        return 2
-    fi
-}
-
-download_update() {
-    echo "Downloading update information..."
-    # Simulate downloading update metadata
-    # In real implementation: curl -s "$REPO_URL/latest.version" -o "$UPDATE_DIR/latest.version"
-    echo "1.5.0" > "$UPDATE_DIR/latest.version"
-    echo "Update metadata downloaded"
-    
-    LATEST=$(cat "$UPDATE_DIR/latest.version")
-    if [ "$LATEST" != "$CURRENT_VER" ]; then
-        echo "Downloading update package..."
-        # Simulate: curl -s "$REPO_URL/airaos-$LATEST.apkg" -o "$UPDATE_DIR/airaos-$LATEST.apkg"
-        touch "$UPDATE_DIR/airaos-$LATEST.apkg"
-        echo "Update package ready: $UPDATE_DIR/airaos-$LATEST.apkg"
-    else
-        echo "Already at latest version"
-    fi
-}
-
-install_update() {
-    LATEST=$(cat "$UPDATE_DIR/latest.version" 2>/dev/null)
-    [ -n "$LATEST" ] || { echo "No update downloaded"; exit 1; }
-    
-    PKG="$UPDATE_DIR/airaos-$LATEST.apkg"
-    [ -f "$PKG" ] || { echo "Update package not found"; exit 1; }
-    
-    echo "Installing update to version $LATEST..."
-    
-    # Create snapshot for rollback
-    SNAPSHOT="$UPDATE_DIR/snapshot-$CURRENT_VER.tar.gz"
-    echo "Creating rollback snapshot..."
-    tar -czf "$SNAPSHOT" -C / \
-        --exclude=/proc --exclude=/sys --exclude=/dev --exclude=/run \
-        --exclude=/tmp --exclude=/var/log --exclude=/mnt \
-        etc usr bin sbin lib lib64 2>/dev/null
-    
-    echo "Snapshot saved: $SNAPSHOT"
-    
-    # Install update package
-    echo "Applying update..."
-    airapkg install --force "$PKG" 2>&1
-    
-    # Update version
-    sed -i "s/VERSION=\"$CURRENT_VER\"/VERSION=\"$LATEST\"/" /etc/os-release
-    
-    # Save rollback info
-    echo "$CURRENT_VER" > "$UPDATE_DIR/previous.version"
-    
-    echo "Update installed successfully"
-    echo "Reboot required to complete update"
-}
-
-rollback_update() {
-    PREV=$(cat "$UPDATE_DIR/previous.version" 2>/dev/null)
-    [ -n "$PREV" ] || { echo "No previous version to rollback to"; exit 1; }
-    
-    SNAPSHOT="$UPDATE_DIR/snapshot-$PREV.tar.gz"
-    [ -f "$SNAPSHOT" ] || { echo "Snapshot not found"; exit 1; }
-    
-    echo "Rolling back to version $PREV..."
-    
-    # Restore from snapshot
-    tar -xzf "$SNAPSHOT" -C / 2>/dev/null
-    
-    # Update version
-    sed -i "s/VERSION=\"$CURRENT_VER\"/VERSION=\"$PREV\"/" /etc/os-release
-    
-    echo "Rollback complete"
-    echo "Reboot required"
+unavailable() {
+    echo "aira-update: $1" >&2
+    echo "aira-update: no update data was changed." >&2
+    echo "aira-update: remote update/rollback is not implemented securely in this build." >&2
+    return 2
 }
 
 status_update() {
-    echo "=== Update Status ==="
+    echo "=== AiraOS-Octave Update Status ==="
     echo "Current version: $CURRENT_VER"
-    if [ -f "$UPDATE_DIR/latest.version" ]; then
-        echo "Latest available: $(cat $UPDATE_DIR/latest.version)"
+    if [ -d "$UPDATE_DIR" ]; then
+        echo "Update state directory: present"
+        [ ! -f "$UPDATE_DIR/previous.version" ] || echo "Legacy previous.version marker: present (not trusted for rollback)"
+        for p in "$UPDATE_DIR"/*.apkg; do
+            [ -f "$p" ] || continue
+            echo "Unverified package candidate: $(basename "$p")"
+        done
+    else
+        echo "Update state directory: absent"
     fi
-    if [ -f "$UPDATE_DIR/previous.version" ]; then
-        echo "Rollback available: $(cat $UPDATE_DIR/previous.version)"
-    fi
-    if [ -f "$UPDATE_DIR/airaos-*.apkg" ]; then
-        echo "Downloaded package: $(ls $UPDATE_DIR/airaos-*.apkg)"
-    fi
+    echo "Remote update feed: disabled (no trusted signing configuration)"
+    echo "Automatic rollback: disabled (no verified snapshot transaction)"
+    echo "Local packages: use airapkg"
 }
 
 case "$CMD" in
-    check) check_update ;;
-    download) download_update ;;
-    install) install_update ;;
-    rollback) rollback_update ;;
-    status) status_update ;;
-    help|--help|-h) usage ;;
-    *) echo "Unknown command: $CMD"; usage; exit 1 ;;
+    status)
+        status_update
+        ;;
+    check)
+        unavailable "cannot check for updates: no trusted update metadata/signature verifier is configured"
+        exit $?
+        ;;
+    download)
+        unavailable "download refused: no trusted update endpoint and signature verifier are configured"
+        exit $?
+        ;;
+    install)
+        unavailable "install refused: no verified update manifest/package transaction is available"
+        exit $?
+        ;;
+    rollback)
+        unavailable "rollback refused: legacy snapshots are not proven to be complete or integrity-checked"
+        exit $?
+        ;;
+    help|--help|-h)
+        usage
+        ;;
+    *)
+        echo "Unknown command: $CMD" >&2
+        usage >&2
+        exit 2
+        ;;
 esac
