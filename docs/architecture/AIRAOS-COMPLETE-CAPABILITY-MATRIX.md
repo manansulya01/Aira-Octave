@@ -1,6 +1,8 @@
 # AiraOS-Octave — Complete Capability Matrix
 
-Date: 2026-10-06. Source of truth for what is implemented, tested, and missing.
+Date: 2026-10-21. Source of truth for what is implemented, tested, and missing.
+
+> Audit note (2026-10-21): this matrix contains older evidence rows and must not be read as a fresh test run. The current full-build/QEMU workflow is the acceptance gate for the latest source. Confirmed changes since the original matrix include the cmdline safe-mode path, the GRUB/ISO release path, support-bundle tests, installer safety guards, and a fail-closed OS updater. The in-guest installer and remote OS update transaction remain unavailable; the host-side installer is BIOS/MBR only.
 Status vocabulary: IMPLEMENTED+TESTED / IMPLEMENTED / PARTIAL / EXPERIMENTAL /
 UNTESTED / BROKEN / MISSING / BLOCKED / DEFERRED / PHYSICAL-HARDWARE-UNVERIFIED.
 Evidence column names a concrete artifact (log/test/doc) — not an assertion.
@@ -10,12 +12,12 @@ Evidence column names a concrete artifact (log/test/doc) — not an assertion.
 |---|---|---|
 | BIOS boot (SeaBIOS) | IMPLEMENTED+TESTED | every logs/final-completion/final-autotest*.log boots via SeaBIOS |
 | UEFI boot | MISSING | no UEFI bootloader path in scripts/ or rootfs |
-| Bootloader integration (grub/syslinux) | MISSING | initramfs+kernel direct boot only |
+| Bootloader integration (GRUB BIOS/ISO) | IMPLEMENTED; latest release gate pending | `scripts/build-release.sh`, `scripts/test-iso.sh`; UEFI remains missing |
 | Kernel cmdline | IMPLEMENTED+TESTED | `aira_autotest=1`, `aira_guitest=1` exercised in guest tests |
 | initramfs | IMPLEMENTED+TESTED | scripts/build-initramfs.sh, PASS each build |
 | Rootfs discovery/mount (/persist, ext4) | IMPLEMENTED+TESTED | "persist" IPC + doctor `release persistence PASS` |
 | Emergency boot / recovery target | PARTIAL | `aira-recovery` runs inside guest; no separate recovery boot target |
-| Safe mode | MISSING | no cmdline-triggered minimal boot |
+| Safe mode | IMPLEMENTED; latest release gate pending | `scripts/test-safe-mode.sh` checks `aira_safe=1` and recovery shell markers |
 | Boot diagnostics / boot-log / failure detection | PARTIAL | boot services.log + `init` OK checks; no failure classification |
 | Boot timeout handling / watchdog | MISSING | no watchdog driver wiring in /init |
 | HW discovery (cpu/mem/pci/usb/ac) | IMPLEMENTED+TESTED | `aira platform` guest checks (model name, vendor=, CPU0) |
@@ -144,9 +146,9 @@ Evidence column names a concrete artifact (log/test/doc) — not an assertion.
 ## K. Update and recovery
 | Capability | State | Evidence |
 |---|---|---|
-| `aira-update` verb surface | IMPLEMENTED (untested pipeline) | initramfs present |
-| check→stage→validate→switch→verify-boot | PARTIAL | not end-to-end tested |
-| Deliberately failed update → rollback | MISSING | not tested |
+| `aira-update` status surface | IMPLEMENTED; remote update operations BLOCKED | `scripts/test-update-safety.sh` confirms check/download/install/rollback fail closed without trusted feed |
+| Signed OS update transaction | MISSING | No trusted signed feed, signature verifier, atomic switch, or verified rollback transaction |
+| Failed update → rollback | MISSING | No OS update transaction exists yet; legacy markers are not trusted snapshots |
 | Recovery environment via cmdline | PARTIAL | `aira-recovery` in guest only |
 | Migration scripts / config preservation | MISSING | no version-compat path |
 
@@ -244,9 +246,9 @@ Evidence column names a concrete artifact (log/test/doc) — not an assertion.
 ## U. Installation and distribution
 | Capability | State | Evidence |
 |---|---|---|
-| Bootable ISO | PARTIAL | test-iso.sh exists; matrix NOT YET VERIFIED (F) |
-| `aira-install` in initramfs | IMPLEMENTED | binary present; no verified run matrix |
-| Partitioning / fs setup / bootloader install | PARTIAL | fdisk+mkfs present; not driven by tested installer |
+| Bootable ISO | IMPLEMENTED; latest source gate pending | GRUB ISO generation + `scripts/test-iso.sh`; verify current workflow before release |
+| `aira-install` in initramfs | BLOCKED / fail-closed | Explicitly refuses disk changes; use host-side `scripts/install-to-disk.sh` |
+| Host-side BIOS/MBR install | IMPLEMENTED; physical boot unverified | `scripts/install-to-disk.sh`; preflight guards tested, full disposable-disk install still needs integration coverage |
 | Live environment | MISSING | no live mode |
 | First-boot wizard / user+timezone+locale setup | MISSING | none |
 | Release channels / signed artifacts / checksums | PARTIAL | MANIFEST + test-manifest.sh; no repo signing |
