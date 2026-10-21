@@ -375,3 +375,9 @@
   directory to fail, and assert that top-level artifacts are restored while
   the recovery backup remains available.
 - Awaiting CI; this branch does not touch `main` or the running full OS build.
+
+- Verification update: Core shell CI run `39595766791` passed on commit
+  `9678c8ac0c776cb67acb8400f992d84c66670a2d`, including shell syntax and the
+  mocked release safety regression for incomplete rollback/workspace retention.
+  This validates the failure-path harness; the release PR remains unmerged
+  until the main full-build/QEMU run finishes.
