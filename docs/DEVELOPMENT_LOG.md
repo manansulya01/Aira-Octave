@@ -362,3 +362,17 @@
   so networking, persistence, recovery, release creation, and ISO boot were
   correctly skipped. The next full workflow run must prove these fixes before
   any release claim is made.
+
+## 2026-10-21 — Service manager path and resource-limit hardening
+- Validates service names before constructing service/config, enable/disable,
+  status, diagnostic, PID, and log paths; the logs command rejects traversal.
+- Validates numeric resource limits, NICE, and UMASK before running commands.
+  The prior implementation changed limits only in a command-substitution
+  subshell, so the service process did not inherit them. The revised helper
+  emits validated commands for the child shell and applies them to oneshot and
+  daemon service execution.
+- Added `scripts/test-services-guards.sh`: sandboxed traversal checks, valid
+  service lifecycle, CPU/file/umask/nice enforcement, and fail-closed handling
+  for malformed limits. No host service state or block devices are touched.
+- This branch is based on the current main tip to avoid conflicts with recent
+  GUI and development-log changes. The regression suite must pass before merge.
