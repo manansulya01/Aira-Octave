@@ -417,3 +417,24 @@
   full-build release gate now execute `scripts/test-user.sh`, and the full
   workflow path filter includes that test. Previously, the full release gate
   did not run the account-management regression suite.
+
+## 2026-10-21 — User home-path hardening merged and verified
+- PR #18 merged as `b4b77c2857e82f2ecbcb13c54f89f95e4c696b48`.
+- Core shell workflow run
+  [`39599199079`](https://github.com/manansulya01/Aira-Octave/actions/runs/39599199079)
+  passed on the final tested code. It parsed the scripts, validated core
+  initramfs entrypoints, and passed the mocked safety suites:
+  `scripts/test-user.sh` reported `PASS=84 FAIL=0`, and
+  `scripts/test-pkg.sh` reported `PASS=56 FAIL=0`.
+- New checks specifically reject `/`, `/etc`, an approved home-root itself,
+  an existing destination, and a symlinked parent; the tests confirm no
+  account entry or redirected destination is created for rejected paths.
+- Package-manager hardening PR #17 was merged as
+  `b8381dd20cef6cc254171e8b9102ad3b95e84856`; its core CI passed before merge
+  with the same `PASS=56 FAIL=0` package suite. Package signing and signature
+  verification now fail closed until real cryptographic verification exists.
+- Full build/QEMU verification for the new main head
+  `b4b77c2857e82f2ecbcb13c54f89f95e4c696b48` has been queued. The earlier
+  full run at `b8381dd20cef6cc254171e8b9102ad3b95e84856` was still building the
+  Linux kernel when last inspected. Neither run is a verified release yet;
+  wait for the latest run to complete all QEMU and ISO boot gates.
