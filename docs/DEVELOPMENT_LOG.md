@@ -334,3 +334,16 @@
   from the blocked in-guest installer and the unimplemented signed OS updater.
   The matrix explicitly warns that historical evidence is not a fresh run of
   the current full-build workflow.
+
+## 2026-10-21 — Service manager path traversal guard (PR #13)
+- Audit found `aira-init` formed service/config and enabled-state paths directly
+  from caller-supplied names. The IPC handler validated names, but direct CLI
+  calls to `enable`/`disable` did not, leaving a path-traversal risk.
+- Branch `fix/service-manager-guardrails` validates names centrally before
+  file lookup and before enable/disable; default runtime paths are unchanged.
+- Added `scripts/test-services-guards.sh`, which redirects all state to a
+  temporary sandbox, checks traversal rejection for enable/disable/start/status,
+  verifies a sentinel outside service directories survives, and exercises a
+  valid oneshot service.
+- Added the regression to `.github/workflows/core-shell-checks.yml`. Awaiting
+  PR CI before merge. No host service directories or block devices are touched.
