@@ -48,14 +48,21 @@ for tool in grub-mkrescue tar sha256sum; do
   fi
 done
 
-mkdir -p "$REL/boot/grub" || { echo "ERROR: cannot create $REL"; exit 1; }
-cp -f linux-7.2.2/arch/x86/boot/bzImage "$REL/boot/bzImage" || exit 1
-cp -f initramfs.cpio "$REL/boot/initramfs.cpio" || exit 1
-cp -f aira-rootfs.img "$REL/aira-rootfs.img" || exit 1
-cp -f configs/airaos-octave-x86_64.config "$REL/kernel-config.txt" || exit 1
-cp -f scripts/boot-qemu.sh "$REL/boot-qemu.sh" || exit 1
+# Build the complete versioned directory privately. Do not touch the previous
+# release directory until ISO, tarball, and checksums have all been generated.
+TMPDIR_BUILD="$(mktemp -d "$RELEASE_DIR/.aira-release-$VER.XXXXXX")" || {
+  echo "ERROR: could not create temporary release workspace." | tee -a "$LOG"
+  exit 1
+}
+STAGE_REL="$TMPDIR_BUILD/aira-octave-$VER"
+mkdir -p "$STAGE_REL/boot/grub" || { echo "ERROR: cannot create staging release directory"; exit 1; }
+cp -f linux-7.2.2/arch/x86/boot/bzImage "$STAGE_REL/boot/bzImage" || exit 1
+cp -f initramfs.cpio "$STAGE_REL/boot/initramfs.cpio" || exit 1
+cp -f aira-rootfs.img "$STAGE_REL/aira-rootfs.img" || exit 1
+cp -f configs/airaos-octave-x86_64.config "$STAGE_REL/kernel-config.txt" || exit 1
+cp -f scripts/boot-qemu.sh "$STAGE_REL/boot-qemu.sh" || exit 1
 
-cat > "$REL/boot/grub/grub.cfg" <<'EOF'
+cat > "$STAGE_REL/boot/grub/grub.cfg" <<'EOF'
 set timeout=5
 set default=0
 serial --speed=115200 --unit=0 --word=8 --parity=no --stop=1
@@ -70,7 +77,7 @@ menuentry "AiraOS-Octave (autotest)" {
   initrd /boot/initramfs.cpio
 }
 EOF
-cat > "$REL/RELEASE_NOTES.txt" <<EOF
+cat > "$STAGE_REL/RELEASE_NOTES.txt" <<EOF
 AiraOS-Octave $VER (Linux 7.2.2, x86_64)
 Build: $TS UTC
 Kernel: bzImage (see kernel-config.txt)
@@ -81,11 +88,6 @@ GUI/persist: add -drive file=aira-rootfs.img,if=virtio,format=raw (desktop via a
 Tests: scripts/test-all.sh (run on the build host; consult its log for PASS/FAIL/SKIP)
 Docs: docs/ (BUILD, BOOT, TESTING, ARCHITECTURE, USER_GUIDE, and more)
 EOF
-
-TMPDIR_BUILD="$(mktemp -d "$RELEASE_DIR/.aira-release-$VER.XXXXXX")" || {
-  echo "ERROR: could not create temporary release workspace." | tee -a "$LOG"
-  exit 1
-}
 ISO_TMP="$TMPDIR_BUILD/aira-octave-$VER.iso"
 TAR_TMP="$TMPDIR_BUILD/aira-octave-$VER.tar.gz"
 SUM_TMP="$TMPDIR_BUILD/aira-octave-$VER.sha256"
@@ -94,7 +96,7 @@ TAR="$RELEASE_DIR/aira-octave-$VER.tar.gz"
 SUM="$RELEASE_DIR/aira-octave-$VER.sha256"
 
 echo "Building ISO to temporary path: $ISO_TMP" | tee -a "$LOG"
-if ! grub-mkrescue -o "$ISO_TMP" "$REL" >>"$LOG" 2>&1; then
+if ! grub-mkrescue -o "$ISO_TMP" "$STAGE_REL" >>"$LOG" 2>&1; then
   echo "ERROR: ISO generation failed; existing published release artifacts were not replaced (see $LOG)." | tee -a "$LOG"
   exit 1
 fi
@@ -104,7 +106,7 @@ if [ ! -s "$ISO_TMP" ]; then
 fi
 
 echo "Building tarball to temporary path: $TAR_TMP" | tee -a "$LOG"
-if ! tar -czf "$TAR_TMP" -C "$RELEASE_DIR" "aira-octave-$VER" >>"$LOG" 2>&1; then
+if ! tar -czf "$TAR_TMP" -C "$TMPDIR_BUILD" "aira-octave-$VER" >>"$LOG" 2>&1; then
   echo "ERROR: tarball generation failed; existing published release artifacts were not replaced (see $LOG)." | tee -a "$LOG"
   exit 1
 fi
@@ -122,16 +124,27 @@ write_checksum() {
 if ! {
   write_checksum "$TAR_TMP" "aira-octave-$VER.tar.gz" &&
   write_checksum "$ISO_TMP" "aira-octave-$VER.iso" &&
-  write_checksum "$REL/boot/bzImage" "aira-octave-$VER/boot/bzImage" &&
-  write_checksum "$REL/boot/initramfs.cpio" "aira-octave-$VER/boot/initramfs.cpio" &&
-  write_checksum "$REL/aira-rootfs.img" "aira-octave-$VER/aira-rootfs.img"
+  write_checksum "$STAGE_REL/boot/bzImage" "aira-octave-$VER/boot/bzImage" &&
+  write_checksum "$STAGE_REL/boot/initramfs.cpio" "aira-octave-$VER/boot/initramfs.cpio" &&
+  write_checksum "$STAGE_REL/aira-rootfs.img" "aira-octave-$VER/aira-rootfs.img"
 } > "$SUM_TMP"; then
   echo "ERROR: checksum generation failed; existing published release artifacts were not replaced." | tee -a "$LOG"
   exit 1
 fi
 [ -s "$SUM_TMP" ] || { echo "ERROR: checksum file is empty." | tee -a "$LOG"; exit 1; }
 
-# Publish only after all required outputs have been generated successfully.
+# Publish the staged version directory only after every artifact is ready.
+# Keep a rollback copy in the private workspace if the directory rename fails.
+REL_BACKUP="$TMPDIR_BUILD/previous-release-dir"
+if [ -e "$REL" ] || [ -L "$REL" ]; then
+  mv -- "$REL" "$REL_BACKUP" || { echo "ERROR: could not stage previous release directory"; exit 1; }
+fi
+if ! mv -- "$STAGE_REL" "$REL"; then
+  echo "ERROR: could not publish staged release directory" | tee -a "$LOG"
+  if [ -e "$REL_BACKUP" ] || [ -L "$REL_BACKUP" ]; then mv -- "$REL_BACKUP" "$REL" || echo "CRITICAL: previous release directory restore failed" | tee -a "$LOG"; fi
+  exit 1
+fi
+# Publish top-level artifacts only after the new release directory is in place.
 mv -f -- "$ISO_TMP" "$ISO" || { echo "ERROR: could not publish ISO"; exit 1; }
 mv -f -- "$TAR_TMP" "$TAR" || { echo "ERROR: could not publish tarball"; exit 1; }
 mv -f -- "$SUM_TMP" "$SUM" || { echo "ERROR: could not publish checksums"; exit 1; }
