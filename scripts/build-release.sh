@@ -41,7 +41,7 @@ for need in \
     exit 1
   fi
 done
-for tool in grub-mkrescue tar sha256sum; do
+for tool in grub-mkrescue tar sha256sum mformat xorriso; do
   if ! command -v "$tool" >/dev/null 2>&1; then
     echo "ERROR: required release tool missing: $tool" | tee -a "$LOG"
     exit 1
