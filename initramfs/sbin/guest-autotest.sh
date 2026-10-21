@@ -211,6 +211,10 @@ t "welcome unknown arg ignored" sh -c "AIRA_WELCOME_DIR=$WDIR HOME=$WHOME /usr/b
 t "about shows version" sh -c '/usr/bin/aira-about 2>&1 | grep -q AiraOS-Octave'
 t "about shows kernel" sh -c '/usr/bin/aira-about 2>&1 | grep -q "Kernel: Linux"'
 t "about honest persistence" sh -c '/usr/bin/aira-about 2>&1 | grep -qE "Storage: (RAM only|[0-9])"'
+# The shutdown-order test above deliberately stops all services. Restore the IPC
+# daemon before testing the help->doctor integration so this check tests the
+# command path, not the intentionally stopped service state.
+t "restore IPC for help doctor" sh -c '/sbin/aira-init start ipc >/dev/null 2>&1 && sleep 1 && /usr/bin/aira-ipc ping >/dev/null 2>&1'
 t "help doctor launches doctor" sh -c '/usr/bin/aira-help doctor --areas ipc >/tmp/help-doctor.out 2>&1'
 t_contains "doctor output has ipc area" /tmp/help-doctor.out "ipc"
 echo "--- help doctor (evidence head) ---"
