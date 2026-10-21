@@ -44,6 +44,74 @@ done
 [ -n "$TARGET" ] || { echo "Error: --target required"; usage; exit 1; }
 [ -b "$TARGET" ] || { echo "Error: $TARGET is not a block device"; exit 1; }
 
+# --auto is intentionally not sufficient by itself to authorize disk erasure.
+# Scripts must provide the second explicit acknowledgement as well.
+if [ -n "${AUTO:-}" ] && [ "${ALLOW_ERASE:-0}" != "1" ]; then
+    echo "Error: --auto also requires --allow-erase; refusing unattended disk erasure"
+    exit 1
+fi
+
+# Fail before partitioning if the running environment cannot actually install
+# and boot a system. Never report success after silently omitting the kernel,
+# initramfs, or bootloader.
+for tool in fdisk mkfs.ext4 mount umount cp mkdir chmod chown grep sed date grub-install; do
+    command -v "$tool" >/dev/null 2>&1 || {
+        echo "Error: required installer tool missing: $tool (disk was not changed)"
+        exit 1
+    }
+done
+
+KERNEL_IMAGE="${AIRA_INSTALL_KERNEL:-}"
+INITRAMFS_IMAGE="${AIRA_INSTALL_INITRAMFS:-}"
+for candidate in /boot/bzImage /airaos-bzImage /mnt/boot/bzImage; do
+    if [ -z "$KERNEL_IMAGE" ] && [ -s "$candidate" ]; then KERNEL_IMAGE="$candidate"; fi
+done
+for candidate in /initramfs.cpio /boot/initramfs.cpio /mnt/boot/initramfs.cpio; do
+    if [ -z "$INITRAMFS_IMAGE" ] && [ -s "$candidate" ]; then INITRAMFS_IMAGE="$candidate"; fi
+done
+MEDIA_MOUNT="/mnt/aira-install-media"
+MEDIA_MOUNTED=0
+if [ -z "$KERNEL_IMAGE" ] || [ -z "$INITRAMFS_IMAGE" ]; then
+    mkdir -p "$MEDIA_MOUNT" || { echo "Error: cannot create installer media mountpoint"; exit 1; }
+    for media in /dev/sr0 /dev/sr1 /dev/cdrom; do
+        [ -b "$media" ] || continue
+        if mount -t iso9660 -o ro "$media" "$MEDIA_MOUNT" 2>/dev/null; then
+            MEDIA_MOUNTED=1
+            [ -n "$KERNEL_IMAGE" ] || { [ ! -s "$MEDIA_MOUNT/boot/bzImage" ] || KERNEL_IMAGE="$MEDIA_MOUNT/boot/bzImage"; }
+            [ -n "$INITRAMFS_IMAGE" ] || { [ ! -s "$MEDIA_MOUNT/boot/initramfs.cpio" ] || INITRAMFS_IMAGE="$MEDIA_MOUNT/boot/initramfs.cpio"; }
+            if [ -n "$KERNEL_IMAGE" ] && [ -n "$INITRAMFS_IMAGE" ]; then break; fi
+            umount "$MEDIA_MOUNT" 2>/dev/null || true
+            MEDIA_MOUNTED=0
+        fi
+    done
+fi
+[ -n "$KERNEL_IMAGE" ] && [ -s "$KERNEL_IMAGE" ] || {
+    echo "Error: bootable kernel image unavailable (disk was not changed)"
+    exit 1
+}
+[ -n "$INITRAMFS_IMAGE" ] && [ -s "$INITRAMFS_IMAGE" ] || {
+    echo "Error: bootable initramfs unavailable (disk was not changed)"
+    exit 1
+}
+
+# Refuse to format a disk or partition that is currently mounted.
+while read -r mounted _rest; do
+    case "$mounted" in
+        "$TARGET"|"$TARGET"[0-9]*|"$TARGET"p[0-9]*)
+            echo "Error: target or one of its partitions is mounted: $mounted (disk was not changed)"
+            exit 1
+            ;;
+    esac
+done < /proc/mounts
+
+TARGET_MNT="/mnt/aira-install"
+TARGET_MOUNTED=0
+cleanup_install() {
+    [ "$TARGET_MOUNTED" -eq 0 ] || umount "$TARGET_MNT" 2>/dev/null || true
+    [ "$MEDIA_MOUNTED" -eq 0 ] || umount "$MEDIA_MOUNT" 2>/dev/null || true
+}
+trap cleanup_install EXIT HUP INT TERM
+
 # Confirm unless --auto
 if [ -z "${AUTO:-}" ]; then
     echo "WARNING: This will ERASE all data on $TARGET"
@@ -82,9 +150,9 @@ echo "[install] Creating ext4 filesystem on $PART..."
 mkfs.ext4 -L AIRA_ROOT "$PART" >/dev/null 2>&1 || { echo "Filesystem creation failed"; exit 1; }
 
 # Mount target
-TARGET_MNT="/mnt/aira-install"
-mkdir -p "$TARGET_MNT"
+mkdir -p "$TARGET_MNT" || { echo "Mountpoint creation failed"; exit 1; }
 mount "$PART" "$TARGET_MNT" || { echo "Mount failed"; exit 1; }
+TARGET_MOUNTED=1
 
 # Copy rootfs (from /persist if available, else from initramfs)
 if [ -d /persist ] && mount | grep -q " /persist "; then
@@ -100,8 +168,10 @@ for dir in bin sbin etc lib lib64 usr var root home opt; do
 done
 
 # Create necessary directories
-mkdir -p "$TARGET_MNT"/{proc,sys,dev,run,tmp,mnt,media}
-chmod 1777 "$TARGET_MNT/tmp"
+for dir in proc sys dev run tmp mnt media; do
+    mkdir -p "$TARGET_MNT/$dir" || { echo "Directory creation failed: $dir"; exit 1; }
+done
+chmod 1777 "$TARGET_MNT/tmp" || { echo "Could not set /tmp permissions"; exit 1; }
 
 # Set hostname
 echo "$HOSTNAME" > "$TARGET_MNT/etc/hostname"
@@ -148,40 +218,34 @@ fi
 
 # Install bootloader (GRUB for BIOS, or just kernel for direct boot)
 echo "[install] Installing bootloader..."
-if command -v grub-install >/dev/null 2>&1; then
-    grub-install --target=i386-pc --boot-directory="$TARGET_MNT/boot" "$TARGET" 2>/dev/null
-    # Create grub.cfg
-    mkdir -p "$TARGET_MNT/boot/grub"
-    cat > "$TARGET_MNT/boot/grub/grub.cfg" <<EOF
+mkdir -p "$TARGET_MNT/boot/grub" || { echo "Cannot create boot directory"; exit 1; }
+cp -f "$KERNEL_IMAGE" "$TARGET_MNT/boot/bzImage" || { echo "Kernel copy failed"; exit 1; }
+cp -f "$INITRAMFS_IMAGE" "$TARGET_MNT/boot/initramfs.cpio" || { echo "Initramfs copy failed"; exit 1; }
+grub-install --target=i386-pc --boot-directory="$TARGET_MNT/boot" "$TARGET" || {
+    echo "GRUB installation failed; refusing to report success"
+    exit 1
+}
+cat > "$TARGET_MNT/boot/grub/grub.cfg" <<EOF
 set timeout=5
 set default=0
 
 menuentry "AiraOS-Octave" {
-    linux /boot/bzImage root=LABEL=AIRA_ROOT ro quiet
+    linux /boot/bzImage console=ttyS0 rdinit=/init loglevel=7
     initrd /boot/initramfs.cpio
 }
 EOF
-    # Copy kernel and initramfs
-    cp /boot/bzImage "$TARGET_MNT/boot/" 2>/dev/null || cp /airaos-bzImage "$TARGET_MNT/boot/bzImage" 2>/dev/null
-    cp /initramfs.cpio "$TARGET_MNT/boot/" 2>/dev/null
-else
-    echo "[install] GRUB not available, copying kernel/initramfs for direct boot..."
-    mkdir -p "$TARGET_MNT/boot"
-    cp /boot/bzImage "$TARGET_MNT/boot/" 2>/dev/null || cp /airaos-bzImage "$TARGET_MNT/boot/bzImage" 2>/dev/null
-    cp /initramfs.cpio "$TARGET_MNT/boot/" 2>/dev/null
-fi
-
-# Write initramfs to boot
-if [ -f /initramfs.cpio ]; then
-    cp /initramfs.cpio "$TARGET_MNT/boot/initramfs.cpio"
-fi
 
 # Create boot marker
 echo "airaos-installed=$(date -u +%Y%m%d-%H%M%S)" > "$TARGET_MNT/etc/aira-install.info"
 echo "version=$(grep VERSION /etc/os-release | cut -d= -f2 | tr -d '\"')" >> "$TARGET_MNT/etc/aira-install.info"
 
-# Unmount
-umount "$TARGET_MNT"
+# Unmount and verify that the installed boot payload is present.
+umount "$TARGET_MNT" || { echo "Unmount failed"; exit 1; }
+TARGET_MOUNTED=0
+[ -s "$TARGET_MNT/boot/bzImage" ] && [ -s "$TARGET_MNT/boot/initramfs.cpio" ] || {
+    echo "Installed boot payload verification failed"
+    exit 1
+}
 
 echo "[install] Installation complete!"
 echo "You can now reboot and boot from $TARGET"
