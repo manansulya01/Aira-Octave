@@ -362,3 +362,22 @@
   so networking, persistence, recovery, release creation, and ISO boot were
   correctly skipped. The next full workflow run must prove these fixes before
   any release claim is made.
+
+## 2026-10-21 — Release ISO build dependency failure and correction
+- Full QEMU run `39594203443` passed kernel/initramfs build, GUI staging,
+  rootfs creation, userspace boot, GUI QEMU, network QEMU, recovery boot,
+  persistence across reboots, support-bundle integration, and mocked safety
+  regressions. Release generation then failed with `grub-mkrescue: error:
+  mformat invocation failed`; ISO boot was correctly skipped.
+- Root cause: the CI dependency list installed GRUB and xorriso but omitted
+  `mtools`, which provides `mformat` for GRUB's ISO-generation path.
+- Fixes pushed to `main`:
+  - `a518d1c710ee3c1fe1571aa90910a1958d23476b`: install `mtools` in the
+    clean-runner workflow.
+  - `11b85b308d7c899a9f32157acc1ad80d5f1410a1`: make release preflight check
+    for `mformat` and `xorriso`, so missing ISO-generation tools fail early
+    with an explicit diagnostic.
+  - `95c531555d331f69a71363866ad5b1af1cd6af21`: update the mocked release
+    guard test to provide those preflight tools.
+- A new full workflow run must pass release generation and ISO boot before
+  release 1.5.0 can be considered verified.
