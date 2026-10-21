@@ -28,7 +28,13 @@ cat > "$MOCKBIN/tar" <<'MOCK_TAR'
 [ "$1" = "-czf" ] || exit 2
 printf 'mock tar artifact\n' > "$2"
 MOCK_TAR
-chmod +x "$MOCKBIN/grub-mkrescue" "$MOCKBIN/tar"
+for tool in mformat xorriso; do
+  cat > "$MOCKBIN/$tool" <<'MOCK_TOOL'
+#!/bin/sh
+exit 0
+MOCK_TOOL
+done
+chmod +x "$MOCKBIN/grub-mkrescue" "$MOCKBIN/tar" "$MOCKBIN/mformat" "$MOCKBIN/xorriso"
 
 REL="$SANDBOX/release/aira-octave-1.5.0"
 ISO="$SANDBOX/release/aira-octave-1.5.0.iso"
