@@ -61,4 +61,49 @@ run_init enable probe >/dev/null
 run_init disable probe >/dev/null
 [ ! -e "$EN/probe" ] || { echo "FAIL: valid service did not disable"; exit 1; }
 echo "PASS: valid service names retain expected behavior"
+
+cat > "$SVC/limited.conf" <<EOF
+DESC="resource limit enforcement test"
+CMD="printf '%s %s %s' \"\$(ulimit -t)\" \"\$(ulimit -n)\" \"\$(umask)\" > '$TMP/limits'"
+TYPE="oneshot"
+DEPS=""
+USER="root"
+RESPAWN="no"
+LIMIT_CPU="7"
+LIMIT_NOFILE="33"
+UMASK="027"
+EOF
+run_init start limited >"$TMP/limited.log" 2>&1
+[ "$(cat "$TMP/limits")" = "7 33 0027" ] || {
+  echo "FAIL: child process did not receive configured CPU/file/umask limits"
+  cat "$TMP/limits" 2>/dev/null || true
+  cat "$TMP/limited.log"
+  exit 1
+}
+echo "PASS: oneshot resource limits apply inside the child process"
+
+cat > "$SVC/badlimit.conf" <<EOF
+DESC="invalid resource limit must fail closed"
+CMD="touch '$TMP/invalid-ran'"
+TYPE="oneshot"
+DEPS=""
+USER="root"
+RESPAWN="no"
+LIMIT_CPU="7; touch '$TMP/pwned'"
+UMASK="022"
+EOF
+if run_init start badlimit >"$TMP/badlimit.log" 2>&1; then
+  echo "FAIL: malformed resource limit was accepted"
+  exit 1
+fi
+grep -q 'invalid resource-limit' "$TMP/badlimit.log" || {
+  echo "FAIL: malformed resource limit lacked a diagnostic"
+  cat "$TMP/badlimit.log"
+  exit 1
+}
+[ ! -e "$TMP/invalid-ran" ] && [ ! -e "$TMP/pwned" ] || {
+  echo "FAIL: invalid service configuration executed a command"
+  exit 1
+}
+echo "PASS: malformed resource limits fail closed"
 echo "SERVICE GUARD TEST PASS (sandbox only; no host service state touched)"
