@@ -363,21 +363,26 @@
   correctly skipped. The next full workflow run must prove these fixes before
   any release claim is made.
 
-## 2026-10-21 — Release recovery workspace preservation
-- Audit found a failure-path mismatch in `scripts/build-release.sh`: when
-  publication rollback itself failed, the diagnostic told the operator to
-  inspect the temporary workspace, but the EXIT trap deleted that workspace.
-- Branch `fix/release-preserve-rollback-workspace` makes cleanup preserve the
-  workspace only when rollback is incomplete; normal success and recoverable
-  failures still clean temporary artifacts.
-- Extended `scripts/test-build-release-guards.sh` to inject a publication
-  failure after directory/ISO publication, force restoration of the old release
-  directory to fail, and assert that top-level artifacts are restored while
-  the recovery backup remains available.
-- Awaiting CI; this branch does not touch `main` or the running full OS build.
+## 2026-10-21 — Release ISO build dependency failure and correction
+- Full QEMU run `39594203443` passed kernel/initramfs build, GUI staging,
+  rootfs creation, userspace boot, GUI QEMU, network QEMU, recovery boot,
+  persistence across reboots, support-bundle integration, and mocked safety
+  regressions. Release generation then failed with `grub-mkrescue: error:
+  mformat invocation failed`; ISO boot was correctly skipped.
+- Root cause: the CI dependency list installed GRUB and xorriso but omitted
+  `mtools`, which provides `mformat` for GRUB's ISO-generation path.
+- Fixes pushed to `main`:
+  - `a518d1c710ee3c1fe1571aa90910a1958d23476b`: install `mtools` in the
+    clean-runner workflow.
+  - `11b85b308d7c899a9f32157acc1ad80d5f1410a1`: make release preflight check
+    for `mformat` and `xorriso`, so missing ISO-generation tools fail early
+    with an explicit diagnostic.
+  - `95c531555d331f69a71363866ad5b1af1cd6af21`: update the mocked release
+    guard test to provide those preflight tools.
+- A new full workflow run must pass release generation and ISO boot before
+  release 1.5.0 can be considered verified.
 
-- Verification update: Core shell CI run `39595766791` passed on commit
-  `9678c8ac0c776cb67acb8400f992d84c66670a2d`, including shell syntax and the
-  mocked release safety regression for incomplete rollback/workspace retention.
-  This validates the failure-path harness; the release PR remains unmerged
-  until the main full-build/QEMU run finishes.
+- The release recovery-workspace fix has been rebased onto the current main
+  release preflight (including `mtools`/`mformat` and `xorriso`). The
+  regression now exercises the current preflight tools and verifies recovery
+  workspace retention after a forced rollback failure.
