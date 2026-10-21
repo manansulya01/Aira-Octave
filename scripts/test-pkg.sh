@@ -48,6 +48,8 @@ fi
 P list | grep -q "hello-aira" && ok "list" || bad "list"
 P query hello-aira | grep -q 'NAME="hello-aira"' && ok "query metadata" || bad "query metadata"
 P query hello-aira | grep -q "usr/share/aira/hello.txt" && ok "query file list" || bad "query file list"
+P query hello-aira | grep -q 'seen.txt' && bad "validation artifact excluded" || ok "validation artifact excluded"
+[ ! -e "$AIRA_PKG_ROOT/seen.txt" ] && ok "validation scratch file not deployed" || bad "validation scratch file not deployed"
 P verify hello-aira | grep -q "verify OK" && ok "verify" || bad "verify"
 [ -f "$AIRA_PKG_DB/installed/hello-aira/PKGINFO" ] && ok "DB entry persisted" || bad "DB entry persisted"
 
@@ -77,16 +79,23 @@ echo "--- malicious archives rejected ---"
 M="$T/mal"; rm -rf "$M"; mkdir -p "$M/usr/share"
 printf 'NAME="mal"\nVERSION="1.0"\nDESC="x"\nDEPS=""\n' > "$M/PKGINFO"
 printf 'evil\n' > "$M/usr/share/evil.txt"
-tar -czf "$T/mal-abs.tgz" -P -C / etc 2>/dev/null || true
+# Keep PKGINFO at archive root while transforming one payload member to an
+# absolute path. Assert the malicious member really exists before testing.
+tar -czf "$T/mal-abs.tgz" -P -C "$M" --transform='s,^usr/,/usr/,' PKGINFO usr/share/evil.txt
+if tar -tzf "$T/mal-abs.tgz" | grep -q '^/usr/share/evil.txt$'; then
+  P install "$T/mal-abs.tgz" >/dev/null 2>&1 && bad "absolute path archive rejected" || ok "absolute path archive rejected"
+else
+  bad "absolute path archive crafted"
+fi
 L="$T/maxtrav"; rm -rf "$L"; mkdir -p "$L/x"
 printf 'NAME="trav"\nVERSION="1.0"\nDESC="x"\nDEPS=""\n' > "$L/PKGINFO"
 printf 'evil\n' > "$L/x/evil.txt"
-tar -czf "$T/mal-trav.tgz" -C "$L" --transform 's,^x/,\.\./,' x/evil.txt 2>/dev/null \
-  || tar -czf "$T/mal-trav.tgz" -C "$L" x 2>/dev/null || true
-for a in mal-abs mal-trav; do
-  [ -f "$T/$a.tgz" ] || continue
-  P install "$T/$a.tgz" >/dev/null 2>&1 && bad "$a rejected" || ok "$a rejected"
-done
+tar -czf "$T/mal-trav.tgz" -P -C "$L" --transform='s,^x/,../,' PKGINFO x/evil.txt
+if tar -tzf "$T/mal-trav.tgz" | grep -q '^\.\./evil.txt$'; then
+  P install "$T/mal-trav.tgz" >/dev/null 2>&1 && bad "traversal archive rejected" || ok "traversal archive rejected"
+else
+  bad "traversal archive crafted"
+fi
 S="$T/sym"; rm -rf "$S"; mkdir -p "$S"
 printf 'NAME="sym"\nVERSION="1.0"\nDESC="x"\nDEPS=""\n' > "$S/PKGINFO"
 ln -sf /etc/passwd "$S/evil-link" 2>/dev/null || true
@@ -109,6 +118,10 @@ P install "$T/bad2.apkg" >/dev/null 2>&1 && bad "slash in NAME rejected" || ok "
 echo "--- reinstall requires --force ---"
 P install "$T/hello-aira.apkg" >/dev/null 2>&1 && bad "reinstall refused" || ok "reinstall refused"
 P install --force "$T/hello-aira.apkg" | grep -q "installed" && ok "forced reinstall" || bad "forced reinstall"
+mkpkg hello-aira 2.0 "$T/build-hello-aira/usr/share/aira/other.txt" "$T/hello-aira-v2.apkg"
+P install --force "$T/hello-aira-v2.apkg" | grep -q "installed" && ok "version upgrade" || bad "version upgrade"
+[ -f "$AIRA_PKG_ROOT/usr/share/aira/other.txt" ] && ok "upgraded payload installed" || bad "upgraded payload installed"
+[ ! -e "$AIRA_PKG_ROOT/usr/share/aira/hello.txt" ] && ok "stale payload removed under package root" || bad "stale payload removed under package root"
 
 echo "--- partial install failure rolls back inside package root ---"
 F="$T/failtxn"; rm -rf "$F"; mkdir -p "$F/usr/share/aira"
