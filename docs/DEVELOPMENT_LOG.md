@@ -382,3 +382,8 @@
   script set and passed the mocked regression step, including the sandbox
   service-name traversal and resource-limit/nice enforcement tests. The full OS
   QEMU run is separate and still pending; this PR has not been merged.
+
+- Latest regression confirmation: Core shell CI run `39595465268` passed on
+  the revision that wired the sandbox service guard test into
+  `scripts/test-all.sh`. The service manager PR is ready for merge once the
+  current full OS verification run completes.
