@@ -47,7 +47,7 @@ echo "PASS: service operations reject path traversal"
 
 cat > "$SVC/probe.conf" <<EOF
 DESC="sandbox service guard test"
-CMD='printf "%s %s %s" "\$(ulimit -t)" "\$(ulimit -n)" "\$(umask)" > "$TMP/limits"'
+CMD="printf success > '$TMP/ran'"
 TYPE="oneshot"
 DEPS=""
 USER="root"
@@ -64,7 +64,7 @@ echo "PASS: valid service names retain expected behavior"
 
 cat > "$SVC/limited.conf" <<EOF
 DESC="resource limit enforcement test"
-CMD="printf '%s %s %s' \"\$(ulimit -t)\" \"\$(ulimit -n)\" \"\$(umask)\" > '$TMP/limits'"
+CMD='printf "%s %s %s" "\$(ulimit -t)" "\$(ulimit -n)" "\$(umask)" > "$TMP/limits"'
 TYPE="oneshot"
 DEPS=""
 USER="root"
