@@ -6,6 +6,7 @@ set -u
 
 CMD="${1:-status}"
 SND_CARD="${AIRA_AUDIO_CARD:-0}"
+MIXER_CONTROL="${AIRA_AUDIO_CONTROL:-}"
 
 # ALSA tools and shared libraries are staged on the persistent rootfs.
 case ":$PATH:" in
@@ -37,9 +38,26 @@ require_tool() {
     }
 }
 
+select_mixer_control() {
+    if [ -n "$MIXER_CONTROL" ]; then
+        amixer -c "$SND_CARD" sget "$MIXER_CONTROL" >/dev/null 2>&1 && return 0
+        echo "aira-audio: mixer control '$MIXER_CONTROL' is unavailable on card '$SND_CARD'" >&2
+        return 1
+    fi
+    for _control in Master PCM Speaker Headphone; do
+        if amixer -c "$SND_CARD" sget "$_control" >/dev/null 2>&1; then
+            MIXER_CONTROL="$_control"
+            return 0
+        fi
+    done
+    echo "aira-audio: no supported mixer control found on card '$SND_CARD'" >&2
+    return 1
+}
+
 start_audio() {
     echo "[audio] Starting audio service..."
     require_tool amixer || return 1
+    select_mixer_control || return 1
 
     # Optional module probes: the device may be built in or use another driver.
     modprobe -q snd_pcm 2>/dev/null || true
@@ -52,7 +70,7 @@ start_audio() {
         alsactl init 2>/dev/null || echo "[audio] WARNING: alsactl init unavailable for this device" >&2
     fi
 
-    if ! amixer -c "$SND_CARD" sset Master 70% unmute 2>/dev/null; then
+    if ! amixer -c "$SND_CARD" sset "$MIXER_CONTROL" 70% unmute 2>/dev/null; then
         echo "aira-audio: failed to initialize mixer for sound card '$SND_CARD'; no audio device or Master control may be available" >&2
         return 1
     fi
@@ -63,7 +81,8 @@ start_audio() {
 stop_audio() {
     echo "[audio] Stopping audio service..."
     require_tool amixer || return 1
-    if ! amixer -c "$SND_CARD" sset Master mute 2>/dev/null; then
+    select_mixer_control || return 1
+    if ! amixer -c "$SND_CARD" sset "$MIXER_CONTROL" mute 2>/dev/null; then
         echo "aira-audio: failed to mute sound card '$SND_CARD'" >&2
         return 1
     fi
@@ -93,8 +112,9 @@ status_audio() {
 volume_audio() {
     VOL="${2:-}"
     require_tool amixer || return 1
-    if [ -z "$VOL" ]; then
-        _volume_output="$(amixer -c "$SND_CARD" get Master 2>/dev/null)" || {
+    select_mixer_control || return 1
+    if [ -z "$VOL"; then
+        _volume_output="$(amixer -c "$SND_CARD" get "$MIXER_CONTROL" 2>/dev/null)" || {
             echo "aira-audio: failed to read mixer volume for card '$SND_CARD'" >&2
             return 1
         }
@@ -106,7 +126,7 @@ volume_audio() {
             *[!0-9]*|"") echo "Invalid volume"; return 1 ;;
         esac
         [ "$VOL" -ge 0 ] && [ "$VOL" -le 100 ] || { echo "Volume must be 0-100"; return 1; }
-        if ! amixer -c "$SND_CARD" sset Master "$VOL%" 2>/dev/null; then
+        if ! amixer -c "$SND_CARD" sset "$MIXER_CONTROL" "$VOL%" 2>/dev/null; then
             echo "aira-audio: failed to set volume on sound card '$SND_CARD'" >&2
             return 1
         fi
@@ -116,7 +136,8 @@ volume_audio() {
 
 mute_audio() {
     require_tool amixer || return 1
-    amixer -c "$SND_CARD" sset Master mute 2>/dev/null || {
+    select_mixer_control || return 1
+    amixer -c "$SND_CARD" sset "$MIXER_CONTROL" mute 2>/dev/null || {
         echo "aira-audio: failed to mute sound card '$SND_CARD'" >&2
         return 1
     }
@@ -125,7 +146,8 @@ mute_audio() {
 
 unmute_audio() {
     require_tool amixer || return 1
-    amixer -c "$SND_CARD" sset Master unmute 2>/dev/null || {
+    select_mixer_control || return 1
+    amixer -c "$SND_CARD" sset "$MIXER_CONTROL" unmute 2>/dev/null || {
         echo "aira-audio: failed to unmute sound card '$SND_CARD'" >&2
         return 1
     }
