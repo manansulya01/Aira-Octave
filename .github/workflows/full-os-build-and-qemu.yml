@@ -22,6 +22,7 @@ on:
       - "scripts/test-support-bundle.sh"
       - "scripts/test-build-rootfs-atomic.sh"
       - "scripts/test-build-release-guards.sh"
+      - "scripts/test-update-safety.sh"
       - "scripts/test-iso.sh"
 
 permissions:
@@ -85,6 +86,7 @@ jobs:
         run: |
           bash scripts/test-build-rootfs-atomic.sh
           bash scripts/test-build-release-guards.sh
+          bash scripts/test-update-safety.sh
 
       - name: Build versioned release artifacts
         run: bash scripts/build-release.sh 1.5.0
