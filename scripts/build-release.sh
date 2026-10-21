@@ -15,8 +15,13 @@ mkdir -p "$OUTDIR" "$RELEASE_DIR" || { echo "ERROR: cannot create release/log di
 TS="$(date -u +%Y%m%d-%H%M%S)"
 LOG="$OUTDIR/release-$VER-$TS.log"
 TMPDIR_BUILD=""
+PRESERVE_TMP=0
 
 cleanup() {
+  if [ "$PRESERVE_TMP" -eq 1 ]; then
+    echo "CRITICAL: preserving release recovery workspace at $TMPDIR_BUILD" | tee -a "$LOG"
+    return 0
+  fi
   if [ -n "$TMPDIR_BUILD" ] && [ -d "$TMPDIR_BUILD" ]; then
     rm -rf -- "$TMPDIR_BUILD"
   fi
@@ -164,6 +169,7 @@ rollback_publish() {
   [ "$HAD_ISO" -eq 0 ] || cp -a -- "$ISO_BACKUP" "$ISO" || failed=1
   [ "$HAD_TAR" -eq 0 ] || cp -a -- "$TAR_BACKUP" "$TAR" || failed=1
   [ "$HAD_SUM" -eq 0 ] || cp -a -- "$SUM_BACKUP" "$SUM" || failed=1
+  [ "$failed" -eq 0 ] || PRESERVE_TMP=1
   return "$failed"
 }
 # Remove the old directory only after a verified backup exists. POSIX mv
