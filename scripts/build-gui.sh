@@ -65,6 +65,17 @@ echo "AVAILABLE_PACKAGE_COUNT=$(wc -w <<< "$VALID_PKGS")" | tee -a "$LOG"
 if [ -n "$MISSING_PKGS" ]; then
   echo "PACKAGES_NOT_IN_RUNNER_REPOSITORIES:$MISSING_PKGS" | tee -a "$LOG"
 fi
+# These packages provide the actual desktop/session and basic X11 interaction.
+# Never publish a purported desktop image if one of its core components is
+# absent; only non-core entries in the broader manually maintained library set
+# may be omitted when the runner's Ubuntu release does not provide them.
+REQUIRED_PKGS="jwm xterm xvfb xserver-xorg-core xserver-xorg-input-libinput xinput x11-utils mc libc6 libx11-6 libxcb1"
+for required in $REQUIRED_PKGS; do
+  case " $VALID_PKGS " in
+    *" $required "*) ;;
+    *) echo "ERROR: required GUI package unavailable: $required" | tee -a "$LOG"; exit 1 ;;
+  esac
+done
 [ -n "$VALID_PKGS" ] || { echo "ERROR: none of the GUI package names exist in the configured repositories" | tee -a "$LOG"; exit 1; }
 if ! apt-get download --print-uris $VALID_PKGS > "$DLDIR/uris.txt" 2>>"$LOG"; then
   echo "ERROR: apt could not resolve download URIs for available GUI packages" | tee -a "$LOG"
