@@ -133,30 +133,39 @@ if ! {
 fi
 [ -s "$SUM_TMP" ] || { echo "ERROR: checksum file is empty." | tee -a "$LOG"; exit 1; }
 
-# Publish as a rollback-capable transaction. Preserve every old artifact in
-# the private workspace until the entire new release is installed successfully.
+# Publish as a rollback-capable transaction. Copy backups first so a backup
+# failure never moves or deletes a previously published artifact.
 REL_BACKUP="$TMPDIR_BUILD/previous-release-dir"
 ISO_BACKUP="$TMPDIR_BUILD/previous-release.iso"
 TAR_BACKUP="$TMPDIR_BUILD/previous-release.tar.gz"
 SUM_BACKUP="$TMPDIR_BUILD/previous-release.sha256"
 HAD_REL=0; HAD_ISO=0; HAD_TAR=0; HAD_SUM=0
+if [ -e "$REL" ] || [ -L "$REL" ]; then
+  cp -a -- "$REL" "$REL_BACKUP" || { echo "ERROR: could not back up previous release directory; nothing published" | tee -a "$LOG"; exit 1; }
+  HAD_REL=1
+fi
+if [ -e "$ISO" ] || [ -L "$ISO" ]; then
+  cp -a -- "$ISO" "$ISO_BACKUP" || { echo "ERROR: could not back up previous ISO; nothing published" | tee -a "$LOG"; exit 1; }
+  HAD_ISO=1
+fi
+if [ -e "$TAR" ] || [ -L "$TAR" ]; then
+  cp -a -- "$TAR" "$TAR_BACKUP" || { echo "ERROR: could not back up previous tarball; nothing published" | tee -a "$LOG"; exit 1; }
+  HAD_TAR=1
+fi
+if [ -e "$SUM" ] || [ -L "$SUM" ]; then
+  cp -a -- "$SUM" "$SUM_BACKUP" || { echo "ERROR: could not back up previous checksum manifest; nothing published" | tee -a "$LOG"; exit 1; }
+  HAD_SUM=1
+fi
 rollback_publish() {
   local failed=0
   rm -rf -- "$REL" || failed=1
-  [ "$HAD_REL" -eq 0 ] || mv -- "$REL_BACKUP" "$REL" || failed=1
+  [ "$HAD_REL" -eq 0 ] || cp -a -- "$REL_BACKUP" "$REL" || failed=1
   rm -f -- "$ISO" "$TAR" "$SUM" || failed=1
-  [ "$HAD_ISO" -eq 0 ] || mv -- "$ISO_BACKUP" "$ISO" || failed=1
-  [ "$HAD_TAR" -eq 0 ] || mv -- "$TAR_BACKUP" "$TAR" || failed=1
-  [ "$HAD_SUM" -eq 0 ] || mv -- "$SUM_BACKUP" "$SUM" || failed=1
+  [ "$HAD_ISO" -eq 0 ] || cp -a -- "$ISO_BACKUP" "$ISO" || failed=1
+  [ "$HAD_TAR" -eq 0 ] || cp -a -- "$TAR_BACKUP" "$TAR" || failed=1
+  [ "$HAD_SUM" -eq 0 ] || cp -a -- "$SUM_BACKUP" "$SUM" || failed=1
   return "$failed"
 }
-if [ -e "$REL" ] || [ -L "$REL" ]; then
-  mv -- "$REL" "$REL_BACKUP" || { echo "ERROR: could not back up previous release directory"; exit 1; }
-  HAD_REL=1
-fi
-if [ -e "$ISO" ] || [ -L "$ISO" ]; then mv -- "$ISO" "$ISO_BACKUP" || { echo "ERROR: could not back up previous ISO"; rollback_publish || echo "CRITICAL: release rollback incomplete" | tee -a "$LOG"; exit 1; }; HAD_ISO=1; fi
-if [ -e "$TAR" ] || [ -L "$TAR" ]; then mv -- "$TAR" "$TAR_BACKUP" || { echo "ERROR: could not back up previous tarball"; rollback_publish || echo "CRITICAL: release rollback incomplete" | tee -a "$LOG"; exit 1; }; HAD_TAR=1; fi
-if [ -e "$SUM" ] || [ -L "$SUM" ]; then mv -- "$SUM" "$SUM_BACKUP" || { echo "ERROR: could not back up previous checksums"; rollback_publish || echo "CRITICAL: release rollback incomplete" | tee -a "$LOG"; exit 1; }; HAD_SUM=1; fi
 if ! mv -- "$STAGE_REL" "$REL" ||
    ! mv -- "$ISO_TMP" "$ISO" ||
    ! mv -- "$TAR_TMP" "$TAR" ||
