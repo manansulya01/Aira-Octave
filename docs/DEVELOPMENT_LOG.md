@@ -381,3 +381,14 @@
     guard test to provide those preflight tools.
 - A new full workflow run must pass release generation and ISO boot before
   release 1.5.0 can be considered verified.
+
+## 2026-10-21 — Preserve recovery workspace after incomplete release rollback
+- Follow-up to the release publication safety fix: if restoration of the old
+  release directory itself fails, the EXIT trap must not delete the only backup.
+- The latest-main branch adds a cleanup guard that preserves the temporary
+  workspace only when rollback is incomplete, and a mocked regression that
+  fails tarball publication after partial publication, forces directory restore
+  failure, and verifies top-level artifacts are restored while the recovery
+  backup remains on disk.
+- This is a recovery-path safety fix; it does not change the release contents
+  or relax the requirement that ISO generation and checksums succeed.

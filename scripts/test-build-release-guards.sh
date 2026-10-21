@@ -28,13 +28,33 @@ cat > "$MOCKBIN/tar" <<'MOCK_TAR'
 [ "$1" = "-czf" ] || exit 2
 printf 'mock tar artifact\n' > "$2"
 MOCK_TAR
+cat > "$MOCKBIN/mv" <<'MOCK_MV'
+#!/bin/sh
+dest=""
+for arg do dest="$arg"; done
+if [ "${MOCK_MV_FAIL_PUBLISH:-0}" = "1" ] && [ "$dest" = "${MOCK_FAIL_DEST:-}" ]; then
+  [ -z "${MOCK_ROLLBACK_MARKER:-}" ] || : > "$MOCK_ROLLBACK_MARKER"
+  exit 44
+fi
+exec /bin/mv "$@"
+MOCK_MV
+cat > "$MOCKBIN/cp" <<'MOCK_CP'
+#!/bin/sh
+source=""
+dest=""
+for arg do source="$dest"; dest="$arg"; done
+if [ -e "${MOCK_ROLLBACK_MARKER:-/nonexistent}" ]; then
+  case "$source" in */previous-release-dir) exit 45 ;; esac
+fi
+exec /bin/cp "$@"
+MOCK_CP
 for tool in mformat xorriso; do
   cat > "$MOCKBIN/$tool" <<'MOCK_TOOL'
 #!/bin/sh
 exit 0
 MOCK_TOOL
 done
-chmod +x "$MOCKBIN/grub-mkrescue" "$MOCKBIN/tar" "$MOCKBIN/mformat" "$MOCKBIN/xorriso"
+chmod +x "$MOCKBIN/grub-mkrescue" "$MOCKBIN/tar" "$MOCKBIN/mv" "$MOCKBIN/cp" "$MOCKBIN/mformat" "$MOCKBIN/xorriso"
 
 REL="$SANDBOX/release/aira-octave-1.5.0"
 ISO="$SANDBOX/release/aira-octave-1.5.0.iso"
@@ -79,6 +99,31 @@ fi
 [ "$(cat "$SUM")" = "previous checksums" ] || { echo "FAIL: checksum manifest changed after tarball failure"; exit 1; }
 [ "$(cat "$REL/KEEP-ME")" = "previous release directory" ] || { echo "FAIL: versioned release directory changed after tarball failure"; exit 1; }
 echo "PASS: failed tarball build preserves previous published artifacts"
+
+# Fail tarball publication after the directory and ISO have been published, then
+# force the old release-directory restoration to fail. Recovery data must survive.
+ROLLBACK_MARKER="$TMP/rollback-started"
+if MOCK_MV_FAIL_PUBLISH=1 MOCK_FAIL_DEST="$TAR" MOCK_ROLLBACK_MARKER="$ROLLBACK_MARKER" \
+   PATH="$MOCKBIN:$PATH" bash "$SANDBOX/scripts/build-release.sh" 1.5.0 > "$TMP/rollback-fail.log" 2>&1; then
+  echo "FAIL: simulated publication failure was accepted"
+  exit 1
+fi
+[ "$(cat "$ISO")" = "previous iso" ] || { echo "FAIL: ISO not restored after publication failure"; exit 1; }
+[ "$(cat "$TAR")" = "previous tar" ] || { echo "FAIL: tarball not restored after publication failure"; exit 1; }
+[ "$(cat "$SUM")" = "previous checksums" ] || { echo "FAIL: checksum manifest not restored after publication failure"; exit 1; }
+grep -q 'preserving failed release workspace' "$TMP/rollback-fail.log" || {
+  echo "FAIL: incomplete rollback did not warn that its workspace is preserved"
+  cat "$TMP/rollback-fail.log"
+  exit 1
+}
+WORKSPACE="$(find "$SANDBOX/release" -maxdepth 1 -type d -name '.aira-release-*' -print -quit)"
+[ -n "$WORKSPACE" ] && [ -f "$WORKSPACE/previous-release-dir/KEEP-ME" ] || {
+  echo "FAIL: rollback recovery backup was deleted"
+  find "$SANDBOX/release" -maxdepth 2 -type f -print
+  exit 1
+}
+echo "PASS: incomplete rollback preserves recovery backup and restores top-level artifacts"
+rm -rf -- "$WORKSPACE"
 
 if ! PATH="$MOCKBIN:$PATH" bash "$SANDBOX/scripts/build-release.sh" 1.5.0 > "$TMP/pass.log" 2>&1; then
   cat "$TMP/pass.log"
