@@ -47,7 +47,7 @@ echo "PASS: service operations reject path traversal"
 
 cat > "$SVC/probe.conf" <<EOF
 DESC="sandbox service guard test"
-CMD="printf success > '$TMP/ran'"
+CMD='printf "%s %s %s" "\$(ulimit -t)" "\$(ulimit -n)" "\$(umask)" > "$TMP/limits"'
 TYPE="oneshot"
 DEPS=""
 USER="root"
