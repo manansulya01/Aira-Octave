@@ -110,6 +110,19 @@ else
   [ "$PERSIST_MOUNTED" -eq 1 ] || echo "[init] no AIRA_ROOT persistent filesystem found (attach aira-rootfs.img or install a labeled partition)"
 fi
 
+# The desktop lives on /persist, while /usr/bin and /usr/share remain in the
+# initramfs root. Xorg/Xvfb invoke xkbcomp and load XKB data through absolute
+# paths, so expose those two runtime resources after the persistent filesystem
+# is mounted. Do not create dangling links in safe mode or on a diskless boot.
+if [ "$SAFE_MODE" -eq 0 ] && [ "${PERSIST_MOUNTED:-0}" -eq 1 ]; then
+  if [ -x /persist/usr/bin/xkbcomp ] && [ ! -e /usr/bin/xkbcomp ]; then
+    ln -s /persist/usr/bin/xkbcomp /usr/bin/xkbcomp
+  fi
+  if [ -d /persist/usr/share/X11 ] && [ ! -e /usr/share/X11 ]; then
+    ln -s /persist/usr/share/X11 /usr/share/X11
+  fi
+fi
+
 # PATH + motd
 export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 export HOME=/root
