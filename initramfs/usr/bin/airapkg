@@ -184,7 +184,7 @@ case "$cmd" in
     : > "$staged/files"
     : > "$staged/backup-files"
     # Sort payload paths for deterministic install/rollback order.
-    (cd "$tmp" && find . -mindepth 1 -not -name PKGINFO -not -name members.txt -not -name list.txt | LC_ALL=C sort) > "$tmp/list.txt"
+    (cd "$tmp" && find . -mindepth 1 -not -name PKGINFO -not -name members.txt -not -name seen.txt -not -name list.txt | LC_ALL=C sort) > "$tmp/list.txt"
     _install_failed=0
     rollback_payload() {
       _rb_failed=0
@@ -213,7 +213,7 @@ case "$cmd" in
       [ -n "$rel" ] || continue
       # skip our own validation artifacts if present
       case "$rel" in
-        members.txt|list.txt) continue ;;
+        members.txt|seen.txt|list.txt) continue ;;
       esac
       src="$tmp/$rel"
       # Keep package-relative paths in the DB; apply ROOT only at deployment time.
