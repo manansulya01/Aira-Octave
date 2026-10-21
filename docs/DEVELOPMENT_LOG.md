@@ -212,3 +212,35 @@
   `fe554d4c7f009cbbf649b70b55d21604927411c6`.
 - This is a correctness/security fix, not a claim that OTA updates are complete.
   A real signed update system remains an unfinished OS capability.
+
+## 2026-10-21 — Installation path audit and guarded host installer
+- Auditing `initramfs/sbin/aira-install` exposed several false-success/data-safety
+  risks: it could partition before checking boot artifacts/tools, silently ignore
+  copy/GRUB errors, use a raw SHA-256 digest as a password hash, and used Bash-only
+  brace expansion in a BusyBox `sh` script. Commits
+  `cd16d148290c4341f84d9edc6cf8731e83ff24f7` and
+  `bfe345c80e80317489359875ed25430f282801fe` add preflight checks before disk
+  changes, explicit unattended erase acknowledgement, mounted-device refusal,
+  checked copies/boot payload, POSIX directory creation, and real SHA-512 crypt
+  password hashing. The in-guest installer still depends on a live environment
+  that actually provides the required tools and boot files; it is not a universal
+  installer yet.
+- Added host-side BIOS/MBR installer `scripts/install-to-disk.sh` in
+  `894cc1e8748936f3baf2ec2a60fa590cd1412dce`. It validates the release inputs,
+  whole-disk target, mount state, and required tools before formatting; requires
+  an exact interactive erase confirmation by default; and installs the built
+  rootfs, kernel, initramfs, and GRUB configuration. UEFI is explicitly out of
+  scope for this script.
+- Added non-destructive acknowledgement tests in
+  `scripts/test-install-guard.sh` (`82d17399bdcf60f258f56033d94fab46e5091068`),
+  wired them into full-build CI in `3670ddfc0458816fdcfbb741b5de637a6af40aed`,
+  and documented the actual install path/limitations in
+  `docs/INSTALL.md` (`9cac1df64651507866193327b032e2ad25a89506`).
+- Updated initramfs persistence discovery in
+  `2fda6dc32524957fccca670128b25a9a06f2980d` to handle both the development
+  raw-ext4 disk image (`/dev/vda`) and a partitioned installed disk
+  (`/dev/vda1`, plus common SATA/NVMe/eMMC names), preferring the AIRA_ROOT
+  label when `blkid` is available.
+- These installation changes are source changes only. The full build/QEMU and
+  safety tests must pass before the installer is considered verified; no
+  physical disk was formatted by this work.
