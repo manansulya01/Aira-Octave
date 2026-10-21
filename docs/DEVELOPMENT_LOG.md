@@ -381,3 +381,17 @@
     guard test to provide those preflight tools.
 - A new full workflow run must pass release generation and ISO boot before
   release 1.5.0 can be considered verified.
+
+## 2026-10-21 — Package manager security follow-up (review branch)
+- Auditing `initramfs/usr/bin/airapkg` found concrete integrity problems:
+  package names were used as database path components without one strict
+  validation rule, and `sign`/`verify-sig` reported checksum generation as
+  signing even though no cryptographic signature was produced.
+- Branch `fix/pkg-manager-path-safety` adds conservative package-name and
+  version validation, validates names on query/verify/rollback/remove, refuses
+  unimplemented signing and signature verification with explicit errors, and
+  makes rollback/remove fail closed when package DB paths are unsafe or file
+  operations fail.
+- Regression coverage was added for traversal names, fake signing claims, and
+  malicious recorded paths attempting to escape the package root. The changes
+  are not merged; automated checks must pass before merging.
