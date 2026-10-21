@@ -74,6 +74,33 @@ valid_gecos() {
     return 0
 }
 
+# Home directories must be strict descendants of an approved home root, never
+# the root itself or an existing system directory. This prevents --home / or
+# --home /etc from reaching mkdir/chown/chmod.
+valid_home() {
+    valid_path "${1:-}" || return 1
+    [ "$1" != "/" ] || return 1
+    for _home_root in $HOME_ROOTS; do
+        [ "$1" != "$_home_root" ] || continue
+        case "$1" in
+            "$_home_root"/*)
+                # Refuse symlinked roots or parent components: otherwise a
+                # safe-looking /home/link/newuser could resolve into /etc.
+                [ ! -L "$_home_root" ] || return 1
+                _home_parent="$(dirname "$1")"
+                while [ "$_home_parent" != "$_home_root" ]; do
+                    [ ! -L "$_home_parent" ] || return 1
+                    _home_next="$(dirname "$_home_parent")"
+                    [ "$_home_next" != "$_home_parent" ] || return 1
+                    _home_parent="$_home_next"
+                done
+                return 0
+                ;;
+        esac
+    done
+    return 1
+}
+
 require_name() {
     valid_name "$1" || {
         echo "Invalid name '$1': use lowercase letters, digits, '_', '-' or '.' (max 32, must start alphanumeric)" >&2
@@ -163,7 +190,7 @@ case "$cmd" in
         # An empty option means "not supplied"; a non-empty one must validate.
         [ -z "$UID" ]  || valid_uid  "$UID"  || { echo "Invalid --uid '$UID'" >&2; exit 1; }
         [ -z "$GID" ]  || valid_uid  "$GID"  || { echo "Invalid --gid '$GID'" >&2; exit 1; }
-        [ -z "$HOME" ] || valid_path "$HOME" || { echo "Invalid --home '$HOME'" >&2; exit 1; }
+        [ -z "$HOME" ] || valid_home "$HOME" || { echo "Invalid --home '$HOME' (must be a safe path below an approved home root)" >&2; exit 1; }
         [ -z "$SHELL" ] || valid_path "$SHELL" || { echo "Invalid --shell '$SHELL'" >&2; exit 1; }
         valid_gecos "$GECOS" || { echo "Invalid --gecos (no ':' or newline)" >&2; exit 1; }
         [ -r "$PASSWD" ] || { echo "$PASSWD missing or unreadable" >&2; exit 1; }
@@ -178,6 +205,11 @@ case "$cmd" in
         [ -n "$UID" ] || UID=1000
         [ -n "$GID" ] || GID=$UID
         [ -n "$HOME" ] || HOME="/home/$NAME"
+        valid_home "$HOME" || { echo "Invalid home path '$HOME'" >&2; exit 1; }
+        if [ -e "$HOME" ] || [ -L "$HOME" ]; then
+            echo "Home path already exists; refusing to change its ownership: $HOME" >&2
+            exit 1
+        fi
         valid_uid "$UID" || { echo "Invalid uid '$UID'" >&2; exit 1; }
         valid_uid "$GID" || { echo "Invalid gid '$GID'" >&2; exit 1; }
 
@@ -427,6 +459,8 @@ case "$cmd" in
         require_name "$NAME"
         [ -z "$UID" ]  || valid_uid  "$UID"  || { echo "Invalid --uid '$UID'" >&2; exit 1; }
         [ -z "$GID" ]  || valid_uid  "$GID"  || { echo "Invalid --gid '$GID'" >&2; exit 1; }
+        # Validate a changed home after reading the existing account, so
+        # retaining an existing system account home (e.g. root's /root) works.
         [ -z "$HOME" ] || valid_path "$HOME" || { echo "Invalid --home '$HOME'" >&2; exit 1; }
         [ -z "$SHELL" ] || valid_path "$SHELL" || { echo "Invalid --shell '$SHELL'" >&2; exit 1; }
         valid_gecos "$GECOS" || { echo "Invalid --gecos (no ':' or newline)" >&2; exit 1; }
@@ -452,6 +486,13 @@ case "$cmd" in
         NEW_HOME="${HOME:-$OHOME}"
         NEW_SHELL="${SHELL:-$OSHELL}"
         NEW_GECOS="${GECOS:-$OGECOS}"
+        if [ -n "$HOME" ] && [ "$NEW_HOME" != "$OHOME" ]; then
+            valid_home "$NEW_HOME" || { echo "Invalid new home path '$NEW_HOME'" >&2; exit 1; }
+            if [ -e "$NEW_HOME" ] || [ -L "$NEW_HOME" ]; then
+                echo "New home path already exists; refusing to merge or overwrite it: $NEW_HOME" >&2
+                exit 1
+            fi
+        fi
 
         # Reject a UID that another account already owns (before touching disk).
         if [ -n "$UID" ]; then
@@ -461,7 +502,7 @@ case "$cmd" in
 
         # Move the home directory AFTER the UID check and only between valid,
         # absolute paths (a rejected request must not disturb existing data).
-        if [ "$NEW_HOME" != "$OHOME" ] && [ -d "$OHOME" ] && valid_path "$NEW_HOME"; then
+        if [ "$NEW_HOME" != "$OHOME" ] && [ -d "$OHOME" ] && valid_home "$NEW_HOME"; then
             if mv "$OHOME" "$NEW_HOME" 2>/dev/null; then
                 chown -R "$NEW_UID:$NEW_GID" "$NEW_HOME" 2>/dev/null || true
             else

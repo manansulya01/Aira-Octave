@@ -143,6 +143,20 @@ P adduser uidclash --uid 1000 >/dev/null 2>&1 && bad "duplicate uid rejected" ||
 echo "--- UID/GID/path validation ---"
 P adduser badpath --home "relative/path" >/dev/null 2>&1 && bad "relative home rejected" || ok "relative home rejected"
 P adduser badpath --home "/home/../etc" >/dev/null 2>&1 && bad "traversal home rejected" || ok "traversal home rejected"
+P adduser badroot --home "/" >/dev/null 2>&1 && bad "root-directory home rejected" || ok "root-directory home rejected"
+P adduser badetc --home "/etc" >/dev/null 2>&1 && bad "system-directory home rejected" || ok "system-directory home rejected"
+P adduser badroot --home "/home" >/dev/null 2>&1 && bad "home-root itself rejected" || ok "home-root itself rejected"
+mkdir -p "$HOME_ROOT/existing"
+printf 'keep-existing-home\n' > "$HOME_ROOT/existing/marker"
+P adduser existinghome --home "$HOME_ROOT/existing" >/dev/null 2>&1 && bad "existing home path refused" || ok "existing home path refused"
+[ "$(cat "$HOME_ROOT/existing/marker")" = "keep-existing-home" ] && ok "existing home content preserved" || bad "existing home content preserved"
+if grep -q '^existinghome:' "$AIRA_USER_ETC/passwd"; then bad "existing-home account not partially created"; else ok "existing-home account not partially created"; fi
+ln -s "$AIRA_USER_ETC" "$HOME_ROOT/linked-etc"
+P adduser symlinkhome --home "$HOME_ROOT/linked-etc/symlinkhome" >/dev/null 2>&1 && bad "symlinked home parent rejected" || ok "symlinked home parent rejected"
+[ ! -e "$AIRA_USER_ETC/symlinkhome" ] && ok "symlinked home target not created" || bad "symlinked home target not created"
+if grep -q '^symlinkhome:' "$AIRA_USER_ETC/passwd"; then bad "symlinked-home account not partially created"; else ok "symlinked-home account not partially created"; fi
+P usermod newuser --home "/" >/dev/null 2>&1 && bad "unsafe usermod home rejected" || ok "unsafe usermod home rejected"
+grep -q '^newuser:x:1501:.*:/home/newuser:/bin/sh$' "$AIRA_USER_ETC/passwd" && ok "rejected usermod leaves home unchanged" || bad "rejected usermod leaves home unchanged"
 P adduser badpath --uid "abc" >/dev/null 2>&1 && bad "non-numeric uid rejected" || ok "non-numeric uid rejected"
 P adduser badpath --uid "99999" >/dev/null 2>&1 && bad "out-of-range uid rejected" || ok "out-of-range uid rejected"
 P adduser badpath --shell "/bin/sh;id" >/dev/null 2>&1 && bad "shell metachars rejected" || ok "shell metachars rejected"
@@ -205,14 +219,17 @@ P usermod root --uid 0 --home /root >/dev/null 2>&1
 grep -q "^root:x:0:0:root:/root:/bin/sh$" "$AIRA_USER_ETC/passwd" && ok "root line unchanged" || bad "root line changed: $(grep '^root:' "$AIRA_USER_ETC/passwd")"
 
 echo "--- deluser safety ---"
-mkdir -p "$HOME_ROOT/doomed"
-printf 'x\n' > "$HOME_ROOT/doomed/file"
-P adduser doomed --home "$HOME_ROOT/doomed" >/dev/null 2>&1
-if P deluser doomed --remove-home >/dev/null 2>&1; then
-  grep -q "^doomed:" "$AIRA_USER_ETC/passwd" && bad "doomed removed from passwd" || ok "doomed removed from passwd"
-  [ -d "$HOME_ROOT/doomed" ] && bad "home removed" || ok "home removed"
+if P adduser doomed --home "$HOME_ROOT/doomed" >/dev/null 2>&1; then
+  mkdir -p "$HOME_ROOT/doomed"
+  printf 'x\n' > "$HOME_ROOT/doomed/file"
+  if P deluser doomed --remove-home >/dev/null 2>&1; then
+    grep -q "^doomed:" "$AIRA_USER_ETC/passwd" && bad "doomed removed from passwd" || ok "doomed removed from passwd"
+    [ -d "$HOME_ROOT/doomed" ] && bad "home removed" || ok "home removed"
+  else
+    bad "deluser doomed succeeded"
+  fi
 else
-  bad "deluser doomed succeeded"
+  bad "adduser doomed succeeded"
 fi
 # A user whose home is "/" must not cause a recursive delete of the root fs.
 printf 'danger:x:1601:1601::/:/bin/sh\n' >> "$AIRA_USER_ETC/passwd"
