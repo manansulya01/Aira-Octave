@@ -12,6 +12,7 @@ on:
       - "gui/**"
       - "usr/**"
       - "scripts/build-*.sh"
+      - "scripts/install-to-disk.sh"
       - "scripts/boot-qemu.sh"
       - "scripts/test-kernel.sh"
       - "scripts/test-userspace.sh"
@@ -23,6 +24,7 @@ on:
       - "scripts/test-build-rootfs-atomic.sh"
       - "scripts/test-build-release-guards.sh"
       - "scripts/test-update-safety.sh"
+      - "scripts/test-install-guard.sh"
       - "scripts/test-iso.sh"
 
 permissions:
@@ -87,6 +89,7 @@ jobs:
           bash scripts/test-build-rootfs-atomic.sh
           bash scripts/test-build-release-guards.sh
           bash scripts/test-update-safety.sh
+          bash scripts/test-install-guard.sh
 
       - name: Build versioned release artifacts
         run: bash scripts/build-release.sh 1.5.0
