@@ -84,3 +84,4 @@ jobs:
           bash scripts/test-install-guard.sh
           bash scripts/test-guest-installer-guard.sh
           bash scripts/test-pkg.sh
+          bash scripts/test-pkg-signing-safety.sh
