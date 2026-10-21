@@ -15,10 +15,15 @@ mkdir -p "$OUTDIR" "$RELEASE_DIR" || { echo "ERROR: cannot create release/log di
 TS="$(date -u +%Y%m%d-%H%M%S)"
 LOG="$OUTDIR/release-$VER-$TS.log"
 TMPDIR_BUILD=""
+KEEP_TMPDIR=0
 
 cleanup() {
   if [ -n "$TMPDIR_BUILD" ] && [ -d "$TMPDIR_BUILD" ]; then
-    rm -rf -- "$TMPDIR_BUILD"
+    if [ "$KEEP_TMPDIR" -eq 1 ]; then
+      echo "WARNING: preserving failed release workspace: $TMPDIR_BUILD" | tee -a "$LOG" || true
+    else
+      rm -rf -- "$TMPDIR_BUILD"
+    fi
   fi
 }
 trap cleanup EXIT HUP INT TERM
@@ -175,7 +180,12 @@ if ! rm -rf -- "$REL" ||
    ! mv -- "$TAR_TMP" "$TAR" ||
    ! mv -- "$SUM_TMP" "$SUM"; then
   echo "ERROR: release publication failed; restoring previous artifacts" | tee -a "$LOG"
-  rollback_publish || echo "CRITICAL: release rollback incomplete; inspect $TMPDIR_BUILD and $LOG" | tee -a "$LOG"
+  if rollback_publish; then
+    echo "ROLLBACK PASS: previous release artifacts restored" | tee -a "$LOG"
+  else
+    KEEP_TMPDIR=1
+    echo "CRITICAL: release rollback incomplete; preserving recovery workspace $TMPDIR_BUILD and log $LOG" | tee -a "$LOG"
+  fi
   exit 1
 fi
 
