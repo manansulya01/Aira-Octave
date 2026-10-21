@@ -319,9 +319,10 @@ case "$cmd" in
         printf '%s:x:%s:%s:%s:%s:%s\n' "$NAME" "$UID" "$GID" "${GECOS:-$NAME}" "$HOME" "$SHELL" >> "$_ptmp"
         printf '%s:*:19000:0:99999:7:::\n' "$NAME" >> "$_stmp"
 
-        _commit "$_gtmp" "$GROUP"
-        _commit "$_stmp" "$SHADOW" "$SHADOW_MODE"
-        _commit "$_ptmp" "$PASSWD"
+        _commit_account_db "$_gtmp" "$_stmp" "$_ptmp" || {
+            echo "Failed to commit user database; prior files restored" >&2
+            exit 1
+        }
 
         # Create home directory
         mkdir -p "$HOME" 2>/dev/null || echo "Warning: could not create $HOME" >&2
@@ -371,9 +372,10 @@ case "$cmd" in
           function sep(list, item,  a,i,out){ m=split(list,a,","); out="";
             for(i=1;i<=m;i++){ if(a[i]==item) continue; out=(out==""? a[i] : out "," a[i]) } return out }' \
           "$GROUP" > "$_gtmp" 2>/dev/null || { rm -f "$_ptmp" "$_stmp" "$_gtmp"; echo "Failed to update $GROUP" >&2; exit 1; }
-        _commit "$_gtmp" "$GROUP"
-        _commit "$_stmp" "$SHADOW" "$SHADOW_MODE" || true
-        _commit "$_ptmp" "$PASSWD"
+        _commit_account_db "$_gtmp" "$_stmp" "$_ptmp" || {
+            echo "Failed to commit user deletion; prior files restored" >&2
+            exit 1
+        }
 
         if [ "$REMOVE_HOME" = "1" ]; then
             if [ -n "$_uhome" ] && valid_path "$_uhome" && [ "$_uhome" != "/" ]; then
@@ -449,7 +451,10 @@ case "$cmd" in
         _stmp="$(_tmpfile shadow)"
         awk -F: -v n="$NAME" -v h="$_newhash" 'BEGIN{OFS=":"} $1==n{$2=h} {print}' "$SHADOW" > "$_stmp" 2>/dev/null \
             || { rm -f "$_stmp"; echo "Failed to update $SHADOW" >&2; exit 1; }
-        _commit "$_stmp" "$SHADOW" "$SHADOW_MODE"
+        _commit "$_stmp" "$SHADOW" "$SHADOW_MODE" || {
+            echo "Failed to commit password update" >&2
+            exit 1
+        }
         unset PASS PASS1 PASS2
         echo "Password updated for $NAME"
         ;;
@@ -483,7 +488,7 @@ case "$cmd" in
         cat "$GROUP" > "$_gtmp"
         ensure_trailing_nl "$_gtmp"
         printf '%s:x:%s:\n' "$NAME" "$GID" >> "$_gtmp"
-        _commit "$_gtmp" "$GROUP"
+        _commit "$_gtmp" "$GROUP" "" || { echo "Failed to commit group creation" >&2; exit 1; }
         echo "Group $NAME created (gid=$GID)"
         ;;
 
@@ -510,7 +515,7 @@ case "$cmd" in
           function sep(list, item,  a,i,out){ m=split(list,a,","); out="";
             for(i=1;i<=m;i++){ if(a[i]==item) continue; out=(out==""? a[i] : out "," a[i]) } return out }' \
           "$GROUP" > "$_gtmp" 2>/dev/null || { rm -f "$_gtmp"; echo "Failed to update $GROUP" >&2; exit 1; }
-        _commit "$_gtmp" "$GROUP"
+        _commit "$_gtmp" "$GROUP" "" || { echo "Failed to commit group deletion" >&2; exit 1; }
         echo "Group $NAME deleted"
         ;;
 
