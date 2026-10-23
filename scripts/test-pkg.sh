@@ -65,6 +65,29 @@ mkpkg() { # mkpkg <name> <version> <payload-path> <out.apkg>
 mkpkg hello-aira 1.0 "$T/build-hello-aira/usr/share/aira/hello.txt" "$T/hello-aira.apkg"
 [ -f "$T/hello-aira.apkg" ] && ok "apkg built" || bad "apkg built"
 
+echo "--- payload filenames that resemble installer scratch files ---"
+N="$T/internal-names"; rm -rf "$N"; mkdir -p "$N/usr/share/doc"
+printf 'NAME="internal-names"\nVERSION="1.0"\nDESC="scratch-name regression"\nDEPS=""\n' > "$N/PKGINFO"
+for name in seen.txt members.txt list.txt; do printf 'payload %s\n' "$name" > "$N/$name"; done
+printf 'nested metadata is payload\n' > "$N/usr/share/doc/PKGINFO"
+tar -czf "$T/internal-names.apkg" -C "$N" .
+if P install "$T/internal-names.apkg" >"$T/internal-names.log" 2>&1; then
+  ok "package with scratch-like filenames installs"
+else
+  bad "package with scratch-like filenames installs"
+  sed 's/^/  INFO: /' "$T/internal-names.log" | head -10
+fi
+for rel in seen.txt members.txt list.txt; do
+  if [ "$(cat "$AIRA_PKG_ROOT/$rel" 2>/dev/null)" = "payload $rel" ]; then
+    ok "payload content preserved: $rel"
+  else
+    bad "payload content preserved: $rel"
+  fi
+done
+[ "$(cat "$AIRA_PKG_ROOT/usr/share/doc/PKGINFO" 2>/dev/null)" = "nested metadata is payload" ] && ok "nested PKGINFO content preserved" || bad "nested PKGINFO content preserved"
+P verify internal-names | grep -q "verify OK" && ok "scratch-like payload files recorded in package database" || bad "scratch-like payload files recorded in package database"
+P remove internal-names >/dev/null 2>&1 && ok "scratch-like package removes cleanly" || bad "scratch-like package removes cleanly"
+
 echo "--- install/list/query/verify ---"
 if P install "$T/hello-aira.apkg" > "$T/pkg-install.out" 2>&1; then
   P install "$T/hello-aira.apkg" 2>&1 | grep -q "already installed" \

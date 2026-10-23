@@ -132,6 +132,10 @@ case "$cmd" in
     f="$2"
     [ -f "$f" ] || { echo "file not found: $f" >&2; exit 1; }
     tmp="$(mktemp -d)"
+    payload="$tmp/payload"
+    mkdir -p "$payload" || { echo "airapkg: cannot create extraction directory" >&2; rm -rf "$tmp"; exit 1; }
+    # Keep archive-validation scratch files outside the extracted payload tree,
+    # so legitimate package files with these names are never filtered out.
     # Pre-validate raw tar members for absolute/traversal before extraction
     if tar -tzf "$f" 2>/dev/null > "$tmp/members.txt"; then
       # Duplicate members are ambiguous: extraction order decides which wins,
@@ -169,16 +173,16 @@ case "$cmd" in
     else
       echo "invalid .apkg (tar list failed)" >&2; rm -rf "$tmp"; exit 1
     fi
-    tar -xzf "$f" -C "$tmp" || { echo "invalid .apkg (tar extract failed)" >&2; rm -rf "$tmp"; exit 1; }
-    [ -f "$tmp/PKGINFO" ] || { echo "invalid .apkg (no PKGINFO)" >&2; rm -rf "$tmp"; exit 1; }
+    tar -xzf "$f" -C "$payload" || { echo "invalid .apkg (tar extract failed)" >&2; rm -rf "$tmp"; exit 1; }
+    [ -f "$payload/PKGINFO" ] || { echo "invalid .apkg (no PKGINFO)" >&2; rm -rf "$tmp"; exit 1; }
     # reject any symlink that survived extraction (paranoid)
-    if find "$tmp" -type l 2>/dev/null | grep -q .; then
+    if find "$payload" -type l 2>/dev/null | grep -q .; then
       echo "airapkg: reject symlink in payload" >&2; rm -rf "$tmp"; exit 1
     fi
     # parse-only PKGINFO (never source: package content is untrusted and
     # sourcing would execute embedded shell code)
-    NAME="$(sed -n 's/^NAME="\(.*\)"/\1/p' "$tmp/PKGINFO" 2>/dev/null | head -n 1)"
-    VERSION="$(sed -n 's/^VERSION="\(.*\)"/\1/p' "$tmp/PKGINFO" 2>/dev/null | head -n 1)"
+    NAME="$(sed -n 's/^NAME="\(.*\)"/\1/p' "$payload/PKGINFO" 2>/dev/null | head -n 1)"
+    VERSION="$(sed -n 's/^VERSION="\(.*\)"/\1/p' "$payload/PKGINFO" 2>/dev/null | head -n 1)"
     # Validate the metadata token before it can become a database path.
     if ! valid_pkg_name "$NAME"; then
       echo "invalid PKGINFO (bad NAME)" >&2
@@ -192,19 +196,19 @@ case "$cmd" in
       echo "$NAME already installed (use --force)" >&2; rm -rf "$tmp"; exit 1
     fi
     # dependency check (warn only in v1, do not auto-resolve)
-    DEPS="$(sed -n 's/^DEPS="\(.*\)"/\1/p' "$tmp/PKGINFO" 2>/dev/null | head -n 1)"
+    DEPS="$(sed -n 's/^DEPS="\(.*\)"/\1/p' "$payload/PKGINFO" 2>/dev/null | head -n 1)"
     for dep in ${DEPS:-}; do
       [ -d "$(pkgdir "$dep")" ] || echo "WARN: dependency $dep not installed"
     done
     # --- atomic transaction: stage DB then commit only on success ---
     staged="$(mktemp -d)"
     mkdir -p "$staged"
-    cp -f "$tmp/PKGINFO" "$staged/PKGINFO"
+    cp -f "$payload/PKGINFO" "$staged/PKGINFO"
     mkdir -p "$staged/backup"
     : > "$staged/files"
     : > "$staged/backup-files"
     # Sort payload paths for deterministic install/rollback order.
-    (cd "$tmp" && find . -mindepth 1 -not -name PKGINFO -not -name members.txt -not -name list.txt | LC_ALL=C sort) > "$tmp/list.txt"
+    (cd "$payload" && find . -mindepth 1 ! -path './PKGINFO' | LC_ALL=C sort) > "$tmp/list.txt"
     _install_failed=0
     rollback_payload() {
       _rb_failed=0
@@ -231,11 +235,7 @@ case "$cmd" in
     while IFS= read -r rel; do
       rel="${rel#./}"
       [ -n "$rel" ] || continue
-      # skip our own validation artifacts if present
-      case "$rel" in
-        members.txt|list.txt) continue ;;
-      esac
-      src="$tmp/$rel"
+      src="$payload/$rel"
       # Keep package-relative paths in the DB; apply ROOT only at deployment time.
       dest="$ROOT/$rel"
       rec="/$rel"
