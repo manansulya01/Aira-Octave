@@ -477,3 +477,25 @@
 - That run predates the merged ALSA and installer preflight changes. The full
   workflow for combined revision \`9336a185020e1bf1d944dc57cc8278742485fe82\`
   is running; its result is the release gate for the combined revision.
+
+## 2026-10-23 — QEMU audio startup failure isolated; fix merged, full gate running
+- Inspected the uploaded artifact from failed full workflow run
+  [`39604381767`](https://github.com/manansulya01/Aira-Octave/actions/runs/39604381767).
+  Kernel/userspace boot, the GUI checks, and the GUI app tests passed; the guest
+  audio phase failed because QEMU's detected HDA card exposed no supported ALSA
+  mixer control. The failure propagated to the guest autotest marker and stopped
+  the release workflow before network/recovery/persistence/ISO gates.
+- PR #22 merged as
+  [`d6dc4f5383808547014c8e2bd2b356bafc68b3f2`](https://github.com/manansulya01/Aira-Octave/pull/22).
+  `aira-audio start` now reports an explicit degraded playback-only mode only
+  when ALSA lists a real playback device; it does not claim mixer volume/mute
+  support. The test suite adds playback-only and no-device cases.
+- Core shell workflow
+  [`39948516183`](https://github.com/manansulya01/Aira-Octave/actions/runs/39948516183)
+  passed. Full build/QEMU/release workflow
+  [`39948516174`](https://github.com/manansulya01/Aira-Octave/actions/runs/39948516174)
+  is running; do not claim guest audio or full release verification until every
+  QEMU and generated-ISO gate passes.
+- The full OS workflow now also declares a pull-request trigger for changes to
+  kernel, initramfs, GUI, build, installer, and test paths, so relevant changes
+  can be verified before merge.
