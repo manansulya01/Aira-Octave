@@ -62,13 +62,15 @@ fi
 if grep -q "Audio service started" "$T/start-fail.log"; then bad "failed start does not claim success"; else ok "failed start does not claim success"; fi
 
 echo "--- playback-only devices without mixer controls ---"
-if PATH="$T/bin:/usr/bin:/bin" MOCK_NO_MIXER=1 /bin/sh "$AUDIO" start >"$T/no-mixer.log" 2>&1; then
-  grep -q "playback service started (degraded: no mixer controls)" "$T/no-mixer.log" && ok "playback-only device starts with explicit degraded status" || bad "playback-only degraded status"
-else bad "playback-only device starts without mixer controls"; fi
-if PATH="$T/bin:/usr/bin:/bin" MOCK_NO_MIXER=1 MOCK_NO_PLAYBACK=1 /bin/sh "$AUDIO" start >"$T/no-audio-device.log" 2>&1; then
+printf '00-00: Test PCM : playback 1 : capture 1\n' > "$T/asound-pcm"
+if PATH="$T/bin:/usr/bin:/bin" MOCK_NO_MIXER=1 AIRA_ASOUND_PCM_PATH="$T/asound-pcm" /bin/sh "$AUDIO" start >"$T/no-mixer.log" 2>&1; then
+  grep -q "playback service started (degraded: no mixer controls)" "$T/no-mixer.log" && ok "kernel PCM inventory permits explicit playback-only mode" || bad "playback-only degraded status"
+else bad "kernel PCM inventory detects playback without mixer controls"; fi
+: > "$T/asound-no-playback"
+if PATH="$T/bin:/usr/bin:/bin" MOCK_NO_MIXER=1 MOCK_NO_PLAYBACK=1 AIRA_ASOUND_PCM_PATH="$T/asound-no-playback" /bin/sh "$AUDIO" start >"$T/no-audio-device.log" 2>&1; then
   bad "missing mixer and playback device rejected"
 else
-  grep -q "no usable mixer controls or playback device" "$T/no-audio-device.log" && ok "missing mixer and playback device rejected" || bad "missing playback diagnostic"
+  grep -q "no usable mixer controls or playback PCM" "$T/no-audio-device.log" && ok "missing mixer and playback device rejected" || bad "missing playback diagnostic"
 fi
 
 echo "--- stop reports the actual mixer result ---"
