@@ -84,5 +84,6 @@ jobs:
           bash scripts/test-install-guard.sh
           bash scripts/test-guest-installer-guard.sh
           bash scripts/test-user.sh
+          bash scripts/test-services-guards.sh
           bash scripts/test-pkg.sh
           bash scripts/test-audio.sh
