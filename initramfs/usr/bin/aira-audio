@@ -66,6 +66,14 @@ select_mixer_control() {
     return 1
 }
 
+has_playback_pcm() {
+    # ALSA's proc inventory is produced by the kernel and remains useful when
+    # aplay -l cannot open the control node. This only permits degraded service
+    # startup; the separate test command must still submit a real test tone.
+    _pcm_inventory="${AIRA_ASOUND_PCM_PATH:-/proc/asound/pcm}"
+    [ -r "$_pcm_inventory" ] && grep -Eiq 'playback[[:space:]]+[1-9]' "$_pcm_inventory"
+}
+
 start_audio() {
     echo "[audio] Starting audio service..."
     require_tool amixer || return 1
@@ -81,13 +89,13 @@ start_audio() {
         # mixer controls. Do not claim volume/mute support; allow startup only
         # when ALSA independently reports a real playback device. The test
         # command still has to submit audio successfully before guest CI passes.
-        if command -v aplay >/dev/null 2>&1 && aplay -l 2>/dev/null | grep -q '^card [0-9]'; then
+        if { command -v aplay >/dev/null 2>&1 && aplay -l 2>/dev/null | grep -q '^card [0-9]'; } || has_playback_pcm; then
             MIXER_CONTROL=""
-            echo "[audio] WARNING: playback device detected but no mixer controls; volume/mute unavailable" >&2
+            echo "[audio] WARNING: ALSA playback PCM detected but mixer controls unavailable; volume/mute unavailable" >&2
             echo "[audio] Audio playback service started (degraded: no mixer controls)"
             return 0
         fi
-        echo "aira-audio: no usable mixer controls or playback device on card '$SND_CARD'" >&2
+        echo "aira-audio: no usable mixer controls or playback PCM on card '$SND_CARD'" >&2
         return 1
     fi
 
