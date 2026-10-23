@@ -11,7 +11,11 @@ trap 'rm -rf "$T"' EXIT
 mkdir -p "$T/bin" "$T/empty"
 cat > "$T/bin/amixer" <<'EOF'
 #!/bin/sh
-case "$*" in *"sget"*) exit 0 ;; esac
+case "$*" in
+  *"sget"*)
+    [ "${MOCK_NO_MIXER:-0}" = 1 ] && exit 1
+    exit 0 ;;
+esac
 [ "${MOCK_AMIXER_FAIL:-0}" = 1 ] && exit 1
 case "$*" in *"get Master"*) echo "Mono: Playback 70 [70%] [on]" ;; esac
 exit 0
@@ -31,6 +35,12 @@ exit 0
 EOF
 cat > "$T/bin/aplay" <<'EOF'
 #!/bin/sh
+case "$*" in
+  -l)
+    [ "${MOCK_NO_PLAYBACK:-0}" = 1 ] && exit 1
+    echo "card 0: Test [Test Audio], device 0: Playback [Playback]"
+    exit 0 ;;
+esac
 [ "${MOCK_APLAY_FAIL:-0}" = 1 ] && exit 1
 exit 0
 EOF
@@ -50,6 +60,16 @@ else
   grep -q "failed to initialize mixer" "$T/start-fail.log" && ok "failed mixer start rejected" || bad "failed mixer start diagnostic"
 fi
 if grep -q "Audio service started" "$T/start-fail.log"; then bad "failed start does not claim success"; else ok "failed start does not claim success"; fi
+
+echo "--- playback-only devices without mixer controls ---"
+if PATH="$T/bin:/usr/bin:/bin" MOCK_NO_MIXER=1 /bin/sh "$AUDIO" start >"$T/no-mixer.log" 2>&1; then
+  grep -q "playback service started (degraded: no mixer controls)" "$T/no-mixer.log" && ok "playback-only device starts with explicit degraded status" || bad "playback-only degraded status"
+else bad "playback-only device starts without mixer controls"; fi
+if PATH="$T/bin:/usr/bin:/bin" MOCK_NO_MIXER=1 MOCK_NO_PLAYBACK=1 /bin/sh "$AUDIO" start >"$T/no-audio-device.log" 2>&1; then
+  bad "missing mixer and playback device rejected"
+else
+  grep -q "no usable mixer controls or playback device" "$T/no-audio-device.log" && ok "missing mixer and playback device rejected" || bad "missing playback diagnostic"
+fi
 
 echo "--- stop reports the actual mixer result ---"
 if PATH="$T/bin:/usr/bin:/bin" MOCK_AMIXER_FAIL=0 /bin/sh "$AUDIO" stop >"$T/stop.log" 2>&1; then

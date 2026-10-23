@@ -2,6 +2,19 @@ name: Full OS build and QEMU verification
 
 on:
   workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/full-os-build-and-qemu.yml"
+      - "linux-7.2.2/**"
+      - "configs/**"
+      - "initramfs/**"
+      - "gui/**"
+      - "usr/**"
+      - "scripts/build-*.sh"
+      - "scripts/install-to-disk.sh"
+      - "scripts/boot-qemu.sh"
+      - "scripts/test-*.sh"
   push:
     branches: [main]
     paths:

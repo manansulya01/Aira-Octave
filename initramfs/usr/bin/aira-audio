@@ -76,7 +76,20 @@ start_audio() {
     modprobe -q snd_virtio 2>/dev/null || true
     modprobe -q snd_intel8x0 2>/dev/null || true
     modprobe -q snd_hda_intel 2>/dev/null || true
-    select_mixer_control || return 1
+    if ! select_mixer_control; then
+        # Some virtual and embedded HDA devices expose playback but no ALSA
+        # mixer controls. Do not claim volume/mute support; allow startup only
+        # when ALSA independently reports a real playback device. The test
+        # command still has to submit audio successfully before guest CI passes.
+        if command -v aplay >/dev/null 2>&1 && aplay -l 2>/dev/null | grep -q '^card [0-9]'; then
+            MIXER_CONTROL=""
+            echo "[audio] WARNING: playback device detected but no mixer controls; volume/mute unavailable" >&2
+            echo "[audio] Audio playback service started (degraded: no mixer controls)"
+            return 0
+        fi
+        echo "aira-audio: no usable mixer controls or playback device on card '$SND_CARD'" >&2
+        return 1
+    fi
 
     if command -v alsactl >/dev/null 2>&1; then
         alsactl init 2>/dev/null || echo "[audio] WARNING: alsactl init unavailable for this device" >&2
