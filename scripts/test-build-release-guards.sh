@@ -28,6 +28,18 @@ cat > "$MOCKBIN/tar" <<'MOCK_TAR'
 [ "$1" = "-czf" ] || exit 2
 printf 'mock tar artifact\n' > "$2"
 MOCK_TAR
+cat > "$MOCKBIN/mv" <<'MOCK_MV'
+#!/bin/sh
+dest=""
+for arg do dest="$arg"; done
+if [ "${MOCK_MV_SIGNAL_PUBLISH:-0}" = "1" ] && [ "$dest" = "${MOCK_SIGNAL_DEST:-}" ]; then
+  /bin/mv "$@" || exit $?
+  kill -TERM "$PPID"
+  exit 0
+fi
+exec /bin/mv "$@"
+MOCK_MV
+chmod +x "$MOCKBIN/mv"
 for tool in mformat xorriso; do
   cat > "$MOCKBIN/$tool" <<'MOCK_TOOL'
 #!/bin/sh
@@ -79,6 +91,32 @@ fi
 [ "$(cat "$SUM")" = "previous checksums" ] || { echo "FAIL: checksum manifest changed after tarball failure"; exit 1; }
 [ "$(cat "$REL/KEEP-ME")" = "previous release directory" ] || { echo "FAIL: versioned release directory changed after tarball failure"; exit 1; }
 echo "PASS: failed tarball build preserves previous published artifacts"
+
+# Simulate SIGTERM after the old release directory has been replaced but before
+# ISO/tar/checksum publication finishes. The EXIT trap must retain the backups.
+if MOCK_MV_SIGNAL_PUBLISH=1 MOCK_SIGNAL_DEST="$REL" PATH="$MOCKBIN:$PATH" \
+   bash "$SANDBOX/scripts/build-release.sh" 1.5.0 > "$TMP/signal.log" 2>&1; then
+  echo "FAIL: publication signal was ignored"
+  exit 1
+fi
+grep -q 'received TERM during release publication' "$TMP/signal.log" || {
+  echo "FAIL: missing signal recovery diagnostic"
+  cat "$TMP/signal.log"
+  exit 1
+}
+RECOVERY_DIR="$(find "$SANDBOX/release" -maxdepth 1 -type d -name '.aira-release-*' -print -quit)"
+[ -n "$RECOVERY_DIR" ] && [ -f "$RECOVERY_DIR/previous-release-dir/KEEP-ME" ] || {
+  echo "FAIL: signal cleanup deleted the release recovery backup"
+  find "$SANDBOX/release" -maxdepth 2 -type f -print
+  exit 1
+}
+[ "$(cat "$ISO")" = "previous iso" ] || { echo "FAIL: signal changed old ISO before publication"; exit 1; }
+[ "$(cat "$TAR")" = "previous tar" ] || { echo "FAIL: signal changed old tarball before publication"; exit 1; }
+[ "$(cat "$SUM")" = "previous checksums" ] || { echo "FAIL: signal changed old checksums before publication"; exit 1; }
+echo "PASS: SIGTERM during publication preserves the old release backup"
+rm -rf -- "$REL"
+cp -a "$RECOVERY_DIR/previous-release-dir" "$REL"
+rm -rf -- "$RECOVERY_DIR"
 
 if ! PATH="$MOCKBIN:$PATH" bash "$SANDBOX/scripts/build-release.sh" 1.5.0 > "$TMP/pass.log" 2>&1; then
   cat "$TMP/pass.log"

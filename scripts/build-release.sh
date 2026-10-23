@@ -15,13 +15,28 @@ mkdir -p "$OUTDIR" "$RELEASE_DIR" || { echo "ERROR: cannot create release/log di
 TS="$(date -u +%Y%m%d-%H%M%S)"
 LOG="$OUTDIR/release-$VER-$TS.log"
 TMPDIR_BUILD=""
+PRESERVE_TMPDIR=0
 
 cleanup() {
   if [ -n "$TMPDIR_BUILD" ] && [ -d "$TMPDIR_BUILD" ]; then
-    rm -rf -- "$TMPDIR_BUILD"
+    if [ "$PRESERVE_TMPDIR" -eq 1 ]; then
+      echo "CRITICAL: preserving release recovery workspace at $TMPDIR_BUILD" | tee -a "$LOG" || true
+    else
+      rm -rf -- "$TMPDIR_BUILD"
+    fi
   fi
 }
-trap cleanup EXIT HUP INT TERM
+handle_signal() {
+  local signal="$1" code="$2"
+  if [ "$PRESERVE_TMPDIR" -eq 1 ]; then
+    echo "CRITICAL: received $signal during release publication; recovery workspace will be preserved at $TMPDIR_BUILD" | tee -a "$LOG" || true
+  fi
+  exit "$code"
+}
+trap cleanup EXIT
+trap 'handle_signal HUP 129' HUP
+trap 'handle_signal INT 130' INT
+trap 'handle_signal TERM 143' TERM
 
 {
   echo "TS=$TS VER=$VER"
@@ -169,15 +184,24 @@ rollback_publish() {
 # Remove the old directory only after a verified backup exists. POSIX mv
 # nests a source directory inside an existing non-empty destination directory;
 # it does not replace that directory, so explicitly remove the target here.
+# From the first destructive publication operation until publication or
+# rollback completes, a signal must never delete the only recovery backups.
+PRESERVE_TMPDIR=1
 if ! rm -rf -- "$REL" ||
    ! mv -- "$STAGE_REL" "$REL" ||
    ! mv -- "$ISO_TMP" "$ISO" ||
    ! mv -- "$TAR_TMP" "$TAR" ||
    ! mv -- "$SUM_TMP" "$SUM"; then
   echo "ERROR: release publication failed; restoring previous artifacts" | tee -a "$LOG"
-  rollback_publish || echo "CRITICAL: release rollback incomplete; inspect $TMPDIR_BUILD and $LOG" | tee -a "$LOG"
+  if rollback_publish; then
+    PRESERVE_TMPDIR=0
+    echo "ROLLBACK PASS: previous release artifacts restored" | tee -a "$LOG"
+  else
+    echo "CRITICAL: release rollback incomplete; preserving recovery workspace $TMPDIR_BUILD and log $LOG" | tee -a "$LOG"
+  fi
   exit 1
 fi
+PRESERVE_TMPDIR=0
 
 {
   echo "--- published artifacts ---"
