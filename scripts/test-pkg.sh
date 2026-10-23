@@ -67,7 +67,7 @@ mkpkg hello-aira 1.0 "$T/build-hello-aira/usr/share/aira/hello.txt" "$T/hello-ai
 
 echo "--- payload filenames that resemble installer scratch files ---"
 N="$T/internal-names"; rm -rf "$N"; mkdir -p "$N/usr/share/doc"
-printf 'NAME="internal-names"\\nVERSION="1.0"\\nDESC="scratch-name regression"\\nDEPS=""\\n' > "$N/PKGINFO"
+printf 'NAME="internal-names"\nVERSION="1.0"\nDESC="scratch-name regression"\nDEPS=""\n' > "$N/PKGINFO"
 for name in seen.txt members.txt list.txt; do printf 'payload %s\\n' "$name" > "$N/$name"; done
 printf 'nested metadata is payload\\n' > "$N/usr/share/doc/PKGINFO"
 tar -czf "$T/internal-names.apkg" -C "$N" .
