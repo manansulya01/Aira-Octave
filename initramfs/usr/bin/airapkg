@@ -182,7 +182,7 @@ case "$cmd" in
     # parse-only PKGINFO (never source: package content is untrusted and
     # sourcing would execute embedded shell code)
     NAME="$(sed -n 's/^NAME="\(.*\)"/\1/p' "$payload/PKGINFO" 2>/dev/null | head -n 1)"
-    VERSION="$(sed -n 's/^VERSION="\(.*\)"/\1/p' "$tmp/PKGINFO" 2>/dev/null | head -n 1)"
+    VERSION="$(sed -n 's/^VERSION="\(.*\)"/\1/p' "$payload/PKGINFO" 2>/dev/null | head -n 1)"
     # Validate the metadata token before it can become a database path.
     if ! valid_pkg_name "$NAME"; then
       echo "invalid PKGINFO (bad NAME)" >&2
@@ -196,14 +196,14 @@ case "$cmd" in
       echo "$NAME already installed (use --force)" >&2; rm -rf "$tmp"; exit 1
     fi
     # dependency check (warn only in v1, do not auto-resolve)
-    DEPS="$(sed -n 's/^DEPS="\(.*\)"/\1/p' "$tmp/PKGINFO" 2>/dev/null | head -n 1)"
+    DEPS="$(sed -n 's/^DEPS="\(.*\)"/\1/p' "$payload/PKGINFO" 2>/dev/null | head -n 1)"
     for dep in ${DEPS:-}; do
       [ -d "$(pkgdir "$dep")" ] || echo "WARN: dependency $dep not installed"
     done
     # --- atomic transaction: stage DB then commit only on success ---
     staged="$(mktemp -d)"
     mkdir -p "$staged"
-    cp -f "$tmp/PKGINFO" "$staged/PKGINFO"
+    cp -f "$payload/PKGINFO" "$staged/PKGINFO"
     mkdir -p "$staged/backup"
     : > "$staged/files"
     : > "$staged/backup-files"
