@@ -115,6 +115,14 @@ else
   grep -q "required ALSA tool" "$T/no-tools.log" && ok "missing amixer rejected" || bad "missing amixer diagnostic"
 fi
 
+echo "--- QEMU audio backend exposes playback rather than output-only codec ---"
+if grep -Fq -- '-device hda-duplex,audiodev=audio0' "$ROOT/scripts/boot-qemu.sh" &&
+   ! grep -Fq -- '-device hda-output,audiodev=audio0' "$ROOT/scripts/boot-qemu.sh"; then
+  ok "QEMU audio test uses duplex HDA codec"
+else
+  bad "QEMU audio test uses duplex HDA codec"
+fi
+
 echo
 echo "AUDIO TEST: PASS=$PASS FAIL=$FAIL"
 [ "$FAIL" = "0" ]
