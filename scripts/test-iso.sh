@@ -26,6 +26,7 @@ set -u
 PASS=1
 grep -q "Linux version" "$LOG" || { echo "MISS Linux version"; PASS=0; }
 grep -q "AiraOS userspace ready" "$LOG" || { echo "MISS userspace"; PASS=0; }
+grep -q "\[init\] /persist mounted from /dev/vda" "$LOG" || { echo "MISS persistent rootfs mount"; PASS=0; }
 grep -qi "Kernel panic" "$LOG" && { echo "panic!"; PASS=0; } || true
 cp -f "$LOG" "$OUTDIR/iso-last.log"
 [ "$PASS" = "1" ] && { echo "ISO BOOT TEST PASS"; exit 0; } || { echo "ISO BOOT TEST FAIL"; exit 1; }
