@@ -53,9 +53,10 @@ if [ "$NET" = "user" ]; then
   QEMU_ARGS+=(-device virtio-net-pci,netdev=n0 -netdev "user,id=n0")
 fi
 if [ "$AUDIO" = "yes" ]; then
-  # Use QEMU's discard backend: the guest gets a real HDA device without
-  # requiring host speakers or an audio server in CI.
-  QEMU_ARGS+=(-audiodev none,id=audio0 -device intel-hda -device hda-output,audiodev=audio0)
+  # Use QEMU's duplex HDA codec with a discard backend. The output-only
+  # codec produced an HDA controller but no usable playback PCM in CI.
+  # Duplex exposes a playback PCM while still requiring no host audio server.
+  QEMU_ARGS+=(-audiodev none,id=audio0 -device intel-hda -device hda-duplex,audiodev=audio0)
 fi
 
 echo "AIRA-QEMU kernel=$KERNEL initramfs=$INITRAMFS mem=$MEM timeout=${TIMEOUT}s gpu=$GPU net=$NET audio=$AUDIO"
