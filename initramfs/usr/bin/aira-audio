@@ -218,7 +218,16 @@ test_audio() {
         echo "[audio] Fallback test audio submitted"
         return 0
     fi
-    echo "aira-audio: test tone failed; check ALSA tools, sound card, and mixer configuration" >&2
+    echo "aira-audio: test tone failed; collecting playback diagnostics" >&2
+    if [ -r /proc/asound/cards ]; then echo "[audio] /proc/asound/cards:" >&2; cat /proc/asound/cards >&2; else echo "[audio] /proc/asound/cards unavailable" >&2; fi
+    if [ -r /proc/asound/pcm ]; then echo "[audio] /proc/asound/pcm:" >&2; cat /proc/asound/pcm >&2; else echo "[audio] /proc/asound/pcm unavailable" >&2; fi
+    if [ -d /dev/snd ]; then echo "[audio] /dev/snd entries:" >&2; ls -la /dev/snd >&2; else echo "[audio] /dev/snd directory missing" >&2; fi
+    if command -v aplay >/dev/null 2>&1; then echo "[audio] aplay -l:" >&2; aplay -l >&2 || true; fi
+    echo "[audio] ALSA configuration paths:" >&2
+    for _cfg in /etc/asound.conf /usr/share/alsa/alsa.conf /persist/etc/asound.conf /persist/usr/share/alsa/alsa.conf; do
+        [ -r "$_cfg" ] && ls -l "$_cfg" >&2
+    done
+    echo "aira-audio: test tone failed; check ALSA PCM nodes, configuration, and sound card" >&2
     return 1
 }
 
