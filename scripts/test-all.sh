@@ -64,6 +64,7 @@ for spec in \
     "doctor:scripts/test-doctor.sh" \
     "manifest:scripts/test-manifest.sh" \
     "services:scripts/test-services.sh" \
+    "services-guards:scripts/test-services-guards.sh" \
     "storage:scripts/test-storage.sh" \
     "legacy-network:scripts/test-network.sh" \
     "gui:scripts/test-gui.sh" \
