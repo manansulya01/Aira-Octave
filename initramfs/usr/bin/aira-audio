@@ -50,6 +50,13 @@ require_tool() {
     }
 }
 
+has_playback_pcm() {
+    # ALSA proc inventory can report playback PCMs when aplay -l cannot enumerate them.
+    # This is detection only; the actual tone test remains a separate hard gate.
+    _pcm_inventory="${AIRA_ASOUND_PCM_PATH:-/proc/asound/pcm}"
+    [ -r "$_pcm_inventory" ] && grep -Eiq 'playback[[:space:]]+[1-9]' "$_pcm_inventory"
+}
+
 select_mixer_control() {
     if [ -n "$MIXER_CONTROL" ]; then
         amixer -c "$SND_CARD" sget "$MIXER_CONTROL" >/dev/null 2>&1 && return 0
@@ -81,13 +88,24 @@ start_audio() {
         # mixer controls. Do not claim volume/mute support; allow startup only
         # when ALSA independently reports a real playback device. The test
         # command still has to submit audio successfully before guest CI passes.
-        if command -v aplay >/dev/null 2>&1 && aplay -l 2>/dev/null | grep -q '^card [0-9]'; then
+        if { command -v aplay >/dev/null 2>&1 && aplay -l 2>/dev/null | grep -q '^card [0-9]'; } || has_playback_pcm; then
             MIXER_CONTROL=""
-            echo "[audio] WARNING: playback device detected but no mixer controls; volume/mute unavailable" >&2
+            echo "[audio] WARNING: playback PCM detected but no mixer controls; volume/mute unavailable" >&2
             echo "[audio] Audio playback service started (degraded: no mixer controls)"
             return 0
         fi
         echo "aira-audio: no usable mixer controls or playback device on card '$SND_CARD'" >&2
+        if command -v aplay >/dev/null 2>&1; then
+            echo "[audio] diagnostic: aplay -l output follows" >&2
+            aplay -l 2>&1 | head -n 20 >&2 || true
+        fi
+        _pcm_inventory="${AIRA_ASOUND_PCM_PATH:-/proc/asound/pcm}"
+        if [ -r "$_pcm_inventory" ]; then
+            echo "[audio] diagnostic: ALSA PCM inventory follows" >&2
+            head -n 20 "$_pcm_inventory" >&2 || true
+        else
+            echo "[audio] diagnostic: ALSA PCM inventory unavailable at $_pcm_inventory" >&2
+        fi
         return 1
     fi
 
