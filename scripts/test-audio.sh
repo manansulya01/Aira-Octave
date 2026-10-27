@@ -48,6 +48,8 @@ cat > "$T/bin/arecord" <<'EOF'
 #!/bin/sh
 exit 0
 EOF
+printf '00-00: HDA Analog : playback 1\n' > "$T/asound-pcm"
+: > "$T/no-asound-pcm"
 chmod +x "$T/bin/"*
 
 echo "--- start reports actual mixer result ---"
@@ -65,7 +67,10 @@ echo "--- playback-only devices without mixer controls ---"
 if PATH="$T/bin:/usr/bin:/bin" MOCK_NO_MIXER=1 /bin/sh "$AUDIO" start >"$T/no-mixer.log" 2>&1; then
   grep -q "playback service started (degraded: no mixer controls)" "$T/no-mixer.log" && ok "playback-only device starts with explicit degraded status" || bad "playback-only degraded status"
 else bad "playback-only device starts without mixer controls"; fi
-if PATH="$T/bin:/usr/bin:/bin" MOCK_NO_MIXER=1 MOCK_NO_PLAYBACK=1 /bin/sh "$AUDIO" start >"$T/no-audio-device.log" 2>&1; then
+if PATH="$T/bin:/usr/bin:/bin" AIRA_ASOUND_PCM_PATH="$T/asound-pcm" MOCK_NO_MIXER=1 MOCK_NO_PLAYBACK=1 /bin/sh "$AUDIO" start >"$T/proc-playback.log" 2>&1; then
+  grep -q "playback service started (degraded: no mixer controls)" "$T/proc-playback.log" && ok "ALSA proc inventory detects playback without mixer or aplay enumeration" || bad "ALSA proc playback degraded status"
+else bad "ALSA proc inventory playback fallback"; fi
+if PATH="$T/bin:/usr/bin:/bin" AIRA_ASOUND_PCM_PATH="$T/no-asound-pcm" MOCK_NO_MIXER=1 MOCK_NO_PLAYBACK=1 /bin/sh "$AUDIO" start >"$T/no-audio-device.log" 2>&1; then
   bad "missing mixer and playback device rejected"
 else
   grep -q "no usable mixer controls or playback device" "$T/no-audio-device.log" && ok "missing mixer and playback device rejected" || bad "missing playback diagnostic"
