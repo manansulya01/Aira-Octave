@@ -115,6 +115,20 @@ else
   grep -q "required ALSA tool" "$T/no-tools.log" && ok "missing amixer rejected" || bad "missing amixer diagnostic"
 fi
 
+echo "--- normal-user audio device access is group-scoped ---"
+if grep -Eq '^snd/\.\*[[:space:]]+root:audio[[:space:]]+660
+[ "$FAIL" = "0" ]
+ "$ROOT/initramfs/etc/mdev.conf"; then
+  ok "ALSA device nodes assigned to audio group with mode 660"
+else
+  bad "ALSA device nodes assigned to audio group with mode 660"
+fi
+if awk -F: '$1=="audio" && $3=="29" { n=split($4,a,","); for(i=1;i<=n;i++) if(a[i]=="aira") found=1 } END { exit !found }' "$ROOT/initramfs/etc/group"; then
+  ok "desktop user is a member of the audio group"
+else
+  bad "desktop user is a member of the audio group"
+fi
+
 echo
 echo "AUDIO TEST: PASS=$PASS FAIL=$FAIL"
 [ "$FAIL" = "0" ]
