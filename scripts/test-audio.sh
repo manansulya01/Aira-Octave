@@ -30,6 +30,9 @@ exit 0
 EOF
 cat > "$T/bin/speaker-test" <<'EOF'
 #!/bin/sh
+if [ -n "${MOCK_PRINT_ALSA_CONFIG:-}" ]; then
+  printf 'ALSA_CONFIG_PATH=%s\nALSA_CONFIG_DIR=%s\nALSA_PLUGIN_DIR=%s\n' "${ALSA_CONFIG_PATH:-}" "${ALSA_CONFIG_DIR:-}" "${ALSA_PLUGIN_DIR:-}"
+fi
 [ "${MOCK_SPEAKER_FAIL:-0}" = 1 ] && exit 1
 exit 0
 EOF
@@ -51,6 +54,13 @@ EOF
 printf '00-00: HDA Analog : playback 1\n' > "$T/asound-pcm"
 : > "$T/no-asound-pcm"
 chmod +x "$T/bin/"*
+
+echo "--- ALSA staged configuration paths can be overridden ---"
+if PATH="$T/bin:/usr/bin:/bin" AIRA_ALSA_CONFIG_PATH="$T/alsa.conf" AIRA_ALSA_CONFIG_DIR="$T/alsa" AIRA_ALSA_PLUGIN_DIR="$T/plugins" MOCK_PRINT_ALSA_CONFIG=1 /bin/sh "$AUDIO" test >"$T/alsa-paths.log" 2>&1; then
+  grep -q "ALSA_CONFIG_PATH=$T/alsa.conf" "$T/alsa-paths.log" &&
+  grep -q "ALSA_CONFIG_DIR=$T/alsa" "$T/alsa-paths.log" &&
+  grep -q "ALSA_PLUGIN_DIR=$T/plugins" "$T/alsa-paths.log" && ok "ALSA config and plugin path overrides exported" || bad "ALSA config and plugin path overrides exported"
+else bad "ALSA config path override test command"; fi
 
 echo "--- start reports actual mixer result ---"
 if PATH="$T/bin:/usr/bin:/bin" MOCK_AMIXER_FAIL=0 /bin/sh "$AUDIO" start >"$T/start.log" 2>&1; then
