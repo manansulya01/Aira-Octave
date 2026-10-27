@@ -29,6 +29,27 @@ export PATH
 LD_LIBRARY_PATH="/persist/usr/lib/x86_64-linux-gnu:/persist/lib/x86_64-linux-gnu:/persist/usr/lib:/persist/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
 export LD_LIBRARY_PATH
 
+# This service runs from initramfs while ALSA userspace lives under /persist.
+# Override ALSA compiled-in paths when the staged configuration is available.
+if [ -n "${AIRA_ALSA_CONFIG_PATH:-}" ]; then
+    ALSA_CONFIG_PATH="$AIRA_ALSA_CONFIG_PATH"
+elif [ -r /persist/usr/share/alsa/alsa.conf ]; then
+    ALSA_CONFIG_PATH=/persist/usr/share/alsa/alsa.conf
+fi
+if [ -n "${ALSA_CONFIG_PATH:-}" ]; then export ALSA_CONFIG_PATH; fi
+if [ -n "${AIRA_ALSA_CONFIG_DIR:-}" ]; then
+    ALSA_CONFIG_DIR="$AIRA_ALSA_CONFIG_DIR"
+elif [ -d /persist/usr/share/alsa ]; then
+    ALSA_CONFIG_DIR=/persist/usr/share/alsa
+fi
+if [ -n "${ALSA_CONFIG_DIR:-}" ]; then export ALSA_CONFIG_DIR; fi
+if [ -n "${AIRA_ALSA_PLUGIN_DIR:-}" ]; then
+    ALSA_PLUGIN_DIR="$AIRA_ALSA_PLUGIN_DIR"
+elif [ -d /persist/usr/lib/x86_64-linux-gnu/alsa-lib ]; then
+    ALSA_PLUGIN_DIR=/persist/usr/lib/x86_64-linux-gnu/alsa-lib
+fi
+if [ -n "${ALSA_PLUGIN_DIR:-}" ]; then export ALSA_PLUGIN_DIR; fi
+
 usage() {
     cat <<'EOF'
 aira-audio — AiraOS audio management
