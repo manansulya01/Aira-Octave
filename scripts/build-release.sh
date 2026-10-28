@@ -98,7 +98,7 @@ Build: $TS UTC
 Kernel: bzImage (see kernel-config.txt)
 Userspace: BusyBox-based initramfs plus AiraOS-Octave services and optional X11/JWM desktop
 Boot (direct): qemu-system-x86_64 -kernel boot/bzImage -initrd boot/initramfs.cpio -append "console=ttyS0 rdinit=/init loglevel=7" -m 512M -nographic -no-reboot
-Boot (ISO): qemu-system-x86_64 -cdrom aira-octave-$VER.iso -m 512M -nographic -no-reboot
+Boot (ISO + desktop): qemu-system-x86_64 -cdrom aira-octave-$VER.iso -drive file=aira-octave-$VER/aira-rootfs.img,if=virtio,format=raw -m 1024M -nographic -no-reboot
 GUI/persist: add -drive file=aira-rootfs.img,if=virtio,format=raw (desktop via aira-session)
 Tests: scripts/test-all.sh (run on the build host; consult its log for PASS/FAIL/SKIP)
 Docs: docs/ (BUILD, BOOT, TESTING, ARCHITECTURE, USER_GUIDE, and more)
