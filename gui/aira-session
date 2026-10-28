@@ -108,16 +108,33 @@ chmod 1777 /tmp /dev/shm 2>/dev/null || true
 run_as_desktop_user() {
   _desktop_cmd="${1:-}"
   [ -n "$_desktop_cmd" ] || return 2
+  shift
   if [ "$(id -u 2>/dev/null)" = "0" ]; then
     command -v su >/dev/null 2>&1 || {
       echo "[aira-session] ERROR: su unavailable; refusing root desktop process" >&2
       return 127
     }
-    if [ "$_desktop_cmd" = "jwm" ]; then
-      su -p -s /bin/sh aira -c 'export HOME=/home/aira USER=aira LOGNAME=aira; [ "$(id -u)" = "1000" ] || exit 126; echo "[aira-session] DESKTOP USER PRIVILEGE PASS"; exec "$@"' sh "$@"
-    else
-      su -p -s /bin/sh aira -c 'export HOME=/home/aira USER=aira LOGNAME=aira; [ "$(id -u)" = "1000" ] || exit 126; exec "$@"' sh "$@"
-    fi
+    case "$_desktop_cmd" in
+      jwm)
+        AIRA_JWMRC="${1:-}"
+        [ -n "$AIRA_JWMRC" ] || return 2
+        export AIRA_JWMRC
+        su -p -s /bin/sh aira -c 'export HOME=/home/aira USER=aira LOGNAME=aira; [ "$(id -u)" = "1000" ] || exit 126; echo "[aira-session] DESKTOP USER PRIVILEGE PASS"; exec jwm -f "$AIRA_JWMRC"'
+        ;;
+      aira-wallpaper)
+        su -p -s /bin/sh aira -c 'export HOME=/home/aira USER=aira LOGNAME=aira; [ "$(id -u)" = "1000" ] || exit 126; exec aira-wallpaper --apply'
+        ;;
+      aira-notifyd)
+        su -p -s /bin/sh aira -c 'export HOME=/home/aira USER=aira LOGNAME=aira; [ "$(id -u)" = "1000" ] || exit 126; exec aira-notifyd'
+        ;;
+      aira-welcome)
+        su -p -s /bin/sh aira -c 'export HOME=/home/aira USER=aira LOGNAME=aira; [ "$(id -u)" = "1000" ] || exit 126; exec aira-welcome'
+        ;;
+      *)
+        echo "[aira-session] ERROR: unsupported desktop command for privilege drop: $_desktop_cmd" >&2
+        return 2
+        ;;
+    esac
   else
     [ "$(id -u 2>/dev/null)" = "1000" ] || {
       echo "[aira-session] ERROR: desktop session must run as UID 1000" >&2
@@ -126,7 +143,10 @@ run_as_desktop_user() {
     if [ "$_desktop_cmd" = "jwm" ]; then
       echo "[aira-session] DESKTOP USER PRIVILEGE PASS"
     fi
-    "$@"
+    case "$_desktop_cmd" in
+      jwm|aira-wallpaper|aira-notifyd|aira-welcome) "$_desktop_cmd" "$@" ;;
+      *) echo "[aira-session] ERROR: unsupported desktop command: $_desktop_cmd" >&2; return 2 ;;
+    esac
   fi
 }
 
