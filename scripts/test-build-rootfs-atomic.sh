@@ -24,7 +24,14 @@ cat > "$MOCKBIN/file" <<'MOCK_FILE'
 #!/bin/sh
 echo "$1: Linux rev 1.0 ext4 filesystem data"
 MOCK_FILE
-chmod +x "$MOCKBIN/mkfs.ext4" "$MOCKBIN/file"
+cat > "$MOCKBIN/debugfs" <<'MOCK_DEBUGFS'
+#!/bin/sh
+case "$*" in
+  *"stat /home/aira"*) echo "Inode: 12 Mode: 0700 User: 1000 Group: 1000" ;;
+esac
+exit 0
+MOCK_DEBUGFS
+chmod +x "$MOCKBIN/mkfs.ext4" "$MOCKBIN/file" "$MOCKBIN/debugfs"
 
 IMG="$SANDBOX/aira-rootfs.img"
 printf 'known-good-image\n' > "$IMG"
@@ -59,6 +66,10 @@ if ! PATH="$MOCKBIN:$PATH" bash "$SANDBOX/scripts/build-rootfs.sh" 64 > "$TMP/pa
 fi
 grep -q "ROOTFS BUILD PASS" "$TMP/pass.log" || {
   echo "FAIL: success marker missing"
+  exit 1
+}
+grep -q "PERSISTENT HOME METADATA PASS: uid=1000 gid=1000 mode=0700" "$TMP/pass.log" || {
+  echo "FAIL: persistent home ownership/mode was not verified"
   exit 1
 }
 [ "$(cat "$IMG")" = "mock ext4 image" ] || {
