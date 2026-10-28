@@ -12,6 +12,11 @@ but initramfs cannot mount that file as a writable block device directly.
 Without the companion disk, the system falls back to minimal initramfs userspace
 and does not provide the full persistent desktop.
 
+The default GRUB entry starts the desktop automatically when the companion
+rootfs is attached. The serial recovery shell remains available if the desktop
+cannot start; the separate **AiraOS-Octave (autotest)** entry is intended for
+automated checks and does not auto-start the GUI.
+
 ```sh
 qemu-system-x86_64 -cdrom release/aira-octave-1.5.0.iso -boot d \
   -drive file=release/aira-octave-1.5.0/aira-rootfs.img,if=virtio,format=raw \

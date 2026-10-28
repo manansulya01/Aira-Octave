@@ -212,19 +212,38 @@ if [ "$SAFE_MODE" -eq 1 ]; then
   exec /bin/sh
 fi
 
-# Optional showcase auto-GUI: AFTER /persist mount + services so the
-# session binary (on /persist when using aira-rootfs.img) actually exists.
-# Runs in background so the serial recovery shell stays available.
-# (Skipped when aira_guidemo=1 or test modes: the test starts its own session.)
-if grep -q "aira_gui=1" /proc/cmdline 2>/dev/null && ! grep -q "aira_guidemo=1" /proc/cmdline 2>/dev/null && ! grep -q "aira_inputtest=1" /proc/cmdline 2>/dev/null && ! grep -q "aira_guivisible=1" /proc/cmdline 2>/dev/null; then
+# Optional auto-GUI: the release ISO's default menu entry sets aira_gui=1.
+# Start the desktop after /persist is mounted and services are up, but keep the
+# serial recovery shell available even if graphics fail.
+# (Skipped for demo/input/visible-test modes; those own their own session.)
+if grep -q "aira_gui=1" /proc/cmdline 2>/dev/null && ! grep -q "aira_guidemo=1" /proc/cmdline 2>/dev/null && ! grep -q "aira_inputtest=1" /proc/cmdline 2>/dev/null && ! grep -q "aira_guivisible=1" /proc/cmdline 2>/dev/null && ! grep -q "aira_autotest=1" /proc/cmdline 2>/dev/null; then
   echo "[init] aira_gui=1 — preparing auto desktop"
+  AUTO_GUI_LOG=/tmp/aira-gui-session.log
+  rm -f "$AUTO_GUI_LOG" 2>/dev/null || true
   if [ -x /persist/usr/bin/aira-session ]; then
     echo "[init] auto-starting AiraOS desktop (background)"
-    ( sleep 2; /persist/usr/bin/aira-session --display :0 2>&1 | logger -t aira-gui 2>/dev/null || true ) &
+    ( sleep 2; /persist/usr/bin/aira-session --display :0 >"$AUTO_GUI_LOG" 2>&1 ) &
   elif [ -x /usr/bin/aira-session ]; then
-    ( sleep 2; aira-session --display :0 2>&1 | logger -t aira-gui 2>/dev/null || true ) &
+    echo "[init] auto-starting AiraOS desktop (background)"
+    ( sleep 2; aira-session --display :0 >"$AUTO_GUI_LOG" 2>&1 ) &
   else
     echo "[init] aira_gui requested but no session found (need -drive aira-rootfs.img)"
+  fi
+  if [ -x /persist/usr/bin/aira-session ] || [ -x /usr/bin/aira-session ]; then
+    _auto_gui_ready=0
+    for _auto_gui_wait in 1 2 3 4 5 6 7 8; do
+      if pgrep -x jwm >/dev/null 2>&1; then
+        _auto_gui_ready=1
+        break
+      fi
+      sleep 1
+    done
+    if [ "$_auto_gui_ready" -eq 1 ]; then
+      echo "[init] AiraOS desktop startup confirmed"
+    else
+      echo "[init] AiraOS desktop startup not confirmed; serial recovery shell remains available"
+      [ -r "$AUTO_GUI_LOG" ] && tail -n 20 "$AUTO_GUI_LOG"
+    fi
   fi
 fi
 
