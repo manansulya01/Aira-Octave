@@ -110,6 +110,48 @@ else
   [ "$PERSIST_MOUNTED" -eq 1 ] || echo "[init] no AIRA_ROOT persistent filesystem found (attach aira-rootfs.img or install a labeled partition)"
 fi
 
+# Keep the interactive user's home on the persistent filesystem. Refuse to
+# follow symlinks from the writable data disk into the initramfs root.
+if [ "${PERSIST_MOUNTED:-0}" -eq 1 ]; then
+  if [ -L /persist/home ] || { [ -e /persist/home ] && [ ! -d /persist/home ]; }; then
+    echo "[init] refusing unsafe persistent home parent"
+  else
+    mkdir -p /persist/home 2>/dev/null || true
+    if [ -L /persist/home/aira ] || { [ -e /persist/home/aira ] && [ ! -d /persist/home/aira ]; }; then
+      echo "[init] refusing unsafe persistent home path"
+    else
+      mkdir -p /persist/home/aira 2>/dev/null || true
+      if [ -d /persist/home/aira ] && [ ! -L /persist/home/aira ]; then
+        chown 1000:1000 /persist/home/aira 2>/dev/null || true
+        chmod 700 /persist/home/aira 2>/dev/null || true
+        if mount --bind /persist/home/aira /home/aira 2>/dev/null; then
+          echo "[init] /home/aira bound to persistent home"
+        else
+          echo "[init] persistent home bind failed; /home/aira is RAM-only"
+        fi
+      fi
+    fi
+  fi
+fi
+
+# Explicit two-boot test hook: seed the user's home on boot one, then require
+# the marker to survive the next boot with the same persistent image.
+if grep -q 'aira_homepersist=1' /proc/cmdline 2>/dev/null; then
+  _home_owner="$(stat -c '%u:%g' /home/aira 2>/dev/null)"
+  if [ "$_home_owner" = "1000:1000" ]; then
+    echo "HOME PERSIST OWNER PASS"
+  else
+    echo "HOME PERSIST OWNER FAIL ($_home_owner)"
+  fi
+  if [ -f /home/aira/.aira-home-persist-test ]; then
+    rm -f /home/aira/.aira-home-persist-test
+    echo "HOME PERSIST TEST PASS"
+  else
+    printf 'Aira home persistence test\n' > /home/aira/.aira-home-persist-test 2>/dev/null
+    echo "HOME PERSIST TEST SEED"
+  fi
+fi
+
 # The desktop lives on /persist, while /usr/bin and /usr/share remain in the
 # initramfs root. Xorg/Xvfb invoke xkbcomp and load XKB data through absolute
 # paths, so expose those two runtime resources after the persistent filesystem
