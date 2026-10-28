@@ -76,10 +76,6 @@ fi
 # mkfs.ext4 -d copies host ownership into the image. The build host's UID is
 # not necessarily Aira's UID 1000, so set and verify the guest home metadata
 # directly in the image before publishing it.
-if ! command -v debugfs >/dev/null 2>&1; then
-  echo "ERROR: debugfs is required to set persistent home ownership safely." | tee -a "$LOG"
-  exit 1
-fi
 for field_value in "uid 1000" "gid 1000" "mode 040700"; do
   if ! debugfs -w -R "set_inode_field /home/aira $field_value" "$TMP_IMG" >>"$LOG" 2>&1; then
     echo "ERROR: could not set /home/aira metadata ($field_value); existing image was not changed." | tee -a "$LOG"
