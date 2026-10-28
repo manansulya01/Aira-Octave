@@ -30,6 +30,9 @@ exit 0
 EOF
 cat > "$T/bin/speaker-test" <<'EOF'
 #!/bin/sh
+if [ -n "${MOCK_PRINT_ALSA_CONFIG:-}" ]; then
+  printf 'ALSA_CONFIG_PATH=%s\nALSA_CONFIG_DIR=%s\nALSA_PLUGIN_DIR=%s\n' "${ALSA_CONFIG_PATH:-}" "${ALSA_CONFIG_DIR:-}" "${ALSA_PLUGIN_DIR:-}"
+fi
 [ "${MOCK_SPEAKER_FAIL:-0}" = 1 ] && exit 1
 exit 0
 EOF
@@ -48,7 +51,16 @@ cat > "$T/bin/arecord" <<'EOF'
 #!/bin/sh
 exit 0
 EOF
+printf '00-00: HDA Analog : playback 1\n' > "$T/asound-pcm"
+: > "$T/no-asound-pcm"
 chmod +x "$T/bin/"*
+
+echo "--- ALSA staged configuration paths can be overridden ---"
+if PATH="$T/bin:/usr/bin:/bin" AIRA_ALSA_CONFIG_PATH="$T/alsa.conf" AIRA_ALSA_CONFIG_DIR="$T/alsa" AIRA_ALSA_PLUGIN_DIR="$T/plugins" MOCK_PRINT_ALSA_CONFIG=1 /bin/sh "$AUDIO" test >"$T/alsa-paths.log" 2>&1; then
+  grep -q "ALSA_CONFIG_PATH=$T/alsa.conf" "$T/alsa-paths.log" &&
+  grep -q "ALSA_CONFIG_DIR=$T/alsa" "$T/alsa-paths.log" &&
+  grep -q "ALSA_PLUGIN_DIR=$T/plugins" "$T/alsa-paths.log" && ok "ALSA config and plugin path overrides exported" || bad "ALSA config and plugin path overrides exported"
+else bad "ALSA config path override test command"; fi
 
 echo "--- start reports actual mixer result ---"
 if PATH="$T/bin:/usr/bin:/bin" MOCK_AMIXER_FAIL=0 /bin/sh "$AUDIO" start >"$T/start.log" 2>&1; then
@@ -65,7 +77,10 @@ echo "--- playback-only devices without mixer controls ---"
 if PATH="$T/bin:/usr/bin:/bin" MOCK_NO_MIXER=1 /bin/sh "$AUDIO" start >"$T/no-mixer.log" 2>&1; then
   grep -q "playback service started (degraded: no mixer controls)" "$T/no-mixer.log" && ok "playback-only device starts with explicit degraded status" || bad "playback-only degraded status"
 else bad "playback-only device starts without mixer controls"; fi
-if PATH="$T/bin:/usr/bin:/bin" MOCK_NO_MIXER=1 MOCK_NO_PLAYBACK=1 /bin/sh "$AUDIO" start >"$T/no-audio-device.log" 2>&1; then
+if PATH="$T/bin:/usr/bin:/bin" AIRA_ASOUND_PCM_PATH="$T/asound-pcm" MOCK_NO_MIXER=1 MOCK_NO_PLAYBACK=1 /bin/sh "$AUDIO" start >"$T/proc-playback.log" 2>&1; then
+  grep -q "playback service started (degraded: no mixer controls)" "$T/proc-playback.log" && ok "ALSA proc inventory detects playback without mixer or aplay enumeration" || bad "ALSA proc playback degraded status"
+else bad "ALSA proc inventory playback fallback"; fi
+if PATH="$T/bin:/usr/bin:/bin" AIRA_ASOUND_PCM_PATH="$T/no-asound-pcm" MOCK_NO_MIXER=1 MOCK_NO_PLAYBACK=1 /bin/sh "$AUDIO" start >"$T/no-audio-device.log" 2>&1; then
   bad "missing mixer and playback device rejected"
 else
   grep -q "no usable mixer controls or playback device" "$T/no-audio-device.log" && ok "missing mixer and playback device rejected" || bad "missing playback diagnostic"
@@ -113,6 +128,14 @@ if PATH="$T/empty" /bin/sh "$AUDIO" start >"$T/no-tools.log" 2>&1; then
   bad "missing amixer rejected"
 else
   grep -q "required ALSA tool" "$T/no-tools.log" && ok "missing amixer rejected" || bad "missing amixer diagnostic"
+fi
+
+echo "--- QEMU audio backend exposes playback rather than output-only codec ---"
+if grep -Fq -- '-device hda-duplex,audiodev=audio0' "$ROOT/scripts/boot-qemu.sh" &&
+   ! grep -Fq -- '-device hda-output,audiodev=audio0' "$ROOT/scripts/boot-qemu.sh"; then
+  ok "QEMU audio test uses duplex HDA codec"
+else
+  bad "QEMU audio test uses duplex HDA codec"
 fi
 
 echo

@@ -29,6 +29,27 @@ export PATH
 LD_LIBRARY_PATH="/persist/usr/lib/x86_64-linux-gnu:/persist/lib/x86_64-linux-gnu:/persist/usr/lib:/persist/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
 export LD_LIBRARY_PATH
 
+# This service runs from initramfs while ALSA userspace lives under /persist.
+# Override ALSA compiled-in paths when the staged configuration is available.
+if [ -n "${AIRA_ALSA_CONFIG_PATH:-}" ]; then
+    ALSA_CONFIG_PATH="$AIRA_ALSA_CONFIG_PATH"
+elif [ -r /persist/usr/share/alsa/alsa.conf ]; then
+    ALSA_CONFIG_PATH=/persist/usr/share/alsa/alsa.conf
+fi
+if [ -n "${ALSA_CONFIG_PATH:-}" ]; then export ALSA_CONFIG_PATH; fi
+if [ -n "${AIRA_ALSA_CONFIG_DIR:-}" ]; then
+    ALSA_CONFIG_DIR="$AIRA_ALSA_CONFIG_DIR"
+elif [ -d /persist/usr/share/alsa ]; then
+    ALSA_CONFIG_DIR=/persist/usr/share/alsa
+fi
+if [ -n "${ALSA_CONFIG_DIR:-}" ]; then export ALSA_CONFIG_DIR; fi
+if [ -n "${AIRA_ALSA_PLUGIN_DIR:-}" ]; then
+    ALSA_PLUGIN_DIR="$AIRA_ALSA_PLUGIN_DIR"
+elif [ -d /persist/usr/lib/x86_64-linux-gnu/alsa-lib ]; then
+    ALSA_PLUGIN_DIR=/persist/usr/lib/x86_64-linux-gnu/alsa-lib
+fi
+if [ -n "${ALSA_PLUGIN_DIR:-}" ]; then export ALSA_PLUGIN_DIR; fi
+
 usage() {
     cat <<'EOF'
 aira-audio — AiraOS audio management
@@ -48,6 +69,13 @@ require_tool() {
         echo "aira-audio: required ALSA tool '$1' is not installed" >&2
         return 1
     }
+}
+
+has_playback_pcm() {
+    # ALSA proc inventory can report playback PCMs when aplay -l cannot enumerate them.
+    # This is detection only; the actual tone test remains a separate hard gate.
+    _pcm_inventory="${AIRA_ASOUND_PCM_PATH:-/proc/asound/pcm}"
+    [ -r "$_pcm_inventory" ] && grep -Eiq 'playback[[:space:]]+[1-9]' "$_pcm_inventory"
 }
 
 select_mixer_control() {
@@ -81,13 +109,24 @@ start_audio() {
         # mixer controls. Do not claim volume/mute support; allow startup only
         # when ALSA independently reports a real playback device. The test
         # command still has to submit audio successfully before guest CI passes.
-        if command -v aplay >/dev/null 2>&1 && aplay -l 2>/dev/null | grep -q '^card [0-9]'; then
+        if { command -v aplay >/dev/null 2>&1 && aplay -l 2>/dev/null | grep -q '^card [0-9]'; } || has_playback_pcm; then
             MIXER_CONTROL=""
-            echo "[audio] WARNING: playback device detected but no mixer controls; volume/mute unavailable" >&2
+            echo "[audio] WARNING: playback PCM detected but no mixer controls; volume/mute unavailable" >&2
             echo "[audio] Audio playback service started (degraded: no mixer controls)"
             return 0
         fi
         echo "aira-audio: no usable mixer controls or playback device on card '$SND_CARD'" >&2
+        if command -v aplay >/dev/null 2>&1; then
+            echo "[audio] diagnostic: aplay -l output follows" >&2
+            aplay -l 2>&1 | head -n 20 >&2 || true
+        fi
+        _pcm_inventory="${AIRA_ASOUND_PCM_PATH:-/proc/asound/pcm}"
+        if [ -r "$_pcm_inventory" ]; then
+            echo "[audio] diagnostic: ALSA PCM inventory follows" >&2
+            head -n 20 "$_pcm_inventory" >&2 || true
+        else
+            echo "[audio] diagnostic: ALSA PCM inventory unavailable at $_pcm_inventory" >&2
+        fi
         return 1
     fi
 
@@ -200,7 +239,16 @@ test_audio() {
         echo "[audio] Fallback test audio submitted"
         return 0
     fi
-    echo "aira-audio: test tone failed; check ALSA tools, sound card, and mixer configuration" >&2
+    echo "aira-audio: test tone failed; collecting playback diagnostics" >&2
+    if [ -r /proc/asound/cards ]; then echo "[audio] /proc/asound/cards:" >&2; cat /proc/asound/cards >&2; else echo "[audio] /proc/asound/cards unavailable" >&2; fi
+    if [ -r /proc/asound/pcm ]; then echo "[audio] /proc/asound/pcm:" >&2; cat /proc/asound/pcm >&2; else echo "[audio] /proc/asound/pcm unavailable" >&2; fi
+    if [ -d /dev/snd ]; then echo "[audio] /dev/snd entries:" >&2; ls -la /dev/snd >&2; else echo "[audio] /dev/snd directory missing" >&2; fi
+    if command -v aplay >/dev/null 2>&1; then echo "[audio] aplay -l:" >&2; aplay -l >&2 || true; fi
+    echo "[audio] ALSA configuration paths:" >&2
+    for _cfg in /etc/asound.conf /usr/share/alsa/alsa.conf /persist/etc/asound.conf /persist/usr/share/alsa/alsa.conf; do
+        [ -r "$_cfg" ] && ls -l "$_cfg" >&2
+    done
+    echo "aira-audio: test tone failed; check ALSA PCM nodes, configuration, and sound card" >&2
     return 1
 }
 
