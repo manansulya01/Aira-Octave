@@ -127,7 +127,7 @@ if [ "${PERSIST_MOUNTED:-0}" -eq 1 ]; then
       if [ -d /persist/home/aira ] && [ ! -L /persist/home/aira ]; then
         chown 1000:1000 /persist/home/aira 2>/dev/null || true
         chmod 700 /persist/home/aira 2>/dev/null || true
-        if mount --bind /persist/home/aira /home/aira 2>/dev/null; then
+        if mount -o bind /persist/home/aira /home/aira 2>/dev/null; then
           echo "[init] /home/aira bound to persistent home"
         else
           echo "[init] persistent home bind failed; /home/aira is RAM-only"
