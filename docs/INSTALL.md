@@ -6,10 +6,15 @@ Build the release from the repository first (see [BUILD.md](BUILD.md)). The
 release directory should contain `boot/bzImage`, `boot/initramfs.cpio`, and
 `aira-rootfs.img`.
 
-Boot the release ISO in QEMU:
+Boot the release ISO in QEMU. **Attach the companion `aira-rootfs.img` as a
+second disk**: the ISO carries the boot files and a copy of the image as a file,
+but initramfs cannot mount that file as a writable block device directly.
+Without the companion disk, the system falls back to minimal initramfs userspace
+and does not provide the full persistent desktop.
 
 ```sh
 qemu-system-x86_64 -cdrom release/aira-octave-1.5.0.iso -boot d \
+  -drive file=release/aira-octave-1.5.0/aira-rootfs.img,if=virtio,format=raw \
   -m 1024M -serial stdio -monitor none -no-reboot
 ```
 
