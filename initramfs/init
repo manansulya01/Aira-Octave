@@ -27,6 +27,9 @@ mount -t tmpfs tmpfs /tmp 2>/dev/null
 mount -t tmpfs tmpfs /run 2>/dev/null
 mount -t tmpfs tmpfs /dev/shm 2>/dev/null
 mount -t devpts devpts /dev/pts 2>/dev/null
+# tmpfs defaults to mode 0755; shared scratch and shared-memory paths
+# must be writable by ordinary desktop applications.
+chmod 1777 /tmp /dev/shm 2>/dev/null || true
 
 # Hostname
 if [ -f /etc/hostname ]; then
@@ -108,6 +111,57 @@ else
     fi
   done
   [ "$PERSIST_MOUNTED" -eq 1 ] || echo "[init] no AIRA_ROOT persistent filesystem found (attach aira-rootfs.img or install a labeled partition)"
+fi
+
+# Keep the interactive user's home on the persistent filesystem. Refuse to
+# follow symlinks from the writable data disk into the initramfs root.
+if [ "${PERSIST_MOUNTED:-0}" -eq 1 ]; then
+  if [ -L /persist/home ] || { [ -e /persist/home ] && [ ! -d /persist/home ]; }; then
+    echo "[init] refusing unsafe persistent home parent"
+  else
+    mkdir -p /persist/home 2>/dev/null || true
+    if [ -L /persist/home/aira ] || { [ -e /persist/home/aira ] && [ ! -d /persist/home/aira ]; }; then
+      echo "[init] refusing unsafe persistent home path"
+    else
+      mkdir -p /persist/home/aira 2>/dev/null || true
+      if [ -d /persist/home/aira ] && [ ! -L /persist/home/aira ]; then
+        chown 1000:1000 /persist/home/aira 2>/dev/null || true
+        chmod 700 /persist/home/aira 2>/dev/null || true
+        if mount -o bind /persist/home/aira /home/aira 2>/dev/null; then
+          echo "[init] /home/aira bound to persistent home"
+        else
+          echo "[init] persistent home bind failed; /home/aira is RAM-only"
+        fi
+      fi
+    fi
+  fi
+fi
+
+# Explicit two-boot test hook. Separate seed/verify modes make reruns safe
+# even if an earlier test was interrupted after writing its marker.
+if grep -Eq '(^|[[:space:]])aira_homepersist=(seed|verify)([[:space:]]|$)' /proc/cmdline 2>/dev/null; then
+  _home_owner="$(stat -c '%u:%g' /home/aira 2>/dev/null)"
+  if [ "$_home_owner" = "1000:1000" ]; then
+    echo "HOME PERSIST OWNER PASS"
+  else
+    echo "HOME PERSIST OWNER FAIL ($_home_owner)"
+  fi
+  if grep -q 'aira_homepersist=seed' /proc/cmdline 2>/dev/null; then
+    if su -s /bin/sh aira -c 'printf "Aira home persistence test\\n" > /home/aira/.aira-home-persist-test' 2>/dev/null; then
+      echo "HOME PERSIST TEST SEED"
+    else
+      echo "HOME PERSIST TEST SEED FAIL"
+    fi
+  else
+    _home_marker_owner="$(stat -c '%u:%g' /home/aira/.aira-home-persist-test 2>/dev/null)"
+    if [ "$_home_marker_owner" = "1000:1000" ] &&
+       grep -qx 'Aira home persistence test' /home/aira/.aira-home-persist-test 2>/dev/null; then
+      rm -f /home/aira/.aira-home-persist-test
+      echo "HOME PERSIST TEST PASS"
+    else
+      echo "HOME PERSIST TEST FAIL ($_home_marker_owner)"
+    fi
+  fi
 fi
 
 # The desktop lives on /persist, while /usr/bin and /usr/share remain in the

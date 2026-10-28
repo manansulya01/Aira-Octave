@@ -40,6 +40,10 @@ if ! command -v mkfs.ext4 >/dev/null 2>&1; then
   echo "ERROR: mkfs.ext4 not found; install e2fsprogs (>= 1.46 recommended)." | tee -a "$LOG"
   exit 1
 fi
+if ! command -v debugfs >/dev/null 2>&1; then
+  echo "ERROR: debugfs not found; install e2fsprogs." | tee -a "$LOG"
+  exit 1
+fi
 
 mkdir -p "$STAGE/etc/aira" "$STAGE/home/aira" "$STAGE/var/log/airaos" "$STAGE/var/lib/airapkg" "$STAGE/persist" "$STAGE/opt/aira/bin" "$STAGE/usr/share/aira" || {
   echo "ERROR: could not prepare rootfs staging directories." | tee -a "$LOG"
@@ -68,6 +72,28 @@ if ! mkfs.ext4 -d "$STAGE" -L AIRA_ROOT "$TMP_IMG" "${SIZE_M}M" >>"$LOG" 2>&1; t
   echo "ERROR: mkfs.ext4 failed; existing image was not changed (see $LOG)." | tee -a "$LOG"
   exit 1
 fi
+
+# mkfs.ext4 -d copies host ownership into the image. The build host's UID is
+# not necessarily Aira's UID 1000, so set and verify the guest home metadata
+# directly in the image before publishing it.
+for field_value in "uid 1000" "gid 1000" "mode 040700"; do
+  if ! debugfs -w -R "set_inode_field /home/aira $field_value" "$TMP_IMG" >>"$LOG" 2>&1; then
+    echo "ERROR: could not set /home/aira metadata ($field_value); existing image was not changed." | tee -a "$LOG"
+    exit 1
+  fi
+done
+HOME_STAT="$(debugfs -R "stat /home/aira" "$TMP_IMG" 2>&1)" || {
+  echo "ERROR: could not verify persistent home metadata." | tee -a "$LOG"
+  exit 1
+}
+printf '%s\n' "$HOME_STAT" >>"$LOG"
+printf '%s\n' "$HOME_STAT" | grep -Eq 'User:[[:space:]]*1000[[:space:]]+Group:[[:space:]]*1000' &&
+  printf '%s\n' "$HOME_STAT" | grep -Eq 'Mode:[[:space:]]*0700' || {
+    echo "ERROR: /home/aira must be uid=1000 gid=1000 mode=0700; existing image was not changed." | tee -a "$LOG"
+    exit 1
+  }
+echo "PERSISTENT HOME METADATA PASS: uid=1000 gid=1000 mode=0700" | tee -a "$LOG"
+
 if [ ! -s "$TMP_IMG" ]; then
   echo "ERROR: mkfs.ext4 reported success but produced no image; existing image was not changed." | tee -a "$LOG"
   exit 1
