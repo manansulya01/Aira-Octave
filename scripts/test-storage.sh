@@ -14,12 +14,16 @@ fi
 LOG1="$OUTDIR/storage-boot1-$TS.log"
 LOG2="$OUTDIR/storage-boot2-$TS.log"
 echo "=== boot1 (create marker) ==="
-bash "$ROOT/scripts/boot-qemu.sh" --timeout 220 --log "$LOG1" --drive "$IMG" --append "aira_autotest=1"
+bash "$ROOT/scripts/boot-qemu.sh" --timeout 220 --log "$LOG1" --drive "$IMG" --append "aira_autotest=1 aira_homepersist=seed"
 grep -q "GUEST-TEST OK: persist write" "$LOG1" || { echo "FAIL boot1 persist write (see $LOG1)"; exit 1; }
+grep -q "HOME PERSIST OWNER PASS" "$LOG1" || { echo "FAIL boot1 home ownership (see $LOG1)"; exit 1; }
+grep -q "HOME PERSIST TEST SEED" "$LOG1" || { echo "FAIL boot1 home marker seed (see $LOG1)"; exit 1; }
 echo "=== boot2 (verify persists) ==="
-bash "$ROOT/scripts/boot-qemu.sh" --timeout 220 --log "$LOG2" --drive "$IMG" --append "aira_autotest=1"
-if grep -q "GUEST-TEST OK: persist-exists" "$LOG2"; then
-  echo "STORAGE TEST PASS (persistence verified)"
+bash "$ROOT/scripts/boot-qemu.sh" --timeout 220 --log "$LOG2" --drive "$IMG" --append "aira_autotest=1 aira_homepersist=verify"
+if grep -q "GUEST-TEST OK: persist-exists" "$LOG2" &&
+   grep -q "HOME PERSIST OWNER PASS" "$LOG2" &&
+   grep -q "HOME PERSIST TEST PASS" "$LOG2"; then
+  echo "STORAGE TEST PASS (persistent filesystem and user home verified)"
   cp -f "$LOG2" "$OUTDIR/last.log"
   exit 0
 else
