@@ -99,6 +99,37 @@ if [ ! -e /usr/share/X11/xkb/rules/evdev ] && [ -e /persist/usr/share/X11/xkb/ru
   mkdir -p /usr/share/X11 2>/dev/null
   ln -sfn /persist/usr/share/X11/xkb /usr/share/X11/xkb 2>/dev/null || true
 fi
+
+# The X server and root-only filesystem preparation stay privileged, but the
+# window manager and desktop applications must run as the ordinary aira user.
+# Fail closed if a root-started session cannot drop privileges; never silently
+# fall back to running the full desktop as root.
+chmod 1777 /tmp /dev/shm 2>/dev/null || true
+run_as_desktop_user() {
+  _desktop_cmd="${1:-}"
+  [ -n "$_desktop_cmd" ] || return 2
+  if [ "$(id -u 2>/dev/null)" = "0" ]; then
+    command -v su >/dev/null 2>&1 || {
+      echo "[aira-session] ERROR: su unavailable; refusing root desktop process" >&2
+      return 127
+    }
+    if [ "$_desktop_cmd" = "jwm" ]; then
+      su -p -s /bin/sh aira -c 'export HOME=/home/aira USER=aira LOGNAME=aira; [ "$(id -u)" = "1000" ] || exit 126; echo "[aira-session] DESKTOP USER PRIVILEGE PASS"; exec "$@"' sh "$@"
+    else
+      su -p -s /bin/sh aira -c 'export HOME=/home/aira USER=aira LOGNAME=aira; [ "$(id -u)" = "1000" ] || exit 126; exec "$@"' sh "$@"
+    fi
+  else
+    [ "$(id -u 2>/dev/null)" = "1000" ] || {
+      echo "[aira-session] ERROR: desktop session must run as UID 1000" >&2
+      return 126
+    }
+    if [ "$_desktop_cmd" = "jwm" ]; then
+      echo "[aira-session] DESKTOP USER PRIVILEGE PASS"
+    fi
+    "$@"
+  fi
+}
+
 if [ "$USE_XVFB" = "yes" ]; then
   echo "[aira-session] starting Xvfb $DISP $GEOM (headless fallback)"
   # Explicit font + xkb paths (rootfs at /persist when booted via initramfs)
@@ -281,13 +312,13 @@ mkdir -p /persist/var/lib/aira /persist/var/log/airaos /var/log/airaos 2>/dev/nu
 # instance is harmless (FIFO readers share the queue).
 if command -v aira-notifyd >/dev/null 2>&1; then
   if ! pgrep -f "aira-notifyd" >/dev/null 2>&1; then
-    aira-notifyd >/var/log/airaos/notifyd.log 2>&1 &
+    run_as_desktop_user aira-notifyd >/var/log/airaos/notifyd.log 2>&1 &
     echo "[aira-session] notifyd started (pid $!)"
   fi
 fi
 # Wallpaper via the Aira theme engine (falls back to the classic weave).
 if command -v aira-wallpaper >/dev/null 2>&1; then
-  aira-wallpaper --apply 2>/dev/null || \
+  run_as_desktop_user aira-wallpaper --apply 2>/dev/null || \
     xsetroot -solid "#1d2a6b" 2>/dev/null || true
 else
   xsetroot -mod 4 4 -fg "#24338a" -bg "#1d2a6b" 2>/dev/null || \
@@ -306,16 +337,16 @@ pick_jwmrc() {
 }
 JWMRC="$(pick_jwmrc)" || { echo "aira-session: no JWM config found" >&2; exit 1; }
 JWMRC_CLASSIC="$(dirname "$JWMRC")/aira-jwmrc.classic"
-echo "[aira-session] starting jwm ($JWMRC)"
-jwm -f "$JWMRC" &
+echo "[aira-session] starting jwm as aira ($JWMRC)"
+run_as_desktop_user jwm -f "$JWMRC" &
 JWM_PID=$!
 sleep 1
 if ! kill -0 "$JWM_PID" 2>/dev/null; then
   echo "[aira-session] primary JWM config failed, trying classic fallback" >&2
   if [ -f "$JWMRC_CLASSIC" ]; then
     JWMRC="$JWMRC_CLASSIC"
-    echo "[aira-session] starting jwm ($JWMRC)"
-    jwm -f "$JWMRC" &
+    echo "[aira-session] starting jwm as aira ($JWMRC)"
+    run_as_desktop_user jwm -f "$JWMRC" &
     JWM_PID=$!
     sleep 1
   fi
@@ -335,7 +366,7 @@ if grep -qE "aira_(autotest|guitest|guivisible|inputtest|guidemo|fileops|demo)=1
   _SKIP_WELCOME=1
 fi
 if [ "$HEADLESS" = "no" ] && [ "$_SKIP_WELCOME" = "0" ] && command -v aira-welcome >/dev/null 2>&1; then
-  aira-welcome </dev/null >/var/log/airaos/welcome.log 2>&1 &
+  run_as_desktop_user aira-welcome </dev/null >/var/log/airaos/welcome.log 2>&1 &
   echo "[aira-session] first-run welcome check started (pid $!)"
 fi
 # If interactive (not headless test), wait; else return (test harness manages lifetime)
