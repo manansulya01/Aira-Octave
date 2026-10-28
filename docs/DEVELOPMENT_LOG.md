@@ -514,3 +514,12 @@
 - Full GitHub Actions run [40682206328](https://github.com/manansulya01/Aira-Octave/actions/runs/40682206328) passed on `main`. The recorded gates include GUI, network, safe recovery, storage persistence, support-bundle integration, audio regression `PASS=22 FAIL=0`, and release ISO boot.
 - Scope: this verifies the repository's QEMU/CI hardware profile, not physical hardware or every sound device. The release still needs a stronger ISO test that attaches the companion persistent rootfs, and home-directory persistence is under separate verification.
 - Daily-use blockers found during follow-up audit: the normal GUI startup launches `aira-session` directly from PID 1 (therefore the desktop session runs as root), and `/home/aira` was not bound to persistent storage. These must be resolved and tested before calling the system daily-use ready.
+
+
+## 2026-10-28 — Persistent user home verified across reboot
+
+- Merged PR #31 as commit `2fa257f68b232b81426b409c0122eb7d1aeea2a6`.
+- The rootfs builder now sets and verifies `/home/aira` as UID/GID 1000 with mode 0700 in the generated ext4 image. Init binds `/persist/home/aira` to `/home/aira` only after the persistent filesystem is mounted, refusing symlink/non-directory paths on the writable data disk.
+- Full QEMU workflow run [40684589522](https://github.com/manansulya01/Aira-Octave/actions/runs/40684589522) passed, including the two-boot storage test that writes a marker as the unprivileged `aira` account and verifies it on the next boot.
+- PR #30 separately passed the stronger ISO boot test with the companion persistent rootfs attached in run [40682408887](https://github.com/manansulya01/Aira-Octave/actions/runs/40682408887).
+- Remaining daily-use blocker: desktop application privilege separation is still under verification in PR #33. The X server remains privileged in that proposed change; do not describe it as fully rootless graphics or as certified for physical hardware.
