@@ -27,6 +27,9 @@ mount -t tmpfs tmpfs /tmp 2>/dev/null
 mount -t tmpfs tmpfs /run 2>/dev/null
 mount -t tmpfs tmpfs /dev/shm 2>/dev/null
 mount -t devpts devpts /dev/pts 2>/dev/null
+# tmpfs defaults to mode 0755; shared scratch and shared-memory paths
+# must be writable by ordinary desktop applications.
+chmod 1777 /tmp /dev/shm 2>/dev/null || true
 
 # Hostname
 if [ -f /etc/hostname ]; then
