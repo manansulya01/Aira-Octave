@@ -147,17 +147,19 @@ if grep -Eq '(^|[[:space:]])aira_homepersist=(seed|verify)([[:space:]]|$)' /proc
     echo "HOME PERSIST OWNER FAIL ($_home_owner)"
   fi
   if grep -q 'aira_homepersist=seed' /proc/cmdline 2>/dev/null; then
-    if printf 'Aira home persistence test\n' > /home/aira/.aira-home-persist-test 2>/dev/null; then
+    if su -s /bin/sh aira -c 'printf "Aira home persistence test\\n" > /home/aira/.aira-home-persist-test' 2>/dev/null; then
       echo "HOME PERSIST TEST SEED"
     else
       echo "HOME PERSIST TEST SEED FAIL"
     fi
   else
-    if grep -qx 'Aira home persistence test' /home/aira/.aira-home-persist-test 2>/dev/null; then
+    _home_marker_owner="$(stat -c '%u:%g' /home/aira/.aira-home-persist-test 2>/dev/null)"
+    if [ "$_home_marker_owner" = "1000:1000" ] &&
+       grep -qx 'Aira home persistence test' /home/aira/.aira-home-persist-test 2>/dev/null; then
       rm -f /home/aira/.aira-home-persist-test
       echo "HOME PERSIST TEST PASS"
     else
-      echo "HOME PERSIST TEST FAIL"
+      echo "HOME PERSIST TEST FAIL ($_home_marker_owner)"
     fi
   fi
 fi
