@@ -22,7 +22,19 @@ kill $TRIAL 2>/dev/null
 wait $TRIAL 2>/dev/null
 echo "trial rc=$?"
 if [ -x /persist/usr/bin/aira-session ]; then SES=/persist/usr/bin/aira-session; else SES=/usr/bin/aira-session; fi
-sh "$SES" --headless --display :99 || { echo "GUI-TEST FAIL: session failed"; exit 1; }
+if sh "$SES" --headless --display :99 > /tmp/aira-session-gui-test.log 2>&1; then
+  cat /tmp/aira-session-gui-test.log
+else
+  cat /tmp/aira-session-gui-test.log 2>/dev/null
+  echo "GUI-TEST FAIL: session failed"
+  exit 1
+fi
+if grep -q "DESKTOP USER PRIVILEGE PASS" /tmp/aira-session-gui-test.log; then
+  echo "GUI-TEST OK: window manager runs as UID 1000"
+else
+  echo "GUI-TEST FAIL: window manager did not confirm unprivileged execution"
+  exit 1
+fi
 sleep 1
 xwininfo -root 2>/dev/null | head -n 10 || { echo "GUI-TEST FAIL: xwininfo root"; PASS=0; }
 # C8: headless sessions must not pop the first-run welcome dialog (window
