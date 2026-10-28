@@ -134,21 +134,28 @@ if [ "${PERSIST_MOUNTED:-0}" -eq 1 ]; then
   fi
 fi
 
-# Explicit two-boot test hook: seed the user's home on boot one, then require
-# the marker to survive the next boot with the same persistent image.
-if grep -q 'aira_homepersist=1' /proc/cmdline 2>/dev/null; then
+# Explicit two-boot test hook. Separate seed/verify modes make reruns safe
+# even if an earlier test was interrupted after writing its marker.
+if grep -Eq '(^|[[:space:]])aira_homepersist=(seed|verify)([[:space:]]|$)' /proc/cmdline 2>/dev/null; then
   _home_owner="$(stat -c '%u:%g' /home/aira 2>/dev/null)"
   if [ "$_home_owner" = "1000:1000" ]; then
     echo "HOME PERSIST OWNER PASS"
   else
     echo "HOME PERSIST OWNER FAIL ($_home_owner)"
   fi
-  if [ -f /home/aira/.aira-home-persist-test ]; then
-    rm -f /home/aira/.aira-home-persist-test
-    echo "HOME PERSIST TEST PASS"
+  if grep -q 'aira_homepersist=seed' /proc/cmdline 2>/dev/null; then
+    if printf 'Aira home persistence test\n' > /home/aira/.aira-home-persist-test 2>/dev/null; then
+      echo "HOME PERSIST TEST SEED"
+    else
+      echo "HOME PERSIST TEST SEED FAIL"
+    fi
   else
-    printf 'Aira home persistence test\n' > /home/aira/.aira-home-persist-test 2>/dev/null
-    echo "HOME PERSIST TEST SEED"
+    if grep -qx 'Aira home persistence test' /home/aira/.aira-home-persist-test 2>/dev/null; then
+      rm -f /home/aira/.aira-home-persist-test
+      echo "HOME PERSIST TEST PASS"
+    else
+      echo "HOME PERSIST TEST FAIL"
+    fi
   fi
 fi
 
