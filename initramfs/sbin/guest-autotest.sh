@@ -572,6 +572,17 @@ if grep -q "aira_audiotest=1" /proc/cmdline 2>/dev/null; then
     echo "AUDIO TEST FAIL"
     PASS=0
   fi
+  # The root test above proves the backend works; this second test proves the
+  # actual desktop account can open the playback PCM with group-scoped nodes.
+  if su -s /bin/sh aira -c '/usr/bin/aira-audio test' >/tmp/aira-audio-user-test.out 2>&1; then
+    echo "GUEST-TEST OK: audio-user"
+    echo "AUDIO USER TEST PASS"
+  else
+    echo "GUEST-TEST FAIL: audio-user"
+    cat /tmp/aira-audio-user-test.out 2>/dev/null
+    echo "AUDIO USER TEST FAIL"
+    PASS=0
+  fi
 else
   echo "AUDIO-TEST: skipped (no aira_audiotest=1)"
 fi

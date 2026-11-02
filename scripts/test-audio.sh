@@ -138,6 +138,18 @@ else
   bad "QEMU audio test uses duplex HDA codec"
 fi
 
+echo "--- normal-user audio device access is group-scoped ---"
+if grep -Fxq 'snd/.* root:audio 660' "$ROOT/initramfs/etc/mdev.conf"; then
+  ok "ALSA device nodes assigned to audio group with mode 660"
+else
+  bad "ALSA device nodes assigned to audio group with mode 660"
+fi
+if grep -Fxq 'audio:x:29:aira' "$ROOT/initramfs/etc/group"; then
+  ok "desktop user is a member of the audio group"
+else
+  bad "desktop user is a member of the audio group"
+fi
+
 echo
 echo "AUDIO TEST: PASS=$PASS FAIL=$FAIL"
 [ "$FAIL" = "0" ]
