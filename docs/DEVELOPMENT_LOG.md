@@ -523,3 +523,21 @@
 - Full QEMU workflow run [40684589522](https://github.com/manansulya01/Aira-Octave/actions/runs/40684589522) passed, including the two-boot storage test that writes a marker as the unprivileged `aira` account and verifies it on the next boot.
 - PR #30 separately passed the stronger ISO boot test with the companion persistent rootfs attached in run [40682408887](https://github.com/manansulya01/Aira-Octave/actions/runs/40682408887).
 - Remaining daily-use blocker: desktop application privilege separation is still under verification in PR #33. The X server remains privileged in that proposed change; do not describe it as fully rootless graphics or as certified for physical hardware.
+
+## 2026-11-03 — Default desktop boot merged; security posture re-audited
+
+- Merged PR #36 (`7ad20c0`): the default release ISO entry requests the desktop;
+  the autotest entry remains separate and serial recovery remains available.
+- The PR's full QEMU workflow passed: kernel/initramfs build, desktop and GUI
+  checks, network/loopback, safe recovery, persistence, support bundle,
+  release artifact creation, and generated ISO boot. Core shell checks passed.
+- Re-audited `docs/SECURITY.md` against the current account files, init path,
+  and desktop privilege model. The prior document was stale: it still claimed
+  the GUI ran as root after the unprivileged desktop change.
+- Documented remaining release blockers explicitly: locked account passwords,
+  no end-to-end authenticated login, no firewall baseline, no trusted signed
+  update chain, no Secure Boot/full-disk encryption, and incomplete physical
+  hardware validation.
+- These documentation corrections do not close those security gaps or make
+  the OS daily-use ready. Fresh main-branch workflows triggered by the merge
+  are still required before treating the merged revision as verified.

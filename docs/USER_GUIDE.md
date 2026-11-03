@@ -1,8 +1,15 @@
 # AiraOS-Octave User Guide
 
-## Shell
-Boot reaches `~ #` (root). Try: `aira info`, `aira system`, `aira diagnose`, `aira network`, `airapkg list`. For machine-readable system details, run `/usr/bin/aira-info --json`.
+## First boot and shell access
+The default release ISO entry requests automatic desktop startup when the
+companion persistent root filesystem is attached. The serial console remains
+available as a recovery shell and currently opens as root; it is not an
+authenticated login prompt. The shipped root and aira accounts have locked
+passwords, so do not assume multi-user login is configured.
 
+For diagnostics from the serial recovery shell, try: `aira info`,
+`aira system`, `aira diagnose`, `aira network`, `airapkg list`. For
+machine-readable system details, run `/usr/bin/aira-info --json`.
 ## Files/persistence
 - Root is initramfs (RAM). Persistent disk at /persist (if booted with -drive). Test: `echo hi > /persist/me.txt`, reboot with same image, file remains (automated in test-storage.sh).
 
