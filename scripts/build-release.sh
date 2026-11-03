@@ -84,7 +84,7 @@ serial --speed=115200 --unit=0 --word=8 --parity=no --stop=1
 terminal_input serial
 terminal_output serial
 menuentry "AiraOS-Octave" {
-  linux /boot/bzImage console=ttyS0 rdinit=/init loglevel=7
+  linux /boot/bzImage console=ttyS0 rdinit=/init loglevel=7 aira_gui=1
   initrd /boot/initramfs.cpio
 }
 menuentry "AiraOS-Octave (autotest)" {
