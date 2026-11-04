@@ -56,6 +56,7 @@ echo "SYNC docs -> initramfs/usr/share/doc/aira-octave" | tee -a "$LOG"
 for x in \
   "$SRC/init" \
   "$SRC/sbin/aira-ipc-handle" "$SRC/sbin/aira-ipcd" "$SRC/sbin/aira-init" \
+  "$SRC/sbin/aira-install" "$SRC/sbin/aira-update" \
   "$SRC/sbin/guest-autotest.sh" "$SRC/sbin/guest-demo.sh" "$SRC/sbin/guest-supporttest.sh" \
   "$SRC/sbin/guest-fileops.sh" "$SRC/sbin/guest-guidemo.sh" \
   "$SRC/sbin/guest-guivisible.sh" "$SRC/sbin/guest-inputtest.sh" \
@@ -87,6 +88,7 @@ done
 for need in init sbin/aira-ipc-handle sbin/guest-nettest.sh \
             sbin/guest-netpersist.sh sbin/guest-devperm.sh \
             sbin/guest-usertest.sh sbin/guest-supporttest.sh \
+            sbin/aira-install sbin/aira-update \
             usr/bin/aira-net usr/bin/aira-doctor usr/bin/aira-user usr/bin/aira-support-bundle \
             etc/aira/doctor-probes etc/aira/settings-schema \
             etc/aira/ipc/handlers/network; do
