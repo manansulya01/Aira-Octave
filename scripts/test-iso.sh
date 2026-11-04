@@ -3,8 +3,49 @@
 set -u
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT" || exit 1
-VER="${1:-1.5.0}"
-ISO="$ROOT/release/aira-octave-$VER.iso"
+ARG="${1:-1.5.0}"
+
+# Accept a release version or an ISO path resolving to a direct file in this
+# repository's release directory. realpath also blocks traversal and symlink
+# escapes; lexical glob checks alone are not sufficient.
+if [[ "$ARG" == */* || "$ARG" == *.iso ]]; then
+  case "$ARG" in
+    "$ROOT"/*) ISO_CANDIDATE="$ARG" ;;
+    /*)
+      echo "ERROR: absolute ISO path must be inside this repository: $ARG"
+      exit 2
+      ;;
+    *) ISO_CANDIDATE="$ROOT/$ARG" ;;
+  esac
+  if ! command -v realpath >/dev/null 2>&1; then
+    echo "ERROR: realpath is required to validate ISO paths safely."
+    exit 2
+  fi
+  RELEASE_DIR="$(realpath -m -- "$ROOT/release")"
+  ISO="$(realpath -m -- "$ISO_CANDIDATE")"
+  if [[ "$(dirname -- "$ISO")" != "$RELEASE_DIR" ]]; then
+    echo "ERROR: ISO must resolve to a direct file inside $RELEASE_DIR: $ARG"
+    exit 2
+  fi
+  ISO_NAME="${ISO##*/}"
+  if [[ "$ISO_NAME" != aira-octave-*.iso ]]; then
+    echo "ERROR: ISO filename must be aira-octave-<version>.iso: $ISO_NAME"
+    exit 2
+  fi
+  VER="${ISO_NAME#aira-octave-}"
+  VER="${VER%.iso}"
+  if [[ -z "$VER" || "$VER" == "$ISO_NAME" || ! "$VER" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]]; then
+    echo "ERROR: invalid release ISO filename: $ISO_NAME"
+    exit 2
+  fi
+else
+  VER="$ARG"
+  if [[ ! "$VER" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]]; then
+    echo "ERROR: invalid release version: $VER"
+    exit 2
+  fi
+  ISO="$ROOT/release/aira-octave-$VER.iso"
+fi
 OUTDIR="$ROOT/logs/final-completion/release"
 mkdir -p "$OUTDIR"
 TS="$(date -u +%Y%m%d-%H%M%S)"
