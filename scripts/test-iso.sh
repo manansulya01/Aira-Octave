@@ -28,6 +28,10 @@ if [[ "$ARG" == */* || "$ARG" == *.iso ]]; then
     echo "ERROR: invalid release ISO filename: $ISO_NAME"
     exit 2
   fi
+  if [[ ! "$VER" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]]; then
+    echo "ERROR: invalid release version in ISO filename: $ISO_NAME"
+    exit 2
+  fi
 else
   VER="$ARG"
   if [[ ! "$VER" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]]; then
