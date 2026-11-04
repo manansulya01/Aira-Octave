@@ -5,31 +5,27 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT" || exit 1
 ARG="${1:-1.5.0}"
 
-# Accept either a release version (1.5.0) or the exact ISO path supplied by
-# test-all.sh (release/aira-octave-1.5.0.iso or an absolute repo path).
+# Accept a release version or a direct ISO entry in this repository's
+# release/ directory. Reject nested paths and traversal components.
 if [[ "$ARG" == */* || "$ARG" == *.iso ]]; then
-  case "$ARG" in
-    "$ROOT"/release/aira-octave-*.iso)
-      ISO="$ARG"
-      ISO_NAME="${ARG##*/}"
-      ;;
-    release/aira-octave-*.iso)
-      ISO="$ROOT/$ARG"
-      ISO_NAME="${ARG##*/}"
-      ;;
-    *)
-      echo "ERROR: ISO path must point to release/aira-octave-<version>.iso inside this repository: $ARG"
-      exit 2
-      ;;
-  esac
-  VER="${ISO_NAME#aira-octave-}"
-  VER="${VER%.iso}"
-  if [[ -z "$VER" || "$VER" == "$ISO_NAME" ]]; then
-    echo "ERROR: invalid release ISO filename: $ISO_NAME"
+  if [[ "$ARG" == "$ROOT/release/"* ]]; then
+    ISO_NAME="${ARG#"$ROOT/release/"}"
+    ISO="$ARG"
+  elif [[ "$ARG" == release/* ]]; then
+    ISO_NAME="${ARG#release/}"
+    ISO="$ROOT/release/$ISO_NAME"
+  else
+    echo "ERROR: ISO path must be a direct file in this repository's release/ directory: $ARG"
     exit 2
   fi
-  if [[ ! "$VER" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]]; then
-    echo "ERROR: invalid release version in ISO filename: $ISO_NAME"
+  if [[ "$ISO_NAME" == */* || "$ISO_NAME" != aira-octave-*.iso ]]; then
+    echo "ERROR: ISO path must name release/aira-octave-<version>.iso directly: $ARG"
+    exit 2
+  fi
+  VER="${ISO_NAME#aira-octave-}"
+  VER="${VER%.iso}"
+  if [[ -z "$VER" || "$VER" == "$ISO_NAME" || ! "$VER" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]]; then
+    echo "ERROR: invalid release ISO filename: $ISO_NAME"
     exit 2
   fi
 else
