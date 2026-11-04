@@ -5,21 +5,31 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT" || exit 1
 ARG="${1:-1.5.0}"
 
-# Accept a release version or a direct ISO entry in this repository's
-# release/ directory. Reject nested paths and traversal components.
+# Accept a release version or an ISO path resolving to a direct file in this
+# repository's release directory. realpath also blocks traversal and symlink
+# escapes; lexical glob checks alone are not sufficient.
 if [[ "$ARG" == */* || "$ARG" == *.iso ]]; then
-  if [[ "$ARG" == "$ROOT/release/"* ]]; then
-    ISO_NAME="${ARG#"$ROOT/release/"}"
-    ISO="$ARG"
-  elif [[ "$ARG" == release/* ]]; then
-    ISO_NAME="${ARG#release/}"
-    ISO="$ROOT/release/$ISO_NAME"
-  else
-    echo "ERROR: ISO path must be a direct file in this repository's release/ directory: $ARG"
+  case "$ARG" in
+    "$ROOT"/*) ISO_CANDIDATE="$ARG" ;;
+    /*)
+      echo "ERROR: absolute ISO path must be inside this repository: $ARG"
+      exit 2
+      ;;
+    *) ISO_CANDIDATE="$ROOT/$ARG" ;;
+  esac
+  if ! command -v realpath >/dev/null 2>&1; then
+    echo "ERROR: realpath is required to validate ISO paths safely."
     exit 2
   fi
-  if [[ "$ISO_NAME" == */* || "$ISO_NAME" != aira-octave-*.iso ]]; then
-    echo "ERROR: ISO path must name release/aira-octave-<version>.iso directly: $ARG"
+  RELEASE_DIR="$(realpath -m -- "$ROOT/release")"
+  ISO="$(realpath -m -- "$ISO_CANDIDATE")"
+  if [[ "$(dirname -- "$ISO")" != "$RELEASE_DIR" ]]; then
+    echo "ERROR: ISO must resolve to a direct file inside $RELEASE_DIR: $ARG"
+    exit 2
+  fi
+  ISO_NAME="${ISO##*/}"
+  if [[ "$ISO_NAME" != aira-octave-*.iso ]]; then
+    echo "ERROR: ISO filename must be aira-octave-<version>.iso: $ISO_NAME"
     exit 2
   fi
   VER="${ISO_NAME#aira-octave-}"
