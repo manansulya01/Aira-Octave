@@ -3,8 +3,39 @@
 set -u
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT" || exit 1
-VER="${1:-1.5.0}"
-ISO="$ROOT/release/aira-octave-$VER.iso"
+ARG="${1:-1.5.0}"
+
+# Accept either a release version (1.5.0) or the exact ISO path supplied by
+# test-all.sh (release/aira-octave-1.5.0.iso or an absolute repo path).
+if [[ "$ARG" == */* || "$ARG" == *.iso ]]; then
+  case "$ARG" in
+    "$ROOT"/release/aira-octave-*.iso)
+      ISO="$ARG"
+      ISO_NAME="${ARG##*/}"
+      ;;
+    release/aira-octave-*.iso)
+      ISO="$ROOT/$ARG"
+      ISO_NAME="${ARG##*/}"
+      ;;
+    *)
+      echo "ERROR: ISO path must point to release/aira-octave-<version>.iso inside this repository: $ARG"
+      exit 2
+      ;;
+  esac
+  VER="${ISO_NAME#aira-octave-}"
+  VER="${VER%.iso}"
+  if [[ -z "$VER" || "$VER" == "$ISO_NAME" ]]; then
+    echo "ERROR: invalid release ISO filename: $ISO_NAME"
+    exit 2
+  fi
+else
+  VER="$ARG"
+  if [[ ! "$VER" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]]; then
+    echo "ERROR: invalid release version: $VER"
+    exit 2
+  fi
+  ISO="$ROOT/release/aira-octave-$VER.iso"
+fi
 OUTDIR="$ROOT/logs/final-completion/release"
 mkdir -p "$OUTDIR"
 TS="$(date -u +%Y%m%d-%H%M%S)"
