@@ -133,19 +133,25 @@ aira-recovery with check/fix modes:
 - Packages: verify, rollback broken
 - Graphics: restart X server
 
-## Installation & Updates (1.5)
+## Installation & Updates — current implementation status
 
-**Installer** (aira-install):
-- Disk partitioning (fdisk)
-- ext4 filesystem creation
-- System copy from /persist or initramfs
-- GRUB bootloader installation
-- User creation with password
+**Supported host-side installer** (`scripts/install-to-disk.sh`):
+- Requires root privileges on a Linux build/install host and a checksum-verified release.
+- Rechecks the release checksum manifest and validates the ext filesystem image before touching the target.
+- Requires an explicitly selected whole disk, refuses mounted targets, checks minimum capacity, then creates a DOS/MBR partition, ext4 filesystem, and legacy BIOS GRUB boot path.
+- Interactive erase confirmation is required by default. Unattended use requires both `--yes` and `--allow-erase`.
+- **Limitations:** BIOS/MBR only; no UEFI/Secure Boot path; target-disk installation has not yet been certified across physical hardware.
 
-**Updater** (aira-update):
-- Atomic updates with snapshot rollback
-- Version tracking in /etc/os-release
-- SHA256 verification
+**In-guest installer** (`/sbin/aira-install`):
+- Deliberately fails closed and does not partition or format disks. The live initramfs does not yet provide a complete, supported self-install workflow.
+
+**Updater** (`/sbin/aira-update`):
+- Reports the current version and whether a state directory exists.
+- Remote check/download/install/rollback commands deliberately fail closed.
+- **Not implemented yet:** a trusted signed update feed, signature verification, an atomic OS update transaction, and a verified rollback snapshot. The presence of a legacy marker or an `.apkg` file is not proof of a valid rollback image.
+- Local application package transactions are handled separately by `airapkg`; they are not an OS updater.
+
+These limitations are intentional security boundaries, not completed features. Do not advertise OS installation from the live desktop or automatic OS updates as available until their end-to-end implementations and recovery tests pass.
 
 ## Development SDK (1.5)
 

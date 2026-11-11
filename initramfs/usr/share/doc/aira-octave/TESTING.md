@@ -4,8 +4,12 @@
 ```bash
 bash scripts/test-kernel.sh      # boot to userspace (markers, no panic)
 bash scripts/test-userspace.sh   # /init layout, busybox applets, aira CLI, services, users
+bash scripts/test-support-bundle.sh # guest integration/privacy checks (requires QEMU)
+bash scripts/test-build-rootfs-atomic.sh # mocked failure/success image-publication checks
 bash scripts/test-storage.sh     # ext4 persist: create file, reboot, verify
+bash scripts/test-build-release-guards.sh # mocked release failure/checksum checks
 bash scripts/test-network.sh     # lo + eth0 + dhcp/ping where permitted
+bash scripts/test-safe-mode.sh  # aira_safe=1 skips persistence/services and reaches shell
 bash scripts/test-services.sh    # start/stop/restart/status/deps
 bash scripts/test-gui.sh         # Xvfb headless: desktop + 5 apps start, no crash
 bash scripts/test-all.sh         # all above, single PASS/FAIL + logs

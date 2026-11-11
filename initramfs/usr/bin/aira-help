@@ -126,6 +126,8 @@ DOCUMENTATION (shipped in /usr/share/doc/aira-octave)
 -----------------------------------------------------
 aira-help docs            - List shipped documents
 aira-help docs <name.md>  - Print a document
+aira-help doctor          - Run the system health check now (aira-doctor)
+aira-help diagnose        - Run the full diagnostic dump now
 Highlights: ARCHITECTURE.md, USER_GUIDE.md, TESTING.md,
             SECURITY.md, TROUBLESHOOTING.md, PACKAGE_MANAGEMENT.md,
             CAPABILITY-MATRIX.md
@@ -139,18 +141,39 @@ if [ $# -eq 0 ]; then
 elif [ "${1:-}" = "-h" ] || [ "${1:-}" = "--help" ] || [ "${1:-}" = "help" ]; then
     cat "$HELP_DIR/index.txt" | less -R 2>/dev/null || cat "$HELP_DIR/index.txt"
 elif [ "${1:-}" = "docs" ]; then
+    DOC_DIR="${AIRA_DOC_DIR:-/usr/share/doc/aira-octave}"
     if [ -n "${2:-}" ]; then
         # cat a specific shipped document (name only, no path traversal)
         _doc="${2##*/}"
-        if [ -f "/usr/share/doc/aira-octave/$_doc" ]; then
-            cat "/usr/share/doc/aira-octave/$_doc"
+        if [ -f "$DOC_DIR/$_doc" ]; then
+            cat "$DOC_DIR/$_doc"
         else
             echo "no such document: $_doc (try: aira-help docs)" >&2
             exit 1
         fi
     else
-        ls /usr/share/doc/aira-octave 2>/dev/null || echo "(docs not installed)"
+        ls "$DOC_DIR" 2>/dev/null || echo "(docs not installed)"
     fi
+elif [ "${1:-}" = "doctor" ] || [ "${1:-}" = "diagnose" ]; then
+    # C8: launch the real diagnostics application instead of only describing
+    # it. `doctor` = health check (aira-doctor), `diagnose` = full dump
+    # (aira frontend). Child process, not exec: keeps the fallback-cache
+    # cleanup trap working. Honest failure when the tools are absent.
+    _sub="$1"
+    shift || true
+    if [ "$_sub" = "doctor" ]; then
+        if command -v aira-doctor >/dev/null 2>&1; then
+            aira-doctor "$@"; exit $?
+        elif command -v aira >/dev/null 2>&1; then
+            aira doctor "$@"; exit $?
+        fi
+    else
+        if command -v aira >/dev/null 2>&1; then
+            aira diagnose "$@"; exit $?
+        fi
+    fi
+    echo "aira-help: diagnostics not installed (try: aira $_sub)" >&2
+    exit 1
 else
     # Search for topic (leading dashes must not become grep options)
     TOPIC="$1"

@@ -1,8 +1,15 @@
 # AiraOS-Octave User Guide
 
-## Shell
-Boot reaches `~ #` (root). Try: `aira info`, `aira system`, `aira diagnose`, `aira network`, `airapkg list`.
+## First boot and shell access
+The default release ISO entry requests automatic desktop startup when the
+companion persistent root filesystem is attached. The serial console remains
+available as a recovery shell and currently opens as root; it is not an
+authenticated login prompt. The shipped root and aira accounts have locked
+passwords, so do not assume multi-user login is configured.
 
+For diagnostics from the serial recovery shell, try: `aira info`,
+`aira system`, `aira diagnose`, `aira network`, `airapkg list`. For
+machine-readable system details, run `/usr/bin/aira-info --json`.
 ## Files/persistence
 - Root is initramfs (RAM). Persistent disk at /persist (if booted with -drive). Test: `echo hi > /persist/me.txt`, reboot with same image, file remains (automated in test-storage.sh).
 
@@ -17,3 +24,40 @@ Boot reaches `~ #` (root). Try: `aira info`, `aira system`, `aira diagnose`, `ai
 2. Run `/persist/usr/bin/aira-session --headless` (or `aira-session` with display).
 3. Menu (right-click / Aira button): Terminal (xterm shell), File Manager (mc), Settings (hostname/net), System Information, About.
 4. Recovery: serial shell always available; `pkill Xvfb; pkill jwm` returns to text.
+
+## Safe boot / recovery shell
+
+If normal startup is broken, boot the kernel with `aira_safe=1` on the kernel command line. For the repository's QEMU runner:
+
+```bash
+bash scripts/boot-qemu.sh --append "aira_safe=1"
+```
+
+Safe mode keeps the initramfs root and essential `/dev`, `/proc`, and `/sys` setup, skips mounting the persistent `/dev/vda` disk, skips service startup, and bypasses automatic desktop/demo/test paths. It then opens the serial recovery shell. This is a minimal troubleshooting path, not a read-only guarantee for every initramfs file.
+
+
+## Diagnostic support bundle
+
+Run `aira support-bundle` to create a compressed diagnostic archive. By default it writes to `/persist` when mounted, otherwise to `/tmp`. You can provide an explicit output path:
+
+```sh
+aira support-bundle /persist/aira-support-bundle.tar.gz
+```
+
+The archive contains system, resource, storage, network, doctor, and selected log details. It excludes account databases, IPC runtime tokens, package databases, network profiles, home directories, and the raw kernel command line. It still contains local IP/routes/DNS and selected system logs; inspect it before sharing. Nothing is uploaded automatically.
+
+## Audio
+
+The ALSA tools are provided by the persistent desktop image. Attach the built
+`aira-rootfs.img` and use:
+
+- `aira-audio status` — inspect detected playback/capture devices and mixer controls.
+- `aira-audio start` — initialize a supported mixer control and set a moderate default level.
+- `aira-audio volume` or `aira-audio volume 50` — read or set the selected mixer volume.
+- `aira-audio mute` / `aira-audio unmute` — change the selected mixer state.
+- `aira-audio list` — list ALSA playback/capture devices.
+- `aira-audio test` — play a short test tone.
+
+These commands report failure when required tools, controls, or playback are
+unavailable; a command returning success is not a substitute for checking that
+the target machine's hardware and driver are supported.

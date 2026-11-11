@@ -5,7 +5,10 @@
 # No emoji: console and minimal X fonts lack coverage, so use ASCII markers.
 
 # Prefer the persistent disk for the once-ever flag; fall back to HOME.
-if grep -q ' /persist ' /proc/mounts 2>/dev/null && [ -w /persist ]; then
+# AIRA_WELCOME_DIR overrides for hermetic tests (same pattern as AIRA_HELP_DIR).
+if [ -n "${AIRA_WELCOME_DIR:-}" ]; then
+  WELCOME_DIR="$AIRA_WELCOME_DIR"
+elif grep -q ' /persist ' /proc/mounts 2>/dev/null && [ -w /persist ]; then
   WELCOME_DIR="/persist/.config/aira"
 else
   WELCOME_DIR="$HOME/.config/aira"
